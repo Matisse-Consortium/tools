@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FitsFileBrowser</class>
+ <widget class="QMainWindow" name="FitsFileBrowser">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1276</width>
+    <height>825</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Fits File Browser</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QSplitter" name="splitter">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="opaqueResize">
+         <bool>true</bool>
+        </property>
+        <property name="handleWidth">
+         <number>10</number>
+        </property>
+        <widget class="QTreeView" name="dirView"/>
+        <widget class="QTableView" name="fileView">
+         <property name="showGrid">
+          <bool>false</bool>
+         </property>
+         <property name="gridStyle">
+          <enum>Qt::NoPen</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="cornerButtonEnabled">
+          <bool>false</bool>
+         </property>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>48</width>
+     <height>48</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionEditFilter"/>
+   <addaction name="actionFilter"/>
+   <addaction name="separator"/>
+   <addaction name="actionViewHeader"/>
+   <addaction name="actionViewData"/>
+   <addaction name="actionOpenFile"/>
+   <addaction name="separator"/>
+  </widget>
+  <action name="actionFilter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="ressource.qrc">
+     <normaloff>:/icons/filter_data.ico</normaloff>:/icons/filter_data.ico</iconset>
+   </property>
+   <property name="text">
+    <string>Filter Files</string>
+   </property>
+   <property name="toolTip">
+    <string>Filter files</string>
+   </property>
+  </action>
+  <action name="actionEditFilter">
+   <property name="icon">
+    <iconset resource="ressource.qrc">
+     <normaloff>:/icons/filter_tool.ico</normaloff>:/icons/filter_tool.ico</iconset>
+   </property>
+   <property name="text">
+    <string>Edit Filter</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit filtering rules</string>
+   </property>
+  </action>
+  <action name="actionViewHeader">
+   <property name="icon">
+    <iconset resource="ressource.qrc">
+     <normaloff>:/icons/view_header.ico</normaloff>:/icons/view_header.ico</iconset>
+   </property>
+   <property name="text">
+    <string>View Header</string>
+   </property>
+   <property name="toolTip">
+    <string>View fits primary header</string>
+   </property>
+  </action>
+  <action name="actionViewData">
+   <property name="icon">
+    <iconset resource="ressource.qrc">
+     <normaloff>:/icons/view_data.ico</normaloff>:/icons/view_data.ico</iconset>
+   </property>
+   <property name="text">
+    <string>View Data</string>
+   </property>
+  </action>
+  <action name="actionOpenFile">
+   <property name="icon">
+    <iconset resource="ressource.qrc">
+     <normaloff>:/icons/open_data.ico</normaloff>:/icons/open_data.ico</iconset>
+   </property>
+   <property name="text">
+    <string>Open File</string>
+   </property>
+   <property name="toolTip">
+    <string>Open File</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="ressource.qrc"/>
+ </resources>
+ <connections/>
+</ui>
