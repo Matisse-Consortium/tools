@@ -7,15 +7,18 @@ Created on Wed Apr  5 10:18:07 2017
 """
 import wx
 import os
+import errno
 
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD",
-             "SHIFT_MAP", "NONLINEARITY", ""]
+             "SHIFT_MAP", "NONLINEARITY", "KAPPA_MATRIX"]
 
 mainPath = ""
 sofFile = ""
 row = 0;
 col = 0;
 guiTitle = "mat_raw_estimates";
+waitforupdate=0
+flagnosave=0
  
 ########################################################################
 class displayGui(wx.Frame):
@@ -29,13 +32,14 @@ class displayGui(wx.Frame):
         sizer = wx.GridBagSizer(3, len(fileTypes))
                          
         # Define the main buttons with the file selection here
-        self.btnDark = tributton(panel, sizer, fileTypes[0])
-        self.btnRaw  = tributton(panel, sizer, fileTypes[1])
-        self.btnFlat = tributton(panel, sizer, fileTypes[2])
-        self.btnShift= tributton(panel, sizer, fileTypes[3])
-        self.btnBPM  = tributton(panel, sizer, fileTypes[4])
-        self.btnNLM  = tributton(panel, sizer, fileTypes[5])
-        self.btns = [self.btnDark, self.btnRaw, self.btnFlat, self.btnShift, self.btnBPM, self.btnNLM]
+        self.btnDark = tributton(panel, sizer, fileTypes[0], 1)
+        self.btnRaw  = tributton(panel, sizer, fileTypes[1], 1)
+        self.btnFlat = tributton(panel, sizer, fileTypes[2], 1)
+        self.btnShift= tributton(panel, sizer, fileTypes[3], 1)
+        self.btnBPM  = tributton(panel, sizer, fileTypes[4], 1)
+        self.btnNLM  = tributton(panel, sizer, fileTypes[5], 1)
+        self.btnKappa  = tributton(panel, sizer, fileTypes[6], 0)
+        self.btns = [self.btnDark, self.btnRaw, self.btnFlat, self.btnShift, self.btnBPM, self.btnNLM, self.btnKappa]
         
         # Buttons for interactivity are set here
         btnOK = wx.Button(panel, label='Cancel', size=(60, -1))
@@ -53,6 +57,11 @@ class displayGui(wx.Frame):
         col = 2
         sizer.Add(btnSOF, (row, col))
         btnSOF.Bind(wx.EVT_BUTTON, self.OnGenSOF)
+                
+        btnRun = wx.Button(panel, label='Run!')
+        col = 3
+        sizer.Add(btnRun, (row, col))
+        btnRun.Bind(wx.EVT_BUTTON, self.OnRunRex)
          
         # Set simple sizer for a nice border
         border = wx.BoxSizer()
@@ -65,7 +74,8 @@ class displayGui(wx.Frame):
        # panel.SetSizer(sizer)
         
     def OnOpenSOF(self,e):
-        global mainPath, sofFile
+        global mainPath, sofFile, waitforupdate
+        waitforupdate = 1;
         dlg = wx.FileDialog(
         None,
         "Choose a SOF file",
@@ -95,48 +105,76 @@ class displayGui(wx.Frame):
         f.close()
         
         for idx, btn in enumerate(self.btns):
-            mainPath = os.path.dirname(btn.filelist[0])
-            btn.dirtxt.SetValue(mainPath)
-            # Get file list
-            mystring = [os.path.basename(fil) for fil in btn.filelist]
-            text = mystring[0];
-            for texti in mystring[1:]:
-                text += ", "+texti
-            btn.name.SetValue(os.path.basename(text))
+            if btn.filelist:
+                mainPath = os.path.dirname(btn.filelist[0])
+                btn.dirtxt.SetValue(mainPath)
+                # Get file list
+                mystring = [os.path.basename(fil) for fil in btn.filelist]
+                text = mystring[0];
+                for texti in mystring[1:]:
+                    text += ", "+texti
+                print("What's in the file")
+                print(text)
+                btn.filetxt.SetValue(text)
             
+        waitforupdate = 0;
        # wx.MessageBox('Nothing there! Come again later ;-)', 'Error', wx.OK | wx.ICON_ERROR)
         
     def OnGenSOF(self,e):
-        global mainPath, sofFile, guiTitle
-        # First things first: check values have been filled
-        for idx, btn in enumerate(self.btns):
-            if not btn.filelist:
-                wx.MessageBox('Please set first '+fileTypes[idx], 'Error', wx.OK | wx.ICON_ERROR)
-                return -1
-        
-        # Get file list
-        text = "";
-        for idx, btn in enumerate(self.btns):
-            for texti in btn.filelist:
-                text += texti+" "+fileTypes[idx]+"\n"
+        global mainPath, sofFile, guiTitle, flagnosave
+        if not flagnosave:
+                    
+                # First things first: check values have been filled
+            for idx, btn in enumerate(self.btns):
+                if not btn.filelist:
+                    if btn.checkPresent:
+                        wx.MessageBox('Please set first '+fileTypes[idx], 'Error', wx.OK | wx.ICON_ERROR)
+                        return -1
                 
-        if sofFile == "":
-            sofFile = mainPath+'/'+ guiTitle+'.sof'
-        print("writing SOF file "+sofFile)
-        f = open(sofFile, 'w')
-        f.writelines(text)
-        f.close()
-    
+            print("writing SOF file "+sofFile)
         
+            if sofFile == "":
+                sofFile = mainPath+'/../sof/'+ guiTitle+'.sof'
+            self.make_sure_path_exists(sofFile)
+        
+            # Get file list
+            text = "";
+            for idx, btn in enumerate(self.btns):
+                for texti in btn.filelist:
+                    text += texti+" "+fileTypes[idx]+"\n"
+            f = open(sofFile, 'w')
+            f.writelines(text)
+            f.close()
+        else:
+            wx.MessageBox('Please correct first red boxes', 'Error', wx.OK | wx.ICON_ERROR)
+            
+                
+    def OnRunRex(self,e):
+        global guiTitle
+        command = "esorex "+guiTitle+" "+sofFile
+        #dlg = wx.MessageBox("Please wait, I'm thinking...", 'Please wait...', wx.ICON_EXCLAMATION)
+        os.system(command)
+        #dlg.Destroy()
+        
+                
     def OnClose(self,e):
-        self.Close(True)    
+        self.Close(True) 
+                
+    def make_sure_path_exists(self,path):
+        directory = os.path.dirname(path)
+        try:
+            os.makedirs(directory)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
   
 ########################################################################
 class tributton(wx.Frame):
     #-------------------
-    def __init__(self, panel, sizer, typeFile):
+    def __init__(self, panel, sizer, typeFile, checkPresent):
         # Placing variables for GUI are global
         global row, col, mainPath
+        self.checkPresent = checkPresent
         # output filelist for the recipe is init here
         self.filelist = [];
         # Put typefile as internal global variable for the class
@@ -146,18 +184,18 @@ class tributton(wx.Frame):
         self.txt     = wx.StaticText(panel, label=typeFile, name=typeFile)
         
         self.dirdsc  = wx.StaticText(panel, label="dir", name="dir")
-        self.dirtxt  =   wx.TextCtrl(panel, size=(400, -1))
+        self.dirtxt  = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)
         self.dirmod  = wx.StaticText(panel, label="", name="dirmod")
         
         self.filedsc = wx.StaticText(panel, label="files", name="files")
-        self.name    =   wx.TextCtrl(panel, size=(400, -1))
+        self.filetxt = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)
         self.filemod = wx.StaticText(panel, label="", name="filemod")
         
-        self.btn     =     wx.Button(panel, label="Select", name=typeFile)
+        self.btn     = wx.Button    (panel, label="Select", name=typeFile)
         
-        self.dirtxt.Bind(wx.EVT_TEXT,   self.onDirTxt)
-        self.name.Bind(  wx.EVT_TEXT,   self.onFileTxt)
-        self.btn.Bind(   wx.EVT_BUTTON, self.onButton)
+        self.dirtxt.Bind( wx.EVT_TEXT,   self.onDirTxt)
+        self.filetxt.Bind(wx.EVT_TEXT,   self.onFileTxt)
+        self.btn.Bind(    wx.EVT_BUTTON, self.onButton)
         #sizer.Add(btn, 0, wx.ALL, 5)
         
         row += 1
@@ -173,30 +211,63 @@ class tributton(wx.Frame):
         col  = 1
         sizer.Add(self.filedsc, (row, col))
         col += 1
-        sizer.Add(self.name,(row, col))
+        sizer.Add(self.filetxt,(row, col))
         col += 1
         sizer.Add(self.filemod, (row, col))
         col += 1
         sizer.Add(self.btn, (row, col))
-        
+                        
     #----------------------------------------------------------------------
     def onDirTxt(self, event):
-        global mainPath, sofFile
-        self.name.AutoCompleteDirectories()
-        self.dirmod.SetLabel("*")
+        global mainPath, sofFile, waitforupdate, flagnosave
+        if not waitforupdate:
+            self.dirmod.SetLabel("*")
         
+            text = self.dirtxt.GetValue()
+            if not os.path.isdir(text):
+                self.dirtxt.SetBackgroundColour(wx.RED)
+                flagnosave = 1;
+            else:
+                self.dirtxt.SetBackgroundColour(wx.WHITE)
+                self.filelist = self.getFilelistFromText()
+                flagnosave = 0
+            
+                    
     #----------------------------------------------------------------------
     def onFileTxt(self, event):
-        global mainPath, sofFile
-        self.filemod.SetLabel("*")
+        global mainPath, sofFile, waitforupdate, flagnosave
+        if not waitforupdate:
+            self.filemod.SetLabel("*")
+        
+            filelist = self.getFilelistFromText()
+            print(filelist)
+       #     print(txtfile)
+            if not all(os.path.isfile(x) for x in filelist):
+                self.filetxt.SetBackgroundColour(wx.RED)
+                flagnosave = 1;
+            else:
+                self.filetxt.SetBackgroundColour(wx.WHITE)
+                self.filelist = self.getFilelistFromText()
+                flagnosave = 0
+                            
+    def getFilelistFromText(self):
+        dirtxt  = self.dirtxt.GetValue()
+        filtxt  = self.filetxt.GetValue()
+        files = filtxt.split(", ")
+        filelist = []
+        for fle in files:
+            filelist.append(dirtxt + "/" + fle)
+        return filelist
+        
         
     #----------------------------------------------------------------------
     def onButton(self, event):
-        global mainPath, sofFile
+        global mainPath, sofFile, waitforupdate
         """
         This method is fired when its corresponding button is pressed
         """
-        button = event.GetEventObject()
+        waitforupdate = 1;
+        #button = event.GetEventObject()
         
         dlg = wx.FileDialog(
         None,
@@ -211,23 +282,31 @@ class tributton(wx.Frame):
         )
         if dlg.ShowModal() == wx.ID_OK:
             self.filelist = dlg.GetPaths()
+            
             print "You chosed the following file(s):"
             print self.filelist
         
             mainPath = os.path.dirname(self.filelist[0])
-            if sofFile == "":
-                sofFile = mainPath+'/'+ guiTitle+'.sof'
+                
             self.dirtxt.SetValue(mainPath)
             # Get file list
             mystring = [os.path.basename(fil) for fil in self.filelist]
             text = mystring[0];
             for texti in mystring[1:]:
                 text += ", "+texti
-            self.name.SetValue(os.path.basename(text))
-            dlg.Destroy()
+            #self.filetxt.SetValue(os.path.basename(text))
+            self.filetxt.SetValue(text)
+            
+            print("selected files")
+            print(text)
             print "You selected a "+self.typeFile
+            dlg.Destroy()
+            
         self.filemod.SetLabel("")
+        self.filetxt.SetBackgroundColour(wx.WHITE)
         self.dirmod.SetLabel("")
+        self.dirtxt.SetBackgroundColour(wx.WHITE)
+        waitforupdate = 0;
                             
 #----------------------------------------------------------------------
 # Run the program
