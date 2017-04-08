@@ -7,6 +7,7 @@ Created on Wed Apr  5 10:18:07 2017
 """
 import wx
 import os
+import pwd
 import errno
 
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD",
@@ -42,24 +43,32 @@ class displayGui(wx.Frame):
         self.btns = [self.btnDark, self.btnRaw, self.btnFlat, self.btnShift, self.btnBPM, self.btnNLM, self.btnKappa]
         
         # Buttons for interactivity are set here
+                
+        btnOpenSOF = wx.Button(panel, label='Open SOF')
+        col = 0
+        row += 1
+        sizer.Add(btnOpenSOF, (row, col))
+        btnOpenSOF.Bind(wx.EVT_BUTTON, self.OnOpenSOF)
+                
+        col = 2
+        self.btnTextSOF = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)
+        sizer.Add(self.btnTextSOF, (row, col))
+        self.btnTextSOF.Bind(wx.EVT_TEXT, self.OnTextSOF)
+                
+        btnSOF     = wx.Button(panel, label='Generate SOF')
+        col = 4
+        sizer.Add(btnSOF, (row, col))
+        btnSOF.Bind(wx.EVT_BUTTON, self.OnGenSOF)
+        
+        
         btnOK = wx.Button(panel, label='Cancel', size=(60, -1))
         col = 0
         row += 1
         sizer.Add(btnOK, (row, col))
         btnOK.Bind(wx.EVT_BUTTON, self.OnClose)
                 
-        btnOpenSOF = wx.Button(panel, label='Open SOF')
-        col = 1
-        sizer.Add(btnOpenSOF, (row, col))
-        btnOpenSOF.Bind(wx.EVT_BUTTON, self.OnOpenSOF)
-                
-        btnSOF = wx.Button(panel, label='Generate SOF')
-        col = 2
-        sizer.Add(btnSOF, (row, col))
-        btnSOF.Bind(wx.EVT_BUTTON, self.OnGenSOF)
-                
         btnRun = wx.Button(panel, label='Run!')
-        col = 3
+        col = 4
         sizer.Add(btnRun, (row, col))
         btnRun.Bind(wx.EVT_BUTTON, self.OnRunRex)
          
@@ -72,6 +81,11 @@ class displayGui(wx.Frame):
         self.SetSizerAndFit(sizer)
         
        # panel.SetSizer(sizer)
+        
+    def OnTextSOF(self,e):
+        global sofFile
+       # print("yeah man!")     
+        sofFile  = self.btnTextSOF.GetValue()   
         
     def OnOpenSOF(self,e):
         global mainPath, sofFile, waitforupdate
@@ -88,6 +102,8 @@ class displayGui(wx.Frame):
             sofFile = dlg.GetPath()
             print "You chosed the following file(s):"
             print sofFile
+            
+        self.btnTextSOF.SetValue(sofFile)
         
         for idx, btn in enumerate(self.btns):
             btn.filelist = [];
@@ -95,26 +111,29 @@ class displayGui(wx.Frame):
         f = open(sofFile, 'r')
         for line in f:
             line = line.strip()
-            columns = line.split()
-            filename = columns[0]
-            filetype = columns[1]
-            for idx, btn in enumerate(self.btns):
-                if filetype == fileTypes[idx]:
-                    btn.filelist.append(filename)
+            if line:
+                columns  = line.split()
+                filename = columns[0]
+                filetype = columns[1]
+                for idx, btn in enumerate(self.btns):
+                    if filetype == fileTypes[idx]:
+                        btn.filelist.append(filename)
            # print(filename, filetype)
         f.close()
         
         for idx, btn in enumerate(self.btns):
             if btn.filelist:
                 mainPath = os.path.dirname(btn.filelist[0])
+                # Expand environment variables
+                mainPath = os.path.expandvars(mainPath)
                 btn.dirtxt.SetValue(mainPath)
                 # Get file list
                 mystring = [os.path.basename(fil) for fil in btn.filelist]
                 text = mystring[0];
                 for texti in mystring[1:]:
                     text += ", "+texti
-                print("What's in the file")
-                print(text)
+               # print("What's in the file")
+               # print(text)
                 btn.filetxt.SetValue(text)
             
         waitforupdate = 0;
@@ -134,7 +153,7 @@ class displayGui(wx.Frame):
             print("writing SOF file "+sofFile)
         
             if sofFile == "":
-                sofFile = mainPath+'/../sof/'+ guiTitle+'.sof'
+                sofFile = mainPath+'/../'+pwd.getpwuid( os.getuid() )[ 0 ]+'/sof/'+ guiTitle+'.sof'
             self.make_sure_path_exists(sofFile)
         
             # Get file list
@@ -147,18 +166,18 @@ class displayGui(wx.Frame):
             f.close()
         else:
             wx.MessageBox('Please correct first red boxes', 'Error', wx.OK | wx.ICON_ERROR)
-            
-                
+                            
     def OnRunRex(self,e):
         global guiTitle
-        command = "esorex "+guiTitle+" "+sofFile
-        #dlg = wx.MessageBox("Please wait, I'm thinking...", 'Please wait...', wx.ICON_EXCLAMATION)
+        command = "esorex "+guiTitle+" "+sofFile+"&";
+        print(command)
         os.system(command)
+        print("Ouaf ! Ouaf !")
+        wx.MessageBox("Process launched! This may take a while though. Why not drink a cup of tea?", 'Important information', wx.ICON_EXCLAMATION)
         #dlg.Destroy()
-        
-                
+                        
     def OnClose(self,e):
-        self.Close(True) 
+        self.Close() 
                 
     def make_sure_path_exists(self,path):
         directory = os.path.dirname(path)
@@ -240,7 +259,7 @@ class tributton(wx.Frame):
             self.filemod.SetLabel("*")
         
             filelist = self.getFilelistFromText()
-            print(filelist)
+           # print(filelist)
        #     print(txtfile)
             if not all(os.path.isfile(x) for x in filelist):
                 self.filetxt.SetBackgroundColour(wx.RED)
