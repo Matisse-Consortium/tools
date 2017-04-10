@@ -1,7 +1,7 @@
 #!/usr/bin/python  
 # -*- coding: utf-8 -*-
 """
-  $Id:  $
+  $Id$
  
   This file is part of the Matisse pipeline GUI series
   Copyright (C) 2017- Observatoire de la Côte d'Azur
@@ -22,9 +22,9 @@
  
 Created on Wed Apr  5 10:18:07 2017
 
-  $Author: fmillour $
-  $Date:  $
-  $Revision:  $
+  $Author$
+  $Date$
+  $Revision$
   $Name:  $
 """
 
