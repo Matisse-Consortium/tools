@@ -14,6 +14,8 @@ from fitsheaderviewer import fitsHeaderViewer
 fvpath = "C:/fv/bin/fv.exe"
 iconspath=os.path.join(os.path.dirname(__file__),"icons")
  
+###############################################################################
+ 
 class fileViewerKeyword:
     def __init__(self,headerkeyword=None,name=None,checkheader=None,checkheader_cases=None,function=None,source=None):
         self.headerkeyword=headerkeyword
@@ -54,6 +56,7 @@ class fileViewerKeyword:
             res+=" SOURCE={0}".format(self.source)    
         return res
 
+###############################################################################
 
 def matisseType(header):   
     res=""
@@ -117,7 +120,7 @@ def matisseType(header):
         res=catg        
     return res
  
- 
+###############################################################################
   
 keywords=[]
 keywords.append(fileViewerKeyword(function="matisseType",source="header",name="DoCatg"))
@@ -128,7 +131,7 @@ keywords.append(fileViewerKeyword(headerkeyword=["HIERARCH ESO INS PIL NAME","HI
 keywords.append(fileViewerKeyword(headerkeyword=["HIERARCH ESO INS DIL NAME","HIERARCH ESO INS DIN NAME"],checkheader="HIERARCH ESO DET CHIP NAME",checkheader_cases=["HAWAII-2RG","AQUARIUS"],name="Resolution"))
 
 
- 
+############################################################################### 
  
 class matisseFile(object):
     def __init__(self,filename,folder):
@@ -172,6 +175,7 @@ class matisseFile(object):
             else:
                 self.icon="Normal File" 
                 
+###############################################################################
                 
 matisseColor={
 "DARK":wx.Colour(255,255,0),
@@ -198,13 +202,13 @@ matisseColor={
 "HOT_DARK":wx.Colour(50,250,250),
 "CALIB_SRC_RAW":wx.Colour(0,50,0) 
 }
-
-
-
+###############################################################################
 
 def FileImageGetter(matFile):   
    return matFile.icon
-    
+   
+###############################################################################   
+   
 class dirButtons(wx.BoxSizer):
   
     def __init__(self, parent,path="",updateFunction=None):
@@ -212,7 +216,6 @@ class dirButtons(wx.BoxSizer):
         self.parent=parent   
         self.setPath(path)
         self.updateFunction=updateFunction
-        
        
     def setPath(self,path):        
         self.path=path
@@ -229,7 +232,7 @@ class dirButtons(wx.BoxSizer):
             size+=buti.GetSize()[0]
             buti.Bind(wx.EVT_BUTTON, self.ButtonClicked)
         
-        self.AddSpacer(-size)  #je ne sais pas pourquoi il faut ajouter ça pour que l'affichage soit correct
+        #self.AddSpacer(-size)  #je ne sais pas pourquoi il faut ajouter ça pour que l'affichage soit correct
         self.Layout()
 
     def ButtonClicked(self,event):
@@ -238,13 +241,19 @@ class dirButtons(wx.BoxSizer):
         newDir= ''.join([diri+"/" for diri in self.dirs[0:i+1]])
         if self.updateFunction:
             self.updateFunction(newDir)
-        
+
+###############################################################################
+      
 class mat_FileDialog(wx.Dialog):
   
     def __init__(self, parent, title=None,defaultDir=None,defaultFile=None,wildcard=None,style=None,pos=None):
         super(mat_FileDialog, self).__init__(parent, title=title, size=(1400, 600))
         
-        self.dir=defaultDir 
+        if defaultDir and os.path.isfile(defaultDir):
+              self.dir=defaultDir  
+        else:
+            self.dir=os.getcwd() 
+       
         self.InitUI()
         
         
@@ -439,12 +448,14 @@ class mat_FileDialog(wx.Dialog):
         print "Open with fv {0}".format(self.GetPaths())
         for filei in self.path:
             if filei.endswith('.fits'):
-                subprocess.Popen([fvpath,self.dirTree.GetPath()+'/'+filei])       
-    
+                subprocess.Popen([fvpath,self.dirTree.GetPath()+'/'+filei])    
+                
+############################################################################### 
+                
 if __name__ == '__main__':
   
     app = wx.App()
-    openFileDialog=mat_FileDialog(None, 'Open a file',"D:\\Documents\\Travail\\MATISSE\\DivMat")
+    openFileDialog=mat_FileDialog(None, 'Open a file',"lmk,")
     if openFileDialog.ShowModal()==wx.ID_OK:
         print openFileDialog.GetPaths()
     openFileDialog.Destroy()
