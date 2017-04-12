@@ -35,16 +35,19 @@ import errno
 
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD",
              "NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
+             
+guiTitle = "mat_raw_estimates";
 
 mainPath = ""
 sofFile  = ""
 runDir   = ""
 row = 0;
 col = 0;
-guiTitle = "mat_raw_estimates";
 waitforupdate=0
 flagnosave=0
  
+                
+
 ########################################################################
 class displayGui(wx.Frame):
     #----------------------------------------------------------------------
@@ -58,14 +61,9 @@ class displayGui(wx.Frame):
                          
         # Define the main buttons with the file selection here
                # input files part 
-        self.btnDark = tributton(panel, sizer, fileTypes[0], 1)
-        self.btnRaw  = tributton(panel, sizer, fileTypes[1], 1)
-        self.btnFlat = tributton(panel, sizer, fileTypes[2], 1)
-        self.btnShift= tributton(panel, sizer, fileTypes[3], 1)
-        self.btnBPM  = tributton(panel, sizer, fileTypes[4], 1)
-        self.btnNLM  = tributton(panel, sizer, fileTypes[5], 1)
-        self.btnKappa  = tributton(panel, sizer, fileTypes[6], 0)
-        self.btns = [self.btnDark, self.btnRaw, self.btnFlat, self.btnShift, self.btnBPM, self.btnNLM, self.btnKappa]
+        for typi in fileTypes:
+            self.__dict__[typi] = tributton(panel, sizer, typi, 1)
+        self.btns = [self.__dict__[typi] for typi in fileTypes]
         
         # Buttons for interactivity are set here
                 
@@ -412,8 +410,9 @@ class tributton(wx.Frame):
         self.filetxt.SetBackgroundColour(wx.WHITE)
         self.dirmod.SetLabel("")
         self.dirtxt.SetBackgroundColour(wx.WHITE)
-        waitforupdate = 0;
-                            
+        waitforupdate = 0;                
+                
+                
 #----------------------------------------------------------------------
 # Run the program
 if __name__ == "__main__":
