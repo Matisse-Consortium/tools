@@ -30,12 +30,11 @@ Created on Wed Apr  5 10:18:07 2017
 
 import wx
 import os
-#import pwd
+import pwd
 import errno
 from mat_fileDialog import mat_FileDialog 
 
-fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD",
-             "NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
+fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD","NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
              
 
                 
@@ -202,8 +201,8 @@ class displayGui(wx.Frame):
             print("writing SOF file "+self.sofFile)
         
             if self.sofFile == "":
-                #sofFile = mainPath+'/../'+pwd.getpwuid( os.getuid() )[ 0 ]+'/sof/'+ guiTitle+'.sof' ##########################################################
-                self.sofFile = self.mainPath+'/../'+'/sof/'+ self.guiTitle+'.sof'
+                self.sofFile = self.mainPath+'/../'+pwd.getpwuid( os.getuid() )[ 0 ]+'/sof/'+ self.guiTitle+'.sof' 
+                #self.sofFile = self.mainPath+'/../'+'/sof/'+ self.guiTitle+'.sof'  => For Windows!!!
             self.make_sure_path_exists(self.sofFile)
         
             # Get file list
