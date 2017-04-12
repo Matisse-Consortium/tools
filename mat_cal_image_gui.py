@@ -7,6 +7,7 @@ Created on Wed Apr  5 10:18:07 2017
 """
 import wx
 import os
+from  mat_fileDialog import mat_FileDialog
 
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "OBS_FLATFIELD",
              "SHIFT_MAP", "BADPIX", "NONLINEARITY"]
@@ -176,17 +177,12 @@ class tributton(wx.Frame):
         """
         button = event.GetEventObject()
         
-        dlg = wx.FileDialog(
-        None,
-        "Choose a "+self.typeFile,
-        mainPath,
-        "",
-        "FITS files (*.fits*; *.oifits*)|*.fits*;*.oifits*|" \
-         "FITS files (*.fits*)|*.fits*|" \
-         "OIFITS files (*.oifits*)|*.oifits*|" \
-         "All files (*.*)|*.*",
-        wx.MULTIPLE
-        )
+       #  dlg = wx.FileDialog( None,"Choose a "+self.typeFile, mainPath,"", "FITS files (*.fits*; *.oifits*)|*.fits*;*.oifits*|" \ "FITS files (*.fits*)|*.fits*|" \ "OIFITS files (*.oifits*)|*.oifits*|" \ "All files (*.*)|*.*",wx.MULTIPLE )
+        
+        
+
+        dlg = mat_FileDialog(None,title="Choose a "+self.typeFile)
+      
         if dlg.ShowModal() == wx.ID_OK:
             self.filelist = dlg.GetPaths()
             print "You chosed the following file(s):"
