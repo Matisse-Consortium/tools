@@ -11,12 +11,13 @@ from mat_generic_gui import displayGui
 
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD",
              "NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
+checkPresent = [1,1,1,1,1,1,0]
              
 GuiTitle="MAT_RAW_ESTIMATE"
 
 class mat_raw_estimates_gui(displayGui):
     def __init__(self):
-          super(mat_raw_estimates_gui, self).__init__(GuiTitle,".",fileTypes)
+          super(mat_raw_estimates_gui, self).__init__(GuiTitle,".",fileTypes, checkPresent)
        
 
 

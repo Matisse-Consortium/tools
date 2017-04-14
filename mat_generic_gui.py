@@ -35,6 +35,7 @@ import errno
 from mat_fileDialog import mat_FileDialog 
 
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD","NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
+checkPresent = [1,1,1,1,1,1,0]
              
 
                 
@@ -42,7 +43,7 @@ fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD","NONLINEARIT
 ########################################################################
 class displayGui(wx.Frame):
     #----------------------------------------------------------------------
-    def __init__(self,guiTitle="SOF GUI",mainpath=".",fileTypes=[]):
+    def __init__(self,guiTitle="SOF GUI",mainpath=".",fileTypes=[],checkPresent=[]):
         
         self.waitforupdate=0    
         self.flagnosave=0
@@ -68,14 +69,14 @@ class displayGui(wx.Frame):
         vbox.AddSpacer(30)     
         
         grid=wx.GridBagSizer(2,4)        
-        btnOpenSOF       = wx.Button(panel, label='Open SOF',size=(150, -1))
-        self.btnDescSOF  = wx.StaticText(panel, label="SOF file", name="dirRun",size=(100, -1))   
+        btnOpenSOF       = wx.Button    (panel, label='Open SOF',size=(100, -1))
+        self.btnDescSOF  = wx.StaticText(panel, label="SOF file", name="dirRun",size=(80, -1))   
         self.btnTextSOF  = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)
-        btnSOF           = wx.Button(panel, label='Generate SOF')
-        btnMagic         = wx.Button(panel, label='auto set',size=(150, -1))
-        self.btnDescRun  = wx.StaticText(panel, label="output dir", name="dirRun",size=(100, -1))               
-        self.btnTextRun = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)            
-        btnRun = wx.Button(panel, label='Run!')               
+        btnSOF           = wx.Button    (panel, label='Generate SOF',size=(110, -1))
+        btnMagic         = wx.Button    (panel, label='auto set',size=(100, -1))
+        self.btnDescRun  = wx.StaticText(panel, label="output dir", name="dirRun",size=(80, -1))               
+        self.btnTextRun  = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)            
+        btnRun           = wx.Button    (panel, label='Run!',size=(110, -1))               
         grid.Add(btnOpenSOF, (0, 0))    
         grid.Add(self.btnDescSOF, (0, 1))
         grid.Add(self.btnTextSOF, (0, 2))     
@@ -125,7 +126,7 @@ class displayGui(wx.Frame):
                     
             # Otherwise use SOF file directory
         if self.sofFile != "":
-            self.runDir = os.path.dirname(self.sofFile)+"/../Results/";
+            self.runDir = os.path.dirname(self.sofFile)+"/../Results_"+os.path.basename(os.path.splitext(self.sofFile)[0])+"/";
             
         print("Set the output path to"+self.runDir)
         # Expand environment variables
@@ -135,6 +136,14 @@ class displayGui(wx.Frame):
     def OnOpenSOF(self,e):
         #global mainPath, sofFile, waitforupdate
         self.waitforupdate = 1;
+        
+        #Init all text boxes
+        self.btnTextSOF.SetValue("")
+        self.btnTextRun.SetValue("")
+            # Test default directory
+        for btn in self.btns:
+            btn.dirtxt.SetValue("")
+            btn.filetxt.SetValue("")
         dlg = wx.FileDialog(
         None,
         "Choose a SOF file",
@@ -198,11 +207,12 @@ class displayGui(wx.Frame):
                         wx.MessageBox('Please set first '+self.fileTypes[idx], 'Error', wx.OK | wx.ICON_ERROR)
                         return -1
                 
-            print("writing SOF file "+self.sofFile)
         
             if self.sofFile == "":
                 self.sofFile = self.mainPath+'/../'+pwd.getpwuid( os.getuid() )[ 0 ]+'/sof/'+ self.guiTitle+'.sof' 
                 #self.sofFile = self.mainPath+'/../'+'/sof/'+ self.guiTitle+'.sof'  => For Windows!!!
+
+            print("writing SOF file "+self.sofFile)
             self.make_sure_path_exists(self.sofFile)
         
             # Get file list
@@ -260,13 +270,13 @@ class tributton(wx.GridBagSizer):
         self.typeFile = typeFile
         
         # Select main directory
-        self.txt     = wx.StaticText (panel, label=typeFile, name=typeFile,size=(100, -1))       
-        self.dirdsc  = wx.StaticText (panel, label="dir", name="dir",size=(100, -1))
+        self.txt     = wx.StaticText (panel, label=typeFile, name=typeFile,size=(120, -1))       
+        self.dirdsc  = wx.StaticText (panel, label="dir", name="dir",size=(40, -1))
         self.dirtxt  = wx.TextCtrl   (panel, size=(400, -1),style=wx.TE_RICH)
-        self.dirmod  = wx.StaticText (panel, label="", name="dirmod")        
-        self.filedsc = wx.StaticText (panel, label="files", name="files",size=(100, -1))
+        self.dirmod  = wx.StaticText (panel, label="", name="dirmod",size=(7, -1))        
+        self.filedsc = wx.StaticText (panel, label="files", name="files",size=(40, -1))
         self.filetxt = wx.TextCtrl   (panel, size=(400, -1),style=wx.TE_RICH)
-        self.filemod = wx.StaticText (panel, label="", name="filemod")      
+        self.filemod = wx.StaticText (panel, label="", name="filemod",size=(7, -1))      
         self.btn     = wx.Button     (panel, label="Select", name=typeFile)        
         self.dirtxt.Bind( wx.EVT_TEXT,   self.onDirTxt)
         self.filetxt.Bind(wx.EVT_TEXT,   self.onFileTxt)
@@ -371,7 +381,7 @@ class tributton(wx.GridBagSizer):
 # Run the program
 if __name__ == "__main__":
     app = wx.App(False)
-    frame = displayGui("Test","./",fileTypes)
+    frame = displayGui("Test","./",fileTypes, checkPresent)
     frame.Show()
     app.MainLoop()
     app.Destroy()
