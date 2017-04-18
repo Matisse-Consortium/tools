@@ -37,6 +37,7 @@ import subprocess
 from fitsheaderviewer import fitsHeaderViewer
 import distutils.spawn
 import fnmatch
+import sys
 
 # Set useful paths
 fvpath = distutils.spawn.find_executable("fv")
@@ -327,7 +328,8 @@ class dirButtons(wx.BoxSizer):
             size+=buti.GetSize()[0]
             buti.Bind(wx.EVT_BUTTON, self.ButtonClicked)
 
-        #self.AddSpacer(-size)  #je ne sais pas pourquoi il faut ajouter ça pour que l'affichage soit correct
+        if sys.platform=='win32':
+            self.AddSpacer(-size)  
         self.Layout()
 
     def ButtonClicked(self,event):
@@ -568,8 +570,4 @@ if __name__ == '__main__':
     openFileDialog.Destroy()
     app.MainLoop()
     app.Destroy()
-
-    print
-
-
 
