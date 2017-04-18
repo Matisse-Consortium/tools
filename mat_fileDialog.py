@@ -96,12 +96,12 @@ def matisseType(header):
         catg=header['HIERARCH ESO PRO CATG']
     except:
         try:
-            catg=header['HIERARCH ESO DPR CATG']
-            typ=header['HIERARCH ESO DPR TYPE']
-            tech=header['HIERARCH ESO DPR TECH']
+            catg = header['HIERARCH ESO DPR CATG']
+            typ  = header['HIERARCH ESO DPR TYPE']
+            tech = header['HIERARCH ESO DPR TECH']
         except:
             pass
-    if catg=="CALIB" and typ=="DARK,DETCAL" and tech=="IMAGE":
+    if catg  =="CALIB" and typ=="DARK,DETCAL" and tech=="IMAGE":
         res="DARK"
     elif catg=="CALIB" and typ=="FLAT,DETCAL" and tech=="IMAGE":
         res="FLAT"
@@ -186,9 +186,9 @@ class matisseFile(object):
                 self.isMatisse=False
         elif fnmatch.fnmatch(filename,"*.fits*"):
             try:
-                self.header=fits.getheader( self.folder+"/"+self.filename)
-                self.header2=self.readFitsHeader( self.folder+"/"+self.filename)
-                #print(self.header)
+                #self.header=fits.getheader( self.folder+"/"+self.filename)
+                self.header=self.readFitsHeader( self.folder+"/"+self.filename)
+                print(self.header)
                 
             except:
                 self.isFits=False
@@ -264,38 +264,69 @@ class matisseFile(object):
 ###############################################################################
 
 matisseColor={
-"DARK":wx.Colour(128,128,128),
-"HOT_DARK":wx.Colour(128,128,128),
-"OBSDARK":wx.Colour(128,128,128),
-"DISTOR_HOTDARK":wx.Colour(128,128,128),
-"SPECTRA_HOTDARK":wx.Colour(128,128,128),
-"SPECTRA_HOTDARK":wx.Colour(128,128,128),
-"KAPPA_HOTDARK":wx.Colour(128,128,128),
-"REF_HOTDARK":wx.Colour(150,50,100),
+# Palette here http://colrd.com/palette/19308/
+# Dark files
+"DARK"           :wx.Colour(124,159,176),
+"HOT_DARK"       :wx.Colour(124,159,176),
+"OBSDARK"        :wx.Colour(124,159,176),
+"DISTOR_HOTDARK" :wx.Colour(124,159,176),
+"SPECTRA_HOTDARK":wx.Colour(124,159,176),
+"KAPPA_HOTDARK"  :wx.Colour(124,159,176),
+"REF_HOTDARK"    :wx.Colour(124,159,176),
+"IM_COLD"        :wx.Colour(124,159,176),
 
-"KAPPA_SKY":wx.Colour(150,0,50),
+# Sky files
 
-"SHIFT_MAP":wx.Colour(219,23,2),
+# Shift map
+"SHIFT_MAP"    :wx.Colour(116,196,147),
 
-"FLAT":wx.Colour(220,220,0),
-"OBSFLAT":wx.Colour(220,220,0),
-"OBS_FLATFIELD":wx.Colour(220,220,0),
+# Bad Pixel file
+"BADPIX"         :wx.Colour(201,74,83),
 
-"DISTOR_IMAGES":wx.Colour(0,220,0),
-"SPECTRA_IMAGES":wx.Colour(0,150,0),
-"SPECTRA_IMAGES":wx.Colour(0,0,50),
+# Bad Pixel file
+"NONLINEARITY"         :wx.Colour(101,56,125),
 
+# Flat files
+"FLAT"         :wx.Colour(228,191,128),
+"OBSFLAT"      :wx.Colour(228,191,128),
+"OBS_FLATFIELD":wx.Colour(228,191,128),
+"IM_FLAT"      :wx.Colour(228,191,128),
+
+# Distorsion, spectral cliabration files
+"DISTOR_IMAGES" :wx.Colour(0,220,0),
+"SPECTRA_IMAGES":wx.Colour(0,220,0),
+
+# Kappa matrix
+"KAPPA_SKY" :wx.Colour(150,0,50),
 "KAPPA_SRC" :wx.Colour(50,50,0),
-"KAPPA_OBJ":wx.Colour(150,50,0),
+"KAPPA_OBJ" :wx.Colour(150,50,0),
 
-"TARGET_RAW":wx.Colour(200,255,100),
-"CALIB_RAW":wx.Colour(200,255,100),
-"CALIB_SRC_RAW":wx.Colour(200,255,100),
+# Files with fringes
+"TARGET_RAW"   :wx.Colour(154,191,136),
+"CALIB_RAW"    :wx.Colour(154,191,136),
+"CALIB_SRC_RAW":wx.Colour(154,191,136),
 
-"IM_COLD":wx.Colour(0,0,150),
-"IM_FLAT":wx.Colour(0,200,0),
+# Other files
 "IM_PERIODIC":wx.Colour(0,200,50),
-"IM_REF":wx.Colour(150,0,50),
+"IM_REF"     :wx.Colour(150,0,50),
+
+# Palette here http://colrd.com/image-dna/23291/
+# Also picked up some colours from "La Cinq"
+# Products
+"CALIB_CAL" :wx.Colour(201,194,175),
+
+"OBJ_CORR_FLUX" :wx.Colour(96,189,175),
+"PHOT_BEAMS"    :wx.Colour(161,216,177),
+"OI_OPDWVPO"    :wx.Colour(107,150,129),
+#"OI_OPDWVPO"    :wx.Colour(237,152,294),
+
+# oifits
+"RAW_DPHASE"     :wx.Colour(251,141,144),
+"RAW_VIS2"       :wx.Colour(255,160,46),
+"RAW_CPHASE"     :wx.Colour(255,229,93),
+"RAW_SPECTRUM"   :wx.Colour(51,88,180),
+"TARGET_RAW_INT" :wx.Colour(237,152,255),
+
 "UNKNOWN":wx.Colour(220,220,220)
 }
 ###############################################################################
@@ -328,8 +359,8 @@ class dirButtons(wx.BoxSizer):
             size+=buti.GetSize()[0]
             buti.Bind(wx.EVT_BUTTON, self.ButtonClicked)
 
-        if sys.platform=='win32':
-            self.AddSpacer(-size)  
+        if sys.platform=='win32' or sys.platform=='linux2':
+            self.AddSpacer(-size) #je ne sais pas pourquoi il faut ajouter ça pour que l'affichage soit correct
         self.Layout()
 
     def ButtonClicked(self,event):
