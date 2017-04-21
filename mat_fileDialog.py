@@ -20,7 +20,7 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-Created on Wed Apr  5 10:18:07 2017
+  Created on Wed Apr  5 10:18:07 2017
 
   $Author: ame $
   $Date: 2017-04-10 17:56:52 +0200 (lun. 10 avril 2017) $
@@ -145,6 +145,8 @@ def matisseType(header):
         res="HOT_DARK"
     elif catg=="CALIB" and typ=="SOURCE" and tech=="INTERFEROMETRY":
         res="CALIB_SRC_RAW"
+    elif catg=="CALIB" and typ=="SOURCE,FLUX" and tech=="INTERFEROMETRY":
+        res="CALIB_PHOT_RAW"
     else:
         res=catg
     return res
