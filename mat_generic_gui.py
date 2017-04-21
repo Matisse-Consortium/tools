@@ -20,20 +20,22 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  
-Created on Wed Apr  5 10:18:07 2017
+  Created on Wed Apr  5 10:18:07 2017
 
   $Author: fmillour $
   $Date: 2017-04-12 10:09:56 +0200 (mer., 12 avr. 2017) $
   $Revision: 61 $
-  $Name:  $
 """
 
 import wx
 import os
+import shlex
+import subprocess
 import pwd
 import errno
 from mat_fileDialog import mat_FileDialog 
 
+# Default values to have somthing running when this script is run by itself
 fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD","NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
 checkPresent = [1,1,1,1,1,1,0]
              
@@ -66,8 +68,9 @@ class displayGui(wx.Frame):
             self.__dict__[typi] = tributton(self,panel, typi)
             vbox.Add(self.__dict__[typi],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         self.btns = [self.__dict__[typi] for typi in fileTypes]
-        vbox.AddSpacer(30)     
+        vbox.AddSpacer(20)     
         
+        # Recipe execution and SOF file management
         grid=wx.GridBagSizer(2,4)        
         btnOpenSOF       = wx.Button    (panel, label='Open SOF',size=(100, -1))
         self.btnDescSOF  = wx.StaticText(panel, label="SOF file", name="dirRun",size=(80, -1))   
@@ -88,13 +91,25 @@ class displayGui(wx.Frame):
         vbox.Add(grid,border=10,flag=wx.LEFT|wx.RIGHT|wx.EXPAND) 
         
     
-        vbox.AddSpacer(30) 
-        
+        vbox.AddSpacer(20) 
+        # Cancel button
         btnCancel = wx.Button(panel,wx.ID_CANCEL, label='Cancel', size=(60, -1))
         vbox.Add(btnCancel,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
 
+        vbox.AddSpacer(20) 
+        # Display the running processes
+        self.timer = wx.Timer(self, wx.ID_ANY)
+        self.Bind(wx.EVT_TIMER, self.updateTimer, self.timer)
+        self.timer.Start(3000)
+                    
+        self.processes, pid = self.getRunningProcesses()
+        for i, proc in enumerate(pid):
+            self.__dict__["process_"+str(proc)] = wx.StaticText(panel, label=proc, name=proc,size=(80, -1))
+            font = wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL)
+            self.__dict__["process_"+str(proc)].SetFont(font)
+            vbox.Add(self.__dict__["process_"+str(proc)],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        
         vbox.AddSpacer(10)       
-       
         panel.SetSizerAndFit(vbox)  
         self.SetSizerAndFit(vbox)     
         
@@ -106,6 +121,37 @@ class displayGui(wx.Frame):
         self.btnTextRun.Bind(wx.EVT_TEXT, self.OnTextRun)
         btnCancel.Bind(wx.EVT_BUTTON, self.OnClose)
         
+    def updateTimer(self, event):
+        self.processes, pid = self.getRunningProcesses()
+        for i, proc in enumerate(pid):
+            self.__dict__["process_"+str(proc)].SetLabel(self.processes[i])
+        
+    def getRunningProcesses(self):
+        command = "ps -ef"
+        args = shlex.split(command)
+        #print(args)
+        ps = os.popen(command)
+        #print(ps)
+        pst = []
+        for line in ps:
+            pst.append(line)
+        #print(pst)
+        #print(ps)
+        #pst = ps.split("\n");
+        rex = []
+        pid = []
+        count = 0;
+        for line in pst:
+            if "esorex" in line or count == 0:
+                rex.append(line)
+                pid.append(line.split()[1])
+            count+=1
+#        if len(rex)==1:
+#            rex = []
+#            pid = []
+        return rex, pid
+              
+                
     def OnTextSOF(self,e):
         print("yeah man!")     
         self.sofFile  = self.btnTextSOF.GetValue()   
@@ -236,7 +282,7 @@ class displayGui(wx.Frame):
             wx.MessageBox('Please set an output path first', 'Error', wx.OK | wx.ICON_ERROR)
             return -1
             
-        command = "esorex "+self.guiTitle+" "+self.sofFile+"&";
+        command = "nohup esorex "+self.guiTitle+" "+self.sofFile+" > "+self.sofFile+".log &";
         print(command)
         os.system(command)
         print("Ouaf ! Ouaf !")
