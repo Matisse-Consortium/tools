@@ -1,6 +1,7 @@
+#!/usr/bin/python  
 # -*- coding: utf-8 -*-
 """
-Created on Wed Apr 12 12:04:01 2017
+  Created on Wed Apr 12 12:04:01 2017
 
 @author: ame
 """
@@ -13,7 +14,7 @@ fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD",
              "NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
 checkPresent = [1,1,1,1,1,1,0]
              
-GuiTitle="MAT_RAW_ESTIMATE"
+GuiTitle="mat_raw_estimates"
 
 class mat_raw_estimates_gui(displayGui):
     def __init__(self):
@@ -27,5 +28,3 @@ if __name__ == "__main__":
     frame.Show()
     app.MainLoop()
     app.Destroy()
-
- 
