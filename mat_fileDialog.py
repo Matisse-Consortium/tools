@@ -166,17 +166,17 @@ keywords.append(fileViewerKeyword(headerkeyword=["HIERARCH ESO INS DIL NAME","HI
 
 class matisseFile(object):
     def __init__(self,filename,folder):
-        self.filename=filename
-        self.folder=folder
+        self.filename = filename
+        self.folder   = folder
 
-        self.header=None
-        self.isFits=True
-        self.isMatisse=True
+        self.header    = None
+        self.isFits    = True
+        self.isMatisse = True
 
         if os.path.isfile(folder+"/"+filename):
-            self.isDir=False
+            self.isDir = False
         else:
-            self.isDir=True
+            self.isDir = True
 
         if filename.endswith(".fits"):
             try:
@@ -184,8 +184,8 @@ class matisseFile(object):
                 #self.header=self.readFitsHeader( self.folder+"/"+self.filename)
                 #print(self.header)
             except:
-                self.isFits=False
-                self.isMatisse=False
+                self.isFits    = False
+                self.isMatisse = False
         elif fnmatch.fnmatch(filename,"*.fits*"):
             try:
                 #self.header=fits.getheader( self.folder+"/"+self.filename)
@@ -379,7 +379,7 @@ class mat_FileDialog(wx.Dialog):
     def __init__(self, parent, title=None,defaultDir=None,defaultFile=None,wildcard=None,style=None,pos=None):
         super(mat_FileDialog, self).__init__(parent, title=title, size=(1400, 600))
 
-        if defaultDir and os.path.isfile(defaultDir):
+        if defaultDir and os.path.isdir(defaultDir):
               self.dir=defaultDir
         else:
             self.dir=os.getcwd()
