@@ -29,8 +29,8 @@
 
 import wx
 import os
-import shlex
-import subprocess
+#import shlex
+#import subprocess
 import pwd
 import errno
 from mat_fileDialog import mat_FileDialog 
@@ -47,17 +47,17 @@ class displayGui(wx.Frame):
     #----------------------------------------------------------------------
     def __init__(self,guiTitle="SOF GUI",mainpath=".",fileTypes=[],checkPresent=[]):
         
-        self.waitforupdate=0    
-        self.flagnosave=0
-        self.sofFile= ""
-        self.runDir= ""
-        self.guiTitle=guiTitle
-        self.mainPath=mainpath
-        self.fileTypes=fileTypes
+        self.waitforupdate = 0    
+        self.flagnosave    = 0
+        self.sofFile       = ""
+        self.runDir        = ""
+        self.guiTitle      = guiTitle
+        self.mainPath      = mainpath
+        self.fileTypes     = fileTypes
    
         
         wx.Frame.__init__(self, None, wx.ID_ANY, guiTitle)
-        panel = wx.Panel(self, wx.ID_ANY)
+        self.panel = wx.Panel(self, wx.ID_ANY)
              
         vbox=wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(10)
@@ -65,21 +65,21 @@ class displayGui(wx.Frame):
         # Define the main buttons with the file selection here
         # input files part 
         for typi in self.fileTypes:
-            self.__dict__[typi] = tributton(self,panel, typi)
+            self.__dict__[typi] = tributton(self,self.panel, typi)
             vbox.Add(self.__dict__[typi],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         self.btns = [self.__dict__[typi] for typi in fileTypes]
         vbox.AddSpacer(20)     
         
         # Recipe execution and SOF file management
         grid=wx.GridBagSizer(2,4)        
-        btnOpenSOF       = wx.Button    (panel, label='Open SOF',size=(100, -1))
-        self.btnDescSOF  = wx.StaticText(panel, label="SOF file", name="dirRun",size=(80, -1))   
-        self.btnTextSOF  = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)
-        btnSOF           = wx.Button    (panel, label='Generate SOF',size=(110, -1))
-        btnMagic         = wx.Button    (panel, label='auto set',size=(100, -1))
-        self.btnDescRun  = wx.StaticText(panel, label="output dir", name="dirRun",size=(80, -1))               
-        self.btnTextRun  = wx.TextCtrl  (panel, size=(400, -1),style=wx.TE_RICH)            
-        btnRun           = wx.Button    (panel, label='Run!',size=(110, -1))               
+        btnOpenSOF       = wx.Button    (self.panel, label='Open SOF',size=(100, -1))
+        self.btnDescSOF  = wx.StaticText(self.panel, label="SOF file", name="dirRun",size=(80, -1))   
+        self.btnTextSOF  = wx.TextCtrl  (self.panel, size=(400, -1),style=wx.TE_RICH)
+        btnSOF           = wx.Button    (self.panel, label='Generate SOF',size=(110, -1))
+        btnMagic         = wx.Button    (self.panel, label='auto set',size=(100, -1))
+        self.btnDescRun  = wx.StaticText(self.panel, label="output dir", name="dirRun",size=(80, -1))               
+        self.btnTextRun  = wx.TextCtrl  (self.panel, size=(400, -1),style=wx.TE_RICH)            
+        btnRun           = wx.Button    (self.panel, label='Run!',size=(110, -1))               
         grid.Add(btnOpenSOF, (0, 0))    
         grid.Add(self.btnDescSOF, (0, 1))
         grid.Add(self.btnTextSOF, (0, 2))     
@@ -89,28 +89,30 @@ class displayGui(wx.Frame):
         grid.Add(self.btnTextRun, (1, 2))        
         grid.Add(btnRun, (1, 4))           
         vbox.Add(grid,border=10,flag=wx.LEFT|wx.RIGHT|wx.EXPAND) 
+        vbox.AddSpacer(20) 
         
-    
-        vbox.AddSpacer(20) 
         # Cancel button
-        btnCancel = wx.Button(panel,wx.ID_CANCEL, label='Cancel', size=(60, -1))
+        btnCancel = wx.Button(self.panel,wx.ID_CANCEL, label='Cancel', size=(60, -1))
         vbox.Add(btnCancel,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
-
         vbox.AddSpacer(20) 
+        
         # Display the running processes
         self.timer = wx.Timer(self, wx.ID_ANY)
         self.Bind(wx.EVT_TIMER, self.updateTimer, self.timer)
-        self.timer.Start(3000)
                     
         self.processes, pid = self.getRunningProcesses()
         for i, proc in enumerate(pid):
-            self.__dict__["process_"+str(proc)] = wx.StaticText(panel, label=proc, name=proc,size=(80, -1))
+            name = "process_"+str(proc)
+            self.__dict__[name] = wx.StaticText(self.panel, label=proc, name=proc,size=(80, -1))
             font = wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL)
-            self.__dict__["process_"+str(proc)].SetFont(font)
-            vbox.Add(self.__dict__["process_"+str(proc)],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        
+            self.__dict__[name].SetFont(font)
+            vbox.Add(self.__dict__[name],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+               
+        self.timer.Start(1000)        
         vbox.AddSpacer(10)       
-        panel.SetSizerAndFit(vbox)  
+
+        # Make the window layout
+        self.panel.SetSizerAndFit(vbox)  
         self.SetSizerAndFit(vbox)     
         
         btnOpenSOF.Bind(wx.EVT_BUTTON, self.OnOpenSOF)
@@ -124,11 +126,14 @@ class displayGui(wx.Frame):
     def updateTimer(self, event):
         self.processes, pid = self.getRunningProcesses()
         for i, proc in enumerate(pid):
-            self.__dict__["process_"+str(proc)].SetLabel(self.processes[i])
+            name = "process_"+str(proc)
+            default = wx.StaticText(self.panel, label=proc, name=proc,size=(80, -1))
+            a = self.__dict__.get(name, default)
+            self.__dict__[name].SetLabel(self.processes[i])
         
     def getRunningProcesses(self):
         command = "ps -ef"
-        args = shlex.split(command)
+        #args = shlex.split(command)
         #print(args)
         ps = os.popen(command)
         #print(ps)
@@ -153,11 +158,11 @@ class displayGui(wx.Frame):
               
                 
     def OnTextSOF(self,e):
-        print("yeah man!")     
+        print("yeah man sof!")     
         self.sofFile  = self.btnTextSOF.GetValue()   
         
     def OnTextRun(self,e):
-        print("yeah man!")     
+        print("yeah man run!")     
         self.runDir  = self.btnTextRun.GetValue()   
         
     def OnOpenMagic(self,e):
@@ -304,9 +309,9 @@ class displayGui(wx.Frame):
 ########################################################################
 class tributton(wx.GridBagSizer):
     #-------------------
-    def __init__(self,parent,panel, typeFile, checkPresent=1):
+    def __init__(self,parent, panel, typeFile, checkPresent=1):
         super(tributton, self).__init__(2,4)
-        self.parent=parent
+        self.parent = parent
         # Placing variables for GUI are global
        
         self.checkPresent = checkPresent
@@ -324,7 +329,8 @@ class tributton(wx.GridBagSizer):
         self.filetxt = wx.TextCtrl   (panel, size=(400, -1),style=wx.TE_RICH)
         self.filemod = wx.StaticText (panel, label="", name="filemod",size=(7, -1))      
         self.btn     = wx.Button     (panel, label="Select", name=typeFile)        
-        self.dirtxt.Bind( wx.EVT_TEXT,   self.onDirTxt)
+        
+        self.dirtxt.Bind(wx.EVT_TEXT,   self.onDirTxt)
         self.filetxt.Bind(wx.EVT_TEXT,   self.onFileTxt)
         self.btn.Bind(    wx.EVT_BUTTON, self.onButton)
         #sizer.Add(btn, 0, wx.ALL, 5)     
@@ -342,14 +348,20 @@ class tributton(wx.GridBagSizer):
     def onDirTxt(self, event):
         if not self.parent.waitforupdate:
             self.dirmod.SetLabel("*")
-        
+            
             text = self.dirtxt.GetValue()
             if not os.path.isdir(text):
+                # Expand environment variables
+                text = os.path.expandvars(text)
+            
+            if not os.path.isdir(text):
                 self.dirtxt.SetBackgroundColour(wx.RED)
-            if self.typeFile == self.parent.fileTypes[1]:
-                self.parent.mainPath = os.path.dirname(self.filelist[0])
-                print("Set the main path to"+self.parent.mainPath)
-                self.parent.flagnosave = 1;
+                
+                if self.typeFile == self.parent.fileTypes[1]:               
+                    if os.path.isdir(text):
+                        self.parent.mainPath = text
+                        print("Set the main path to"+self.parent.mainPath)
+                        self.parent.flagnosave = 1;
             else:
                 self.dirtxt.SetBackgroundColour(wx.WHITE)
                 self.filelist = self.getFilelistFromText()
@@ -358,12 +370,14 @@ class tributton(wx.GridBagSizer):
                     
     #----------------------------------------------------------------------
     def onFileTxt(self, event):
+        print("file")
+        print(self.parent.waitforupdate)
         if not self.parent.waitforupdate:
             self.filemod.SetLabel("*")
-        
+            
             filelist = self.getFilelistFromText()
-           # print(filelist)
-       #     print(txtfile)
+            # print(filelist)
+            # print(txtfile)
             if not all(os.path.isfile(x) for x in filelist):
                 self.filetxt.SetBackgroundColour(wx.RED)
                 self.parent.flagnosave = 1;
@@ -374,6 +388,9 @@ class tributton(wx.GridBagSizer):
                             
     def getFilelistFromText(self):
         dirtxt  = self.dirtxt.GetValue()
+        if not os.path.isdir(dirtxt):
+            # Expand environment variables
+            dirtxt = os.path.expandvars(dirtxt)
         filtxt  = self.filetxt.GetValue()
         files = filtxt.split(", ")
         filelist = []
@@ -389,7 +406,20 @@ class tributton(wx.GridBagSizer):
         """
         self.parent.waitforupdate = 1;
         
-        dlg=mat_FileDialog(None,"Choose a "+self.typeFile, self.parent.mainPath)
+        # Read content of the text directory
+        dirtxt  = self.dirtxt.GetValue()
+        if not os.path.isdir(dirtxt):
+            # Expand environment variables
+            dirtxt = os.path.expandvars(dirtxt)
+        print(dirtxt)
+        if os.path.isdir(dirtxt):
+            print("Yes man")
+            pathToUse = dirtxt
+        else:
+            print("Nope!")
+            pathToUse = self.parent.mainPath
+        
+        dlg = mat_FileDialog(None,"Choose a "+self.typeFile, defaultDir=pathToUse)
         
         if dlg.ShowModal() == wx.ID_OK:
             self.filelist = dlg.GetPaths()
@@ -420,6 +450,7 @@ class tributton(wx.GridBagSizer):
         self.filetxt.SetBackgroundColour(wx.WHITE)
         self.dirmod.SetLabel("")
         self.dirtxt.SetBackgroundColour(wx.WHITE)
+        
         self.parent.waitforupdate = 0;                
                 
                 
@@ -427,7 +458,7 @@ class tributton(wx.GridBagSizer):
 # Run the program
 if __name__ == "__main__":
     app = wx.App(False)
-    frame = displayGui("Test","./",fileTypes, checkPresent)
+    frame = displayGui("Test",".",fileTypes, checkPresent)
     frame.Show()
     app.MainLoop()
     app.Destroy()
