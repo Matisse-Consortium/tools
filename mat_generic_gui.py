@@ -158,11 +158,11 @@ class displayGui(wx.Frame):
               
                 
     def OnTextSOF(self,e):
-        print("yeah man sof!")     
+        #print("yeah man sof!")     
         self.sofFile  = self.btnTextSOF.GetValue()   
         
     def OnTextRun(self,e):
-        print("yeah man run!")     
+        #print("yeah man run!")     
         self.runDir  = self.btnTextRun.GetValue()   
         
     def OnOpenMagic(self,e):
@@ -290,7 +290,7 @@ class displayGui(wx.Frame):
         command = "nohup esorex "+self.guiTitle+" "+self.sofFile+" > "+self.sofFile+".log &";
         print(command)
         os.system(command)
-        print("Ouaf ! Ouaf !")
+        #print("Ouaf ! Ouaf !")
         wx.MessageBox("Process launched! This may take a while though. Why not drink a cup of tea?", 'Important information', wx.ICON_EXCLAMATION)
         #dlg.Destroy()
                         
@@ -366,12 +366,14 @@ class tributton(wx.GridBagSizer):
                 self.dirtxt.SetBackgroundColour(wx.WHITE)
                 self.filelist = self.getFilelistFromText()
                 self.parent.flagnosave = 0
+        # Verify files exist
+        self.onFileTxt(event)
             
                     
     #----------------------------------------------------------------------
     def onFileTxt(self, event):
-        print("file")
-        print(self.parent.waitforupdate)
+        #print("file")
+        #print(self.parent.waitforupdate)
         if not self.parent.waitforupdate:
             self.filemod.SetLabel("*")
             
