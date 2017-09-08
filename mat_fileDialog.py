@@ -154,6 +154,7 @@ def matisseType(header):
 ###############################################################################
 
 keywords=[]
+keywords.append(fileViewerKeyword(headerkeyword="DATE-OBS",name="Date"))
 keywords.append(fileViewerKeyword(function="matisseType",source="header",name="DoCatg"))
 keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET CHIP NAME",name="Detector"))
 keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET NDIT",name="NDIT"))
