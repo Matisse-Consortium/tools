@@ -6,6 +6,7 @@ Created on Tue Dec 20 13:22:21 2016
 @author: asoulain
 """
 
+# Import necessary libraries
 import matplotlib as mpl
 mpl.use('TkAgg')
 
@@ -17,6 +18,7 @@ import cPickle
 import numpy as np
 import matplotlib.gridspec as gridspec
 
+# Save the file content in a temporary python binary file
 _dBfile_matisse = '/tmp/data_matisse.dpy'
     
 def readDb_matisse(name_file):
