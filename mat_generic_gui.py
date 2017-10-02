@@ -33,10 +33,11 @@ import os
 #import subprocess
 import pwd
 import errno
+import getpass
 from mat_fileDialog import mat_FileDialog 
 
 # Default values to have somthing running when this script is run by itself
-fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD","NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
+#fileTypes = ["HOT_DARK", "CALIB_SRC_RAW", "BADPIX", "OBS_FLATFIELD","NONLINEARITY", "SHIFT_MAP", "KAPPA_MATRIX"]
 checkPresent = [1,1,1,1,1,1,0]
              
 
@@ -63,9 +64,9 @@ class displayGui(wx.Frame):
         vbox.AddSpacer(10)
                          
         # Define the main buttons with the file selection here
-        # input files part 
-        for typi in self.fileTypes:
-            self.__dict__[typi] = tributton(self,self.panel, typi)
+        # input files part
+        for idx,typi in enumerate(self.fileTypes):
+            self.__dict__[typi] = tributton(self,self.panel, typi, checkPresent[idx])
             vbox.Add(self.__dict__[typi],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         self.btns = [self.__dict__[typi] for typi in fileTypes]
         vbox.AddSpacer(20)     
@@ -167,13 +168,13 @@ class displayGui(wx.Frame):
         
     def OnOpenMagic(self,e):
         print("Hocus Pocus, abracadabra et tutti quanti !")
-            
+        user=getpass.getuser()    
             # Test default directory
         for idx, btn in enumerate(self.btns):
             if btn.filelist:
                 path = os.path.dirname(btn.filelist[0])
-                if btn.typeFile == fileTypes[0] or btn.typeFile == self.fileTypes[1]:
-                    self.runDir = path+"../Results/";
+                if btn.typeFile == self.fileTypes[0] or btn.typeFile == self.fileTypes[1]:
+                    self.runDir = path+"/../"+user+"/Results/";
                     
             # Otherwise use SOF file directory
         if self.sofFile != "":
@@ -249,20 +250,22 @@ class displayGui(wx.Frame):
         
     def OnGenSOF(self,e):
         #global mainPath, sofFile, guiTitle, flagnosave
+        user=getpass.getuser()    
         if not self.flagnosave:
                     
                 # First things first: check values have been filled
+            flagDone=0
             for idx, btn in enumerate(self.btns):
                 if not btn.filelist:
                     if btn.checkPresent:
                         wx.MessageBox('Please set first '+self.fileTypes[idx], 'Error', wx.OK | wx.ICON_ERROR)
                         return -1
-                
+                if (flagDone == 0) :
+                    if btn.typeFile == self.fileTypes[idx] :
+                        path = os.path.dirname(btn.filelist[idx])
+                        self.sofFile = path+'/../'+user+'/sof/'+ self.guiTitle+'.sof' 
+                        flagDone=1
         
-            if self.sofFile == "":
-                self.sofFile = self.mainPath+'/../'+pwd.getpwuid( os.getuid() )[ 0 ]+'/sof/'+ self.guiTitle+'.sof' 
-                #self.sofFile = self.mainPath+'/../'+'/sof/'+ self.guiTitle+'.sof'  => For Windows!!!
-
             print("writing SOF file "+self.sofFile)
             self.make_sure_path_exists(self.sofFile)
         

@@ -10,8 +10,8 @@ import wx
 from mat_generic_gui import displayGui
 
 
-fileTypes = ["KAPPA_HOTDARK", "KAPPA_SRC", "BADPIX", 
-             "NONLINEARITY", "OBS_FLATFIELD", "SHIFT_MAP"]
+fileTypes = ["KAPPA_HOTDARK", "KAPPA_SRC", "BADPIX", "OBS_FLATFIELD",
+             "NONLINEARITY", "SHIFT_MAP"]
 checkPresent = [1,1,1,1,1,1]
              
 GuiTitle="mat_est_kappa"
