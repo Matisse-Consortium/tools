@@ -101,52 +101,48 @@ def matisseType(header):
             tech = header['HIERARCH ESO DPR TECH']
         except:
             pass
-    if catg  =="CALIB" and typ=="DARK,DETCAL" and tech=="IMAGE":
+    if (catg  =="CALIB" and typ=="DARK,DETCAL" and tech=="IMAGE") or (catg == "CALIB" and typ == "DARK" and tech=="IMAGE,DETCHAR"):
         res="DARK"
-    elif catg=="CALIB" and typ=="FLAT,DETCAL" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="FLAT,DETCAL" and tech=="IMAGE") or (catg == "CALIB" and typ == "FLAT" and tech=="IMAGE,DETCHAR"):
         res="FLAT"
-    elif catg=="CALIB" and typ=="DARK" and tech=="SPECTRUM":
+    elif (catg=="CALIB" and (typ=="DARK" or typ=="FLAT,OFF") and tech=="SPECTRUM") :
         res="OBSDARK"
-    elif catg=="CALIB" and typ=="FLAT" and tech=="SPECTRUM":
+    elif (catg=="CALIB" and (typ=="FLAT" or typ=="FLAT,BLACKBODY") and tech=="SPECTRUM") :
         res="OBSFLAT"
-    elif catg=="CALIB" and typ=="DARK,WAVE" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="DARK,WAVE" and tech=="IMAGE") or (catg == "CALIB" and typ == "DARK" and tech == "IMAGE"):
         res="DISTOR_HOTDARK"
-    elif catg=="CALIB" and typ=="SOURCE,WAVE" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="SOURCE,WAVE" and tech=="IMAGE") or (catg == "CALIB" and typ == "WAVE,LAMP,PINHOLE" and tech == "SPECTRUM"):
         res="DISTOR_IMAGES"
-    elif catg=="CALIB" and typ=="SOURCE,LAMP" and tech=="SPECTRUM":
+    elif (catg=="CALIB" and typ=="SOURCE,LAMP" and tech=="SPECTRUM") or (catg == "CALIB" and typ == "WAVE,LAMP,SLIT" and tech == "SPECTRUM"):
         res="SPECTRA_HOTDARK"
-    elif catg=="CALIB" and typ=="SOURCE,WAVE" and tech=="SPECTRUM":
+    elif (catg=="CALIB" and typ=="SOURCE,WAVE" and tech=="SPECTRUM") or (catg == "CALIB" and typ == "WAVE,LAMP,FOIL" and tech == "SPECTRUM"):
         res="SPECTRA_IMAGES"
-    elif catg=="CALIB" and typ=="DARK,FLUX" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="DARK,FLUX" and tech=="IMAGE") or (catg == "CALIB" and typ == "KAPPA,BACKGROUND" and tech == "SPECTRUM"):
         res="KAPPA_HOTDARK"
-    elif catg=="CALIB" and typ=="SOURCE,FLUX" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="SOURCE,FLUX" and tech=="IMAGE") or (catg == "CALIB" and typ == "KAPPA,LAMP" and tech == "SPECTRUM"):
         res="KAPPA_SRC"
-    elif catg=="CALIB" and typ=="SKY" and tech=="IMAGE":
-        res="KAPPA_SKY"
-    elif catg=="CALIB" and typ=="OBJECT,FLUX" and tech=="IMAGE":
-        res="KAPPA_OBJ"
-    elif catg=="SCIENCE" and typ=="OBJECT" and tech=="IMAGE":
+    elif (catg=="SCIENCE" and typ=="OBJECT" and tech=="IMAGE") :
         res="TARGET_RAW"
-    elif catg=="CALIB" and typ=="OBJECT" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="OBJECT" and tech=="IMAGE") :
         res="CALIB_RAW"
-    elif catg=="CALIB" and typ=="DARK,IMB" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="DARK,IMB" and tech=="IMAGE") or (catg=="CALIB" and typ=="DARK" and tech=="IMAGE,BASIC"):
         res="IM_COLD"
-    elif catg=="CALIB" and typ=="FLAT,IME" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="FLAT,IME" and tech=="IMAGE") or (catg=="CALIB" and typ=="FLAT" and tech=="IMAGE,EXTENDED"):
         res="IM_FLAT"
-    elif catg=="CALIB" and typ=="DARK,IME" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="DARK,IME" and tech=="IMAGE") or (catg=="CALIB" and typ=="DARK" and tech=="IMAGE,EXTENDED"):
         res="IM_DARK"
-    elif catg=="CALIB" and typ=="DARK,FLAT" and tech=="IMAGE":
+    elif (catg=="CALIB" and typ=="DARK,FLAT" and tech=="IMAGE") or (catg=="CALIB" and typ=="FLAT,LAMP" and tech=="IMAGE,REMANENCE"):
         res="IM_PERIODIC"
-    elif catg=="TECHNICAL" and typ=="DARK,FOCUS" and tech=="IMAGE":
-        res="REF_HOTDARK"
-    elif catg=="TECHNICAL" and typ=="SOURCE,FOCUS" and tech=="IMAGE":
-        res="IM_REF"
-    elif catg=="CALIB" and typ=="DARK" and tech=="INTERFEROMETRY":
+    elif (catg=="CALIB" and typ=="DARK" and tech=="INTERFEROMETRY") :
         res="HOT_DARK"
-    elif catg=="CALIB" and typ=="SOURCE" and tech=="INTERFEROMETRY":
+    elif (catg=="CALIB" and (typ=="SOURCE" or typ=="SOURCE,FLUX") and tech=="INTERFEROMETRY") :
         res="CALIB_SRC_RAW"
-    elif catg=="CALIB" and typ=="SOURCE,FLUX" and tech=="INTERFEROMETRY":
-        res="CALIB_PHOT_RAW"
+    elif ((catg=="SCIENCE" or catg=="TEST") and typ=="OBJECT" and tech=="INTERFEROMETRY") :
+        res="TARGET_RAW"
+    elif (catg == "TEST" and typ == "STD" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT,FLUX" and tech == "INTERFEROMETRY") : 
+        res="CALIB_RAW"
+    elif (catg == "TEST"  or catg=="CALIB") and typ == "SKY" and tech == "INTERFEROMETRY" : 
+        res="SKY_RAW"
     else:
         res=catg
     return res
@@ -154,7 +150,6 @@ def matisseType(header):
 ###############################################################################
 
 keywords=[]
-keywords.append(fileViewerKeyword(headerkeyword="DATE-OBS",name="Date"))
 keywords.append(fileViewerKeyword(function="matisseType",source="header",name="DoCatg"))
 keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET CHIP NAME",name="Detector"))
 keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET NDIT",name="NDIT"))
