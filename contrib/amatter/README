@@ -1,0 +1,137 @@
+Here is a list of MATISSE routines and their purpose :
+
+MatisseLamFit(y_in,lam_in,y0,dimy):
+#--------------------------------------------------------------------------------------------------------------
+#Routine to create a dispersion law (quadratic) from the measurement of the position of a set of spectral lines
+#--------------------------------------------------------------------------------------------------------------
+ 
+#y_in: position in pixel of the spectral lines
+#lam_in: corresponding wavelengths of the spectral lines
+#y0: number of the first pixel of the spectral window
+#dimy: number of pixels of the frame in the spectral direction
+
+
+
+load_data_raw(filename):
+#---------------------------------------------------------------------------------------------------
+#Routine to load raw MATISSE fringe data from fits files produced by the transfer function template
+#---------------------------------------------------------------------------------------------------
+
+#filename: MATISSE raw data file (template format) before detector cosmetics
+
+
+
+load_data_cal(filename):
+#------------------------------------------------------------------------------------------------------------
+#Routine to load MATISSE fringe data from fits files produced by the mat_cal_image (after detector cosmetics)
+#------------------------------------------------------------------------------------------------------------
+
+#filename: MATISSE raw data file (template format) after detector cosmetics
+
+
+
+computeFft1D_spectral(interf,shift_im_min,shift_im_max,dimx,dimy,lam_tab,lam_ini):
+#---------------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the 1D FFT (in the spatial direction) of a given MATISSE frame.
+#Notably, this routine corrects the phase term introduced by a possible non-centering of the interferometric channel in the frame.
+#---------------------------------------------------------------------------------------------------------------------------------  
+
+#interf: MATISSE frame (2D array) corresponding to the interferometric channel
+#shift_im_min: lower limit of the array of numerical shift values applied to the frame
+#shift_im_max: upper limit of the array of numerical shift values applied to the frame
+#dimx: dimension of the interferometric frame in the spatial direction
+#dimy: dimension of the interferometric frame in the spectral direction
+#lam_tab: wavelength array
+#lam_ini: reference wavelength from which the position of the fringe peaks in the 1D FFT is computed 
+
+
+
+computeFft1D(interf,dimx,dimy):
+#----------------------------------------------------------------------------------
+#Routine to compute the 1D FFT (in the spatial direction) of a given MATISSE frame.
+#----------------------------------------------------------------------------------
+
+#interf: MATISSE frame (2D array) corresponding to the interferometric channel
+#dimx: dimension of the interferometric frame in the spatial direction
+#dimy: dimension of the interferometric frame in the spectral direction
+
+
+
+computeCorrFlux(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
+#----------------------------------------------------------------------------------------------------------------
+#Routine to compute the energy (correlated flux) associated with the fringe peak of interest, at each wavelength.         
+#----------------------------------------------------------------------------------------------------------------
+
+#fft1D: 1D FFT of the MATISSE interferometric frame for every spectral channel
+#dimx: dimension of the 1D FFT in the spatial frequency direction
+#dimy: dimension of the 1D FFT in the spectral direction
+#lam_tab: wavelength array
+#lam_ini: reference wavelength from which the position of the fringe peaks in the 1D FFT is computed 
+#peakNum: number of the peak (=1, 2, 3, 4, 5, 6) for which the phasor is computed 
+
+
+
+computePhasors_1D_spectral(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the complex phasor associated with the fringe peak of interest, at each wavelength. The fringe peak phasor is computed from the integration 
+#of the real and imaginary parts of the 1D FFT over the fringe peak support. In order to remove the unknow phase origin 'affecting' the complex phasor,
+# a spectral mathod is used. This consists in correlating the fringe peak phasor, at a given wavelength, with a reference phasor taken at a reference wavelength (band center).        
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
+    
+#fft1D: 1D FFT of the MATISSE interferometric frame for every spectral channel
+#dimx: dimension of the 1D FFT in the spatial frequency direction
+#dimy: dimension of the 1D FFT in the spectral direction
+#lam_tab: wavelength array
+#lam_ini: reference wavelength from which the position of the fringe peaks in the 1D FFT is computed 
+#peakNum: number of the peak (=1, 2, 3, 4, 5, 6) for which the phasor is computed
+
+
+
+computePhasors_1D(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the complex phasor associated with the fringe peak of interest, at each wavelength. The fringe peak phasor is computed from the integration 
+#of the real and imaginary parts of the 1D FFT over the fringe peak support). No correlation with a reference phasor at a reference wavelength is applied. However, 
+#in order to remove the unknow phase origin 'affecting' the complex phasor, a differential mathod can be applied afterwards to the output of this routine.
+#This consists in correlating the fringe peak phasor, at a given wavelength, with a reference phasor computed at the same wavelength on a reference frame 
+#corresponding to a chosen voltage value, motor position.        
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+#fft1D: 1D FFT of the MATISSE interferometric frame for every spectral channel
+#dimx: dimension of the 1D FFT in the spatial frequency direction
+#dimy: dimension of the 1D FFT in the spectral direction
+#lam_tab: wavelength array
+#lam_ini: reference wavelength from which the position of the fringe peaks in the 1D FFT is computed 
+#peakNum: number of the peak (=1, 2, 3, 4, 5, 6) for which the phasor is computed 
+
+
+
+computePistons_1D_spectral(pistons,phasor1D,sigma_real,sigma_imag,lam_tab,dimy):
+#----------------------------------------------------------------------------------------------------------------------
+#Routine to compute the OPD (piston) associated with the differential complex phasor computed with the spectral method. 
+#This piston is determined through a fit (over all the spectral channels) with a linear phasor model. The chi2 minimization 
+#is performed by scanning a grid of piston values and finding the piston value that gives the lowest chi2 value.  
+#----------------------------------------------------------------------------------------------------------------------        
+    
+#pistons: grid of piston values (in um) for the chi2 minimization (parameter space of the fit)
+#phasor1D: differential phasor computed with the spectral method
+#sigma_real: uncertainty on the real part of the differential complex phasor
+#sigma_imag: uncertainty on the imaginary part of the differential complex phasor
+#lam_tab: wavelength array
+#dimy: dimension of the 1D FFT in the spectral direction
+
+
+
+computePistons_1D(pistons,phasor1D,sigma_real,sigma_imag,lam_tab,dimy):
+#----------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the OPD (piston) associated with the absolute complex phasor computed with the computePhasors_1D routine. 
+#This piston is determined through a fit (over all the spectral channels) with a linear phasor model. The chi2 minimization 
+#is performed by scanning a grid of piston values and finding the piston value giving the lowest chi2 value.  
+#----------------------------------------------------------------------------------------------------------------------------    
+    
+#pistons: grid of piston values (in um) for the chi2 minimization (parameter space for the fit)
+#phasor1D: Absolute phasor provided by the computePhasors_1D routine
+#sigma_real: uncertainty on the real part of the differential complex phasor
+#sigma_imag: uncertainty on the imaginary part of the differential complex phasor
+#lam_tab: wavelength array
+#dimy: dimension of the 1D FFT in the spectral direction 
+
