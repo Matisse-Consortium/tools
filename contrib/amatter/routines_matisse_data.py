@@ -76,7 +76,6 @@ def load_data_cal_Siphot(filename):
     #Extraction of the raw frames
     for i in range(nf):
         data[i,:,:] = hdulist['IMAGING_DATA'].data['DATA3'][i]
-    hdulist.close()
     
     #Extraction of the background frames
     for i in range(nf):
@@ -84,7 +83,7 @@ def load_data_cal_Siphot(filename):
     hdulist.close()  
     
     #Subtraction of the background frames
-    dark_mean=np.mean(data_dark,axis=0)
+    dark_mean=np.mean(data_bg,axis=0)
     for i in range(nf):
         data_sub[i,:,:]=data[i,:,:]-dark_mean
     
@@ -115,7 +114,6 @@ def load_data_cal_Highsens(filename):
     #Extraction of the raw frames
     for i in range(nf):
         data[i,:,:] = hdulist['IMAGING_DATA'].data['DATA1'][i]
-    hdulist.close()
     
     #Extraction of the background frames
     for i in range(nf):
