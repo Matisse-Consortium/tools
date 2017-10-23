@@ -60,16 +60,16 @@ class displayGui(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, guiTitle)
         self.panel = wx.Panel(self, wx.ID_ANY)
              
-        vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(10)
+        self.vbox=wx.BoxSizer(wx.VERTICAL)
+        self.vbox.AddSpacer(10)
                          
         # Define the main buttons with the file selection here
         # input files part
         for idx,typi in enumerate(self.fileTypes):
             self.__dict__[typi] = tributton(self,self.panel, typi, checkPresent[idx])
-            vbox.Add(self.__dict__[typi],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+            self.vbox.Add(self.__dict__[typi],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         self.btns = [self.__dict__[typi] for typi in fileTypes]
-        vbox.AddSpacer(20)     
+        self.vbox.AddSpacer(20)     
         
         # Recipe execution and SOF file management
         grid=wx.GridBagSizer(2,4)        
@@ -89,32 +89,17 @@ class displayGui(wx.Frame):
         grid.Add(self.btnDescRun, (1, 1))    
         grid.Add(self.btnTextRun, (1, 2))        
         grid.Add(btnRun, (1, 4))           
-        vbox.Add(grid,border=10,flag=wx.LEFT|wx.RIGHT|wx.EXPAND) 
-        vbox.AddSpacer(20) 
+        self.vbox.Add(grid,border=10,flag=wx.LEFT|wx.RIGHT|wx.EXPAND) 
+        self.vbox.AddSpacer(20) 
         
         # Cancel button
         btnCancel = wx.Button(self.panel,wx.ID_CANCEL, label='Cancel', size=(60, -1))
-        vbox.Add(btnCancel,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
-        vbox.AddSpacer(20) 
-        
-        # Display the running processes
-        self.timer = wx.Timer(self, wx.ID_ANY)
-        self.Bind(wx.EVT_TIMER, self.updateTimer, self.timer)
-                    
-        self.processes, pid = self.getRunningProcesses()
-        for i, proc in enumerate(pid):
-            name = "process_"+str(proc)
-            self.__dict__[name] = wx.StaticText(self.panel, label=proc, name=proc,size=(80, -1))
-            font = wx.Font(8, wx.MODERN, wx.NORMAL, wx.NORMAL)
-            self.__dict__[name].SetFont(font)
-            vbox.Add(self.__dict__[name],border=20,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-               
-        self.timer.Start(1000)        
-        vbox.AddSpacer(10)       
+        self.vbox.Add(btnCancel,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
+        self.vbox.AddSpacer(20)  
 
         # Make the window layout
-        self.panel.SetSizerAndFit(vbox)  
-        self.SetSizerAndFit(vbox)     
+        self.panel.SetSizerAndFit(self.vbox)  
+        self.SetSizerAndFit(self.vbox)     
         
         btnOpenSOF.Bind(wx.EVT_BUTTON, self.OnOpenSOF)
         self.btnTextSOF.Bind(wx.EVT_TEXT, self.OnTextSOF)
@@ -123,40 +108,7 @@ class displayGui(wx.Frame):
         btnRun.Bind(wx.EVT_BUTTON, self.OnRunRex)
         self.btnTextRun.Bind(wx.EVT_TEXT, self.OnTextRun)
         btnCancel.Bind(wx.EVT_BUTTON, self.OnClose)
-        
-    def updateTimer(self, event):
-        self.processes, pid = self.getRunningProcesses()
-        for i, proc in enumerate(pid):
-            name = "process_"+str(proc)
-            default = wx.StaticText(self.panel, label=proc, name=proc,size=(80, -1))
-            a = self.__dict__.get(name, default)
-            self.__dict__[name].SetLabel(self.processes[i])
-        
-    def getRunningProcesses(self):
-        command = "ps -ef"
-        #args = shlex.split(command)
-        #print(args)
-        ps = os.popen(command)
-        #print(ps)
-        pst = []
-        for line in ps:
-            pst.append(line)
-        #print(pst)
-        #print(ps)
-        #pst = ps.split("\n");
-        rex = []
-        pid = []
-        count = 0;
-        for line in pst:
-            if "esorex" in line or count == 0:
-                rex.append(line)
-                pid.append(line.split()[1])
-            count+=1
-#        if len(rex)==1:
-#            rex = []
-#            pid = []
-        return rex, pid
-              
+                      
                 
     def OnTextSOF(self,e):
         #print("yeah man sof!")     
