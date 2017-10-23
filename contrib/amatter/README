@@ -21,10 +21,19 @@ load_data_raw(filename):
 
 
 
-load_data_cal(filename):
-#------------------------------------------------------------------------------------------------------------
-#Routine to load MATISSE fringe data from fits files produced by the mat_cal_image (after detector cosmetics)
-#------------------------------------------------------------------------------------------------------------
+def load_data_cal_Siphot(filename):
+#---------------------------------------------------------------------------------------------------------------------------
+#Routine to load MATISSE fringe data (Si_phot mode) from fits files produced by the mat_cal_image (after detector cosmetics)
+#---------------------------------------------------------------------------------------------------------------------------
+
+#filename: MATISSE raw data file (template format in Si_phot mode) after detector cosmetics
+
+
+
+def load_data_cal_Highsens(filename):
+#---------------------------------------------------------------------------------------------------------------------------
+#Routine to load MATISSE fringe data (High_Sens mode) from fits files produced by the mat_cal_image (after detector cosmetics)
+#---------------------------------------------------------------------------------------------------------------------------
 
 #filename: MATISSE raw data file (template format) after detector cosmetics
 
