@@ -47,27 +47,33 @@ iconspath=os.path.join(os.path.dirname(__file__),"icons")
 
 class fileViewerKeyword:
     def __init__(self,headerkeyword=None,name=None,checkheader=None,checkheader_cases=None,function=None,source=None):
-        self.headerkeyword=headerkeyword
-        self.name=name
-        self.checkheader=checkheader
-        self.checkheader_cases=checkheader_cases
-        self.function=function
-        self.source=source
+        self.headerkeyword     = headerkeyword
+        self.name              = name
+        self.checkheader       = checkheader
+        self.checkheader_cases = checkheader_cases
+        self.function          = function
+        self.source            = source
 
     def evaluate(self,header=None,filename=None):
-        res=""
-        if (self.function and self.source=="header"):
-            res=eval("{0}(header)".format(self.function))
-        elif (self.function and self.source=="filename"):
-            res=eval("{0}(filename)".format(self.function))
+        res = ""
+        if (self.function and self.source   == "header"):
+            res = eval("{0}(header)".format(self.function))
+        elif (self.function and self.source == "filename"):
+            res = eval("{0}(filename)".format(self.function))
         elif self.headerkeyword and header:
             if self.checkheader:
-               check=header[self.checkheader]
+               check = header[self.checkheader]
                for i in range(len(self.checkheader_cases)):
-                   if check==self.checkheader_cases[i]:
-                       res=header[self.headerkeyword[i]]
+                   if check == self.checkheader_cases[i]:
+                       res = header[self.headerkeyword[i]]
             else:
-               res=header[self.headerkeyword]
+               res = header[self.headerkeyword]
+
+        if (res == "PHOTO"):
+            res = "SIPHOT";
+        elif(res == "INTER"):
+            res = "HISENS";
+            
         return res
 
     def __str__(self):
@@ -150,13 +156,37 @@ def matisseType(header):
 ###############################################################################
 
 keywords=[]
-keywords.append(fileViewerKeyword(function="matisseType",source="header",name="DoCatg"))
-keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET CHIP NAME",name="Detector"))
-keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET NDIT",name="NDIT"))
-keywords.append(fileViewerKeyword(headerkeyword="HIERARCH ESO DET SEQ1 DIT",name="DIT"))
-keywords.append(fileViewerKeyword(headerkeyword=["HIERARCH ESO INS PIL NAME","HIERARCH ESO INS PIN NAME"],checkheader="HIERARCH ESO DET CHIP NAME",checkheader_cases=["HAWAII-2RG","AQUARIUS"],name="Mode"))
-keywords.append(fileViewerKeyword(headerkeyword=["HIERARCH ESO INS DIL NAME","HIERARCH ESO INS DIN NAME"],checkheader="HIERARCH ESO DET CHIP NAME",checkheader_cases=["HAWAII-2RG","AQUARIUS"],name="Resolution"))
 
+keywords.append(fileViewerKeyword(
+    function = "matisseType",
+    source   = "header",
+    name     = "DoCatg"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword = "HIERARCH ESO DET CHIP NAME",
+    name          = "Detector"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword = "HIERARCH ESO DET NDIT",
+    name          = "NDIT"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword = "HIERARCH ESO DET SEQ1 DIT",
+    name          = "DIT"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword   = ["HIERARCH ESO INS PIL NAME","HIERARCH ESO INS PIN NAME"],
+    checkheader       = "HIERARCH ESO DET CHIP NAME",
+    checkheader_cases = ["HAWAII-2RG","AQUARIUS"],
+    name              = "Mode"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword   = ["HIERARCH ESO INS DIL NAME","HIERARCH ESO INS DIN NAME"],
+    checkheader       = "HIERARCH ESO DET CHIP NAME",
+    checkheader_cases = ["HAWAII-2RG","AQUARIUS"],
+    name              = "Resolution"))
+
+print(keywords)
 
 ###############################################################################
 
@@ -234,10 +264,14 @@ class matisseFile(object):
         # (as I do not know how long the header is)
                 
         # prefer fold instead of dfits  for reliability (dfits failed on some ubuntu 16.4 distribution)
-        if distutils.spawn.find_executable("fold"):
-            fh = subprocess.Popen(catCommand+" "+filename+" | fold -w80");
-        elif distutils.spawn.find_executable("dfits"): 
-            fh = subprocess.Popen(catCommand+" "+filename+" | dfits - ");
+        if distutils.spawn.find_executable("dfits"): 
+            print(catCommand+" "+filename+" | dfits - ")
+            #fh = subprocess.check_output(catCommand+" "+filename+" | dfits - ", shell=True); 
+            fh = subprocess.Popen(['catCommand','filename','|','dfits','-'],stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+            print(fh.stdout.readline())
+        elif distutils.spawn.find_executable("fold"):
+            print(catCommand+" "+filename+" | fold -w80")
+            fh = subprocess.check_output(catCommand+" "+filename+" | fold -w80");
         else:
             print("No suitable cat command '"+ext+"'");
             return 0;
@@ -253,7 +287,6 @@ class matisseFile(object):
                 break
             if count==800:
                 break
-            
         fh.close()
         return header
                                 
@@ -281,7 +314,7 @@ matisseColor={
 # Bad Pixel file
 "BADPIX"         :wx.Colour(201,74,83),
 
-# Bad Pixel file
+# NLM file
 "NONLINEARITY"         :wx.Colour(101,56,125),
 
 # Flat files
