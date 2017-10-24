@@ -27,7 +27,7 @@ def getData(fileName):
 	data=vis2
 	hdu.close()
 	data=np.sqrt(np.absolute(vis2))*np.sign(vis2)
-	dataerr=np.absolute(2.*data*vis2err)
+	dataerr=np.absolute(vis2err/data/2.)
 	return(data,dataerr)
 
 def getWvl(fileName):
