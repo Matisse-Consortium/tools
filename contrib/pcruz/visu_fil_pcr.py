@@ -6,6 +6,12 @@ rc('text',usetex=True)
 import sys
 
 
+#--------------------------------------------
+#
+#--------------------------------------------
+
+
+
 fname=sys.argv[-1]
 f=open(fname,"r")
 lines=f.read().splitlines()
