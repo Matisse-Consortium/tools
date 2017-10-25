@@ -158,6 +158,10 @@ def matisseType(header):
 keywords=[]
 
 keywords.append(fileViewerKeyword(
+    headerkeyword="DATE-OBS",
+    name="Date"))
+
+keywords.append(fileViewerKeyword(
     function = "matisseType",
     source   = "header",
     name     = "DoCatg"))
