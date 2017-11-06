@@ -172,7 +172,7 @@ def load_opd(filename,num_baseline):
     return pistons,pistons_err 
 
 
-def peak_fft1D(dimx,dimy,lam,lam_ref,peakNum):
+def peak_fft1D(dimx,dimy,lam,lam_ini,peakNum):
 #-------------------------------------------------------------------------------------------------------------------------
 #Routine to compute the position (in pix) and width (in pix) of a given fringe peak at a given wavelength in the 1D FFT. 
 #The 1D FFT is computed along the spatial direction for every spectral column.
