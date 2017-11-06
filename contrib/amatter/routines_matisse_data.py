@@ -130,7 +130,66 @@ def load_data_cal_Highsens(filename):
     #plt.imshow(data[0,:,:],vmin=0)
     return data_sub,nf,dimy,dimx 
 
+
+def load_fft1D(filename):
+#----------------------------------------------------------------------------------
+#Routine to load the imaginary and real parts of the 1D FFT of MATISSE fringe data. 
+#The 1D FFT is computed along the spatial direction for every spectral channel.
+#----------------------------------------------------------------------------------
+
+#filename: output file of the mat_est_corr recipe ("CORRFLUX_CAL_MATISSE_GEN_LAMP_*_*.fits")
+
+    hdulist = fits.open(filename)
+    real_part_fft1D = hdulist['OBJ_CORR_FLUX'].data['CORRFLUXREAL1']
+    im_part_fft1D = hdulist['OBJ_CORR_FLUX'].data['CORRFLUXIMAG1']
+
+    nframe=np.size(real_part_fft1D,axis=0) #Number of frames
+    dimy=np.size(real_part_fft1D,axis=1) #Spectral direction
+    dimf=np.size(real_part_fft1D,axis=2) #Spatial frequency direction
+
+    return real_part_fft1D,im_part_fft1D 
+
+
+def load_opd(filename,num_baseline):
+#---------------------------------------------------------------------------------------------
+#Routine to load the opd values (in um) computed for each fringe peak, without OPD modulation. 
+#---------------------------------------------------------------------------------------------
+
+#filename: output file of the mat_est_opd recipe ("OI_OPDWVPO_CORRFLUX_CAL_MATISSE_GEN_LAMP_*_*.fits")
+#num_baseline: number of baselines
+
+    hdulist = fits.open(filename)
+    piston = hdulist['OI_OPD'].data['OPD']
+    piston_err = hdulist['OI_OPD'].data['OPDERR']
+    npiston = np.size(piston)
+    nframe = npiston/num_baseline
+    pistons = np.zeros([num_baseline,nframe],dtype=np.float)
+    pistons_err = np.zeros([num_baseline,nframe],dtype=np.float)
+    for i in range(num_baseline):
+        pistons[i,:]=piston[i:npiston:num_baseline]
+        pistons_err[i,:]=piston_err[i:npiston:num_baseline]
     
+    return pistons,pistons_err 
+
+
+def peak_fft1D(dimx,dimy,lam,lam_ref,peakNum):
+#-------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the position (in pix) and width (in pix) of a given fringe peak at a given wavelength in the 1D FFT. 
+#The 1D FFT is computed along the spatial direction for every spectral column.
+#-------------------------------------------------------------------------------------------------------------------------
+
+#dimx: dimension of the 1D FFT in the spatial (frequency) direction
+#lam_tab: current wavelength [in um] 
+#lam_ini: reference wavelength [in um] from which the position of the fringe peaks in the 1D FFT is computed 
+#peakNum: peak number
+
+    #Computation of position and width of the k^th fringe peak
+    peakPosition=np.round((3*(peakNum)/(72.*(lam/lam_ini)))*dimx)+np.round(dimx/2)
+    peakWidth=np.round((1./(72.*(lam/lam_ini)))*dimx)
+
+    return peakPosition,peakWidth
+
+
        
 def computeFft1D_spectral(interf,shift_im_min,shift_im_max,dimx,dimy,lam_tab,lam_ini):
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -185,25 +244,12 @@ def computeFft1D_spectral(interf,shift_im_min,shift_im_max,dimx,dimy,lam_tab,lam
                 chi2_shift_min=chi2_shift[l,k]
                 shift_ima[k]=a[l]
     shift_ima_mean=np.mean(shift_ima)
-    #print("shift_ima_mean = {0}").format(shift_ima_mean)
-    #print("shift_ima = {0}").format(shift_ima)
+
     
     #Centering of the interferometric frame by applying the correct numerical shift 'shift_ima_mean'
     for k in range(dimy):
         interf_final=np.fft.fftshift(ip.shift(interf[k,:],shift_ima_mean))
         fft1D[k,:] = np.fft.fftshift(np.fft.fft(interf_final))
-        #print("shift_ima[k] = {0}").format(shift_ima[k])
-        #plt.figure()
-        #plt.plot(a,chi2_shift[:,200])
-        #tab_x=range(dimx)
-        #plt.figure()
-        #plt.imshow(np.sqrt(np.abs(fft1D)),vmin=0)
-        #plt.plot(tab_x[int(lower[100]):int(upper[100])],np.abs(fft1D[100,int(lower[100]):int(upper[100])]))
-        #plt.figure()
-        #plt.plot(np.sqrt(np.abs(fft1D_dub)))
-        #plt.plot(np.real(fft1D[10,:]))
-    #plt.figure()
-    #plt.plot(np.abs(fft1D[200,:]))
     return fft1D
       
             
@@ -221,13 +267,14 @@ def computeFft1D(interf,dimx,dimy):
         interf_dub=np.fft.fftshift(interf[k,:])
         fft1D[k,:] = np.fft.fftshift(np.fft.fft(interf_dub))
     return fft1D
-    
-    
- 
+  
+
+
 def computeCorrFlux(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
-#----------------------------------------------------------------------------------------------------------------
-#Routine to compute the energy (correlated flux) associated with the fringe peak of interest, at each wavelength.         
-#----------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the unbiased energy (squared modulus) of the fringe peak of interest, and the energy of the low-frequency peak, at each wavelength. 
+#It returns the correponding squared correlated flux (corr_flux), squared visibility (corr_flux_norm), and squared total flux (uncorr_flux).         
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #fft1D: 1D FFT of the MATISSE interferometric frame for every spectral channel
 #dimx: dimension of the 1D FFT in the spatial frequency direction
@@ -241,40 +288,36 @@ def computeCorrFlux(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
     peakWidth=np.zeros(dimy)
     lower=np.zeros(dimy)
     upper=np.zeros(dimy)
+    lower_cent=np.zeros(dimy)
+    upper_cent=np.zeros(dimy)
+    upper=np.zeros(dimy)
     ind=np.zeros(dimy)
     npix=np.zeros(dimy,dtype=np.float) 
-    sigma_real=np.zeros(dimy)
-    sigma_imag=np.zeros(dimy)
+    sigma_corr_flux=np.zeros(dimy)
+    bias_corr_flux=np.zeros(dimy)
     corr_flux=np.zeros(dimy,dtype=np.float)
-            
+    uncorr_flux=np.zeros(dimy,dtype=np.float)
+    corr_flux_norm=np.zeros(dimy,dtype=np.float)
+    shift_mean=100           
     for k in range(dimy):
-        peakPosition[k]=np.int((3*(peakNum)/(72.*(lam_tab[k]/lam_ini)))*dimx)+np.int(dimx/2)
-        peakWidth[k]=np.int((1./(72.*(lam_tab[k]/lam_ini)))*dimx)
-        lower[k]=np.int(peakPosition[k]-peakWidth[k])
-        upper[k]=np.int(peakPosition[k]+peakWidth[k])                
-        ind[k]=np.argmax(abs(fft1D[int(lower[k]):int(upper[k])]))
-        npix[k]=(np.int(upper[k])-np.int(lower[k]))
-        #int_real=np.sum(np.real(fft1D[k,int(lower[k]):int(upper[k])]))
-        #int_imag=np.sum(np.imag(fft1D[k,int(lower[k]):int(upper[k])]))
-        int_mod=np.sum(np.square(np.abs(fft1D[k,int(lower[k]):int(upper[k])])))
-        sigma_real[k]=np.std(np.real(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))*np.sqrt(npix[k])
-        sigma_imag[k]=np.std(np.imag(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))*np.sqrt(npix[k])
-        corr_flux[k]=int_mod
+        peakPosition[k]=np.round((3*(peakNum)/(72.*(lam_tab[k]/lam_ini)))*dimx)+np.round(dimx/2)
+        peakWidth[k]=np.round((1./(72.*(lam_tab[k]/lam_ini)))*dimx)
+        lower_cent[k]=np.round(dimx/2)-np.round(peakWidth[k])
+        upper_cent[k]=np.round(dimx/2)+np.round(peakWidth[k]) 
+        lower[k]=np.round(peakPosition[k]-peakWidth[k])
+        upper[k]=np.round(peakPosition[k]+peakWidth[k])                
+        ind[k]=np.argmax(abs(fft1D[np.roundint(lower[k]):np.round(upper[k])]))
+        npix[k]=(np.round(upper[k])-np.round(lower[k]))
+        int_mod=np.sum(np.square(np.abs(fft1D[k,np.round(lower[k]):np.round(upper[k])])))
+        int_mod_cent=np.sum(np.square(np.abs(fft1D[k,np.round(lower_cent[k]):np.round(upper_cent[k])])))
+        sigma_corr_flux[k]=np.std(np.square(np.abs(fft1D[k,np.round(lower[k]+2*peakWidth[k]+shift_mean):np.round(upper[k]+2*peakWidth[k]+shift_mean)])))*np.sqrt(npix[k])
+        bias_corr_flux[k]=np.mean(np.square(np.abs(fft1D[k,np.round(lower[k]+2*peakWidth[k]+shift_mean):np.round(upper[k]+2*peakWidth[k]+shift_mean)])))
+        corr_flux[k]=int_mod-bias_corr_flux[k]
+        corr_flux_norm[k]=corr_flux[k]/int_mod_cent
+        uncorr_flux[k]=int_mod_cent-bias_corr_flux[k]
 
-    #Various debug plots                            
-    #tab_x=range(dimx)
-    #plt.figure()
-    #plt.plot(np.imag(phasor1D_diff))
-    #plt.plot(np.sqrt(np.square(sigma_imag)+np.square(sigma_real)))
-    #print("sigma_imag[420] = {0}").format(sigma_imag[420])
-    #print("sigma_imag[420] = {0}").format(sigma_real[420])
-    #plt.plot(np.imag(phasor1D_diff))
-    #plt.plot(tab_x[int(lower[100]):int(upper[100])],np.abs(fft1D[100,int(lower[100]):int(upper[100])]))
-    #plt.figure()
-    #plt.plot(np.imag(fft1D[420,int(lower[420]+2*peakWidth[420]+5):int(upper[420]+2*peakWidth[420]+5)]))
-    #plt.figure()
-    #plt.plot(np.imag(fft1D[420,:]))
-    return (corr_flux,sigma_real,sigma_imag)
+    return (corr_flux,sigma_corr_flux,bias_corr_flux,corr_flux_norm,uncorr_flux)
+
 
         
 
@@ -310,13 +353,16 @@ def computePhasors_1D_spectral(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
         upper[k]=np.int(peakPosition[k]+peakWidth[k])                
         ind[k]=np.argmax(abs(fft1D[int(lower[k]):int(upper[k])]))
         npix[k]=(np.int(upper[k])-np.int(lower[k]))
+
+        #Computation of the phasor by integrating over the support of the fringe peak
         int_real=np.sum(np.real(fft1D[k,int(lower[k]):int(upper[k])]))
         int_imag=np.sum(np.imag(fft1D[k,int(lower[k]):int(upper[k])]))
         sigma_real[k]=np.std(np.real(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))*np.sqrt(npix[k])
         sigma_imag[k]=np.std(np.imag(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))*np.sqrt(npix[k])        
         
-        #int_real=np.real(fft1D[k,int(peakPosition[k])]) #Value taken at the maxium of the fringe peak
-        #int_imag=np.imag(fft1D[k,int(peakPosition[k])]) #Value taken at the maxium of the fringe peak
+        #Computation of the phasor by taking the maximum value of the fringe peak
+        #int_real=np.real(fft1D[k,int(peakPosition[k])]) 
+        #int_imag=np.imag(fft1D[k,int(peakPosition[k])]) 
         #sigma_real[k]=np.std(np.real(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))
         #sigma_imag[k]=np.std(np.imag(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)])) 
         phasor1D[k]=1j*int_imag+int_real
@@ -324,19 +370,6 @@ def computePhasors_1D_spectral(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
     phasor1D_ref=phasor1D[np.int(np.round(dimy/2))]  #Reference phasor
     phasor1D_diff=phasor1D*np.conjugate(phasor1D_ref)/np.abs(phasor1D_ref) #Intercorrelation                            
 
-    #Various debug plots
-    #tab_x=range(dimx)
-    #plt.figure()
-    #plt.plot(np.imag(phasor1D_diff))
-    #plt.plot(np.sqrt(np.square(sigma_imag)+np.square(sigma_real)))
-    #print("sigma_imag[420] = {0}").format(sigma_imag[420])
-    #print("sigma_imag[420] = {0}").format(sigma_real[420])
-    #plt.plot(np.imag(phasor1D_diff))
-    #plt.plot(tab_x[int(lower[100]):int(upper[100])],np.abs(fft1D[100,int(lower[100]):int(upper[100])]))
-    #plt.figure()
-    #plt.plot(np.imag(fft1D[420,int(lower[420]+2*peakWidth[420]+5):int(upper[420]+2*peakWidth[420]+5)]))
-    #plt.figure()
-    #plt.plot(np.imag(fft1D[420,:]))
     return (phasor1D_diff,sigma_real,sigma_imag)
     
  
@@ -375,11 +408,13 @@ def computePhasors_1D(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
         ind[k]=np.argmax(abs(fft1D[int(lower[k]):int(upper[k])]))
         npix[k]=(np.int(upper[k])-np.int(lower[k]))
         
+        #Computation of the phasor by integrating over the support of the fringe peak
         int_real=np.sum(np.real(fft1D[k,int(lower[k]):int(upper[k])])) #Integration over the fringe peak support
         int_imag=np.sum(np.imag(fft1D[k,int(lower[k]):int(upper[k])])) #Integration over the fringe peak support
         sigma_real[k]=np.std(np.real(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))*np.sqrt(npix[k])
         sigma_imag[k]=np.std(np.imag(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))*np.sqrt(npix[k])
         
+        #Computation of the phasor by taking the maximum value of the fringe peak
         #int_real=np.real(fft1D[k,int(peakPosition[k])]) #value taken at the peak maximum
         #int_imag=np.imag(fft1D[k,int(peakPosition[k])]) #value taken at the peak maximum
         #sigma_real[k]=np.std(np.real(fft1D[k,int(lower[k]+2*peakWidth[k]+5):int(upper[k]+2*peakWidth[k]+5)]))
@@ -387,19 +422,6 @@ def computePhasors_1D(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
         
         phasor1D[k]=1j*int_imag+int_real
 
-    #Various debug plots                            
-    #tab_x=range(dimx)
-    #plt.figure()
-    #plt.plot(np.imag(phasor1D_diff))
-    #plt.plot(np.sqrt(np.square(sigma_imag)+np.square(sigma_real)))
-    #print("sigma_imag[420] = {0}").format(sigma_imag[420])
-    #print("sigma_imag[420] = {0}").format(sigma_real[420])
-    #plt.plot(np.imag(phasor1D_diff))
-    #plt.plot(tab_x[int(lower[100]):int(upper[100])],np.abs(fft1D[100,int(lower[100]):int(upper[100])]))
-    #plt.figure()
-    #plt.plot(np.imag(fft1D[420,int(lower[420]+2*peakWidth[420]+5):int(upper[420]+2*peakWidth[420]+5)]))
-    #plt.figure()
-    #plt.plot(np.imag(fft1D[420,:]))
     return (phasor1D,sigma_real,sigma_imag)
 
         
@@ -436,7 +458,6 @@ def computePistons_1D_spectral(pistons,phasor1D,sigma_real,sigma_imag,lam_tab,di
     chi2_phasor1D=np.zeros(npistons)
     for i in range(npistons):
         phasor1D_mod=np.exp(-1j*2.0*np.pi*pistons[i]*(1./lam_tab-1./lam_tab[np.int(np.round(dimy/2))]))
-        #phasor1D_mod=np.exp(-1j*2.0*np.pi*pistons[i]*(1./lam_tab))
         phasor_tot=phasor1D*phasor1D_mod
         sigma2_var=np.square(sigma_real)+np.square(sigma_imag)                
         chi2_phasor1D[i]=np.sum(np.square(np.imag(phasor_tot))/sigma2_var)
@@ -450,21 +471,7 @@ def computePistons_1D_spectral(pistons,phasor1D,sigma_real,sigma_imag,lam_tab,di
     sigma2_piston1D=1./(np.sum((1./sigma2_var)*np.square(np.real(phasor1D)*np.real(phasor1D_mod_min)-np.imag(phasor1D)*np.imag(phasor1D_mod_min))))
     phasor_tot_min=(phasor1D*phasor1D_mod_min)
     sigma2_var_min=np.square(sigma_real*np.imag(phasor1D_mod_min))+np.square(sigma_imag*np.real(phasor1D_mod_min))  
-    
-    #Various debug plots        
-    #plt.figure()        
-    #plt.plot(lam_tab,np.imag(phasor1D)/np.abs(phasor1D))    
-    #plt.plot(lam_tab,np.imag(phasor1D_mod_min))    
-    #plt.figure()        
-    #plt.plot(lam_tab,np.real(phasor1D)/np.abs(phasor1D))    
-    #plt.plot(lam_tab,np.real(phasor1D_mod_min))
-    #plt.figure()    
-    #plt.plot(1./lam_tab,np.angle(phasor1D_mod_min))
-    #plt.plot(1./lam_tab,np.angle(phasor1D))
-    #plt.figure()
-    #plt.plot(pistons,chi2_phasor1D)    
-    #plt.plot(lam_tab,np.square(np.imag(phasor_tot_min)))
-    #plt.plot(lam_tab,sigma2_var_min)
+
     return(piston1D,sigma2_piston1D,phasor1D_mod_min,phasor_tot_min)
     
 
@@ -515,19 +522,6 @@ def computePistons_1D(pistons,phasor1D,sigma_real,sigma_imag,lam_tab,dimy):
     phasor_tot_min=(phasor1D/np.abs(phasor1D))*phasor1D_mod_min
     sigma2_var_min=np.square(sigma_real*np.imag(phasor1D_mod_min))+np.square(sigma_imag*np.real(phasor1D_mod_min))  
             
-    #plt.figure()        
-    #plt.plot(lam_tab,np.imag(phasor1D)/np.abs(phasor1D))    
-    #plt.plot(lam_tab,np.imag(phasor1D_mod_min))    
-    #plt.figure()        
-    #plt.plot(lam_tab,np.real(phasor1D)/np.abs(phasor1D))    
-    #plt.plot(lam_tab,np.real(phasor1D_mod_min))           
-    #plt.figure()    
-    #plt.plot(1./lam_tab,np.angle(phasor1D_mod_min))
-    #plt.plot(1./lam_tab,np.angle(phasor1D))
-    #plt.figure()
-    #plt.plot(pistons,chi2_phasor1D)    
-    #plt.plot(lam_tab,np.square(np.imag(phasor_tot_min)))
-    #plt.plot(lam_tab,sigma2_var_min)
     return(piston1D,sigma2_piston1D,phasor1D_mod_min,phasor_tot_min)        
     
     

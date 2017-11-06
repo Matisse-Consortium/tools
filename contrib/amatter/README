@@ -21,21 +21,40 @@ load_data_raw(filename):
 
 
 
-def load_data_cal_Siphot(filename):
-#---------------------------------------------------------------------------------------------------------------------------
-#Routine to load MATISSE fringe data (Si_phot mode) from fits files produced by the mat_cal_image (after detector cosmetics)
-#---------------------------------------------------------------------------------------------------------------------------
-
-#filename: MATISSE raw data file (template format in Si_phot mode) after detector cosmetics
-
-
-
-def load_data_cal_Highsens(filename):
-#---------------------------------------------------------------------------------------------------------------------------
-#Routine to load MATISSE fringe data (High_Sens mode) from fits files produced by the mat_cal_image (after detector cosmetics)
-#---------------------------------------------------------------------------------------------------------------------------
+load_data_cal(filename):
+#------------------------------------------------------------------------------------------------------------
+#Routine to load MATISSE fringe data from fits files produced by the mat_cal_image (after detector cosmetics)
+#------------------------------------------------------------------------------------------------------------
 
 #filename: MATISSE raw data file (template format) after detector cosmetics
+
+
+
+def load_fft1D(filename):
+#----------------------------------------------------------------------------------
+#Routine to load the imaginary and real parts of the 1D FFT of MATISSE fringe data. 
+#The 1D FFT is computed along the spatial direction for every spectral channel.
+#----------------------------------------------------------------------------------
+
+#filename: output file of the mat_est_corr recipe ("CORRFLUX_CAL_MATISSE_GEN_LAMP_*_*.fits")
+
+
+
+def load_opd(filename,num_baseline):
+#----------------------------------------------------------------------------------
+#Routine to load the opd values (in um) computed for each fringe peak. 
+#----------------------------------------------------------------------------------
+
+#filename: output file of the mat_est_opd recipe ("OI_OPDWVPO_CORRFLUX_CAL_MATISSE_GEN_LAMP_*_*.fits")
+cd#num_baseline: number of baselines
+
+
+
+def peak_fft1D(dimx,dimy,lam,lam_ref,peakNum):
+#-------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the position (in pix) and width (in pix) of a given fringe peak at a given wavelength in the 1D FFT. 
+#The 1D FFT is computed along the spatial direction for every spectral column.
+#-------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -66,10 +85,11 @@ computeFft1D(interf,dimx,dimy):
 
 
 
-computeCorrFlux(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
-#----------------------------------------------------------------------------------------------------------------
-#Routine to compute the energy (correlated flux) associated with the fringe peak of interest, at each wavelength.         
-#----------------------------------------------------------------------------------------------------------------
+def computeCorrFlux(fft1D,dimx,dimy,lam_tab,lam_ini,peakNum):
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
+#Routine to compute the unbiased energy (squared modulus) of the fringe peak of interest, and the energy of the low-frequency peak, at each wavelength. 
+#It returns the correponding squared correlated flux (corr_flux), squared visibility (corr_flux_norm), and squared total flux (uncorr_flux).         
+#----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #fft1D: 1D FFT of the MATISSE interferometric frame for every spectral channel
 #dimx: dimension of the 1D FFT in the spatial frequency direction
