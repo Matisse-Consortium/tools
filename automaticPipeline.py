@@ -15,8 +15,9 @@ def runEsorex(cmd):
     item=cmd.split()
     out=item[-1]+".log"
     err=item[-1]+".err"
-    print "Recipes",item[2],"running..."
-    os.system(cmd+" > "+out+" 2> "+err)
+    print "    Recipes",item[2],"running..."
+    val=item[1].split("=")
+    os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
 
 
 
@@ -43,6 +44,7 @@ for elt in listArg:
     if ('--nbCore' in elt):
         item=elt.split('=')
         nbCore=int(item[1])
+print " "
 print "-----------------------------------------------------------------------------------------"
 if (repRaw == ""):
     print "ERROR : You have to specifiy a Raw Data Directory with --repRaw=DirectoryPath"
@@ -62,7 +64,6 @@ if (nbCore==0):
     print "Info : Number of Cores not specified. We use one core only"
 print '%-40s' % ("Number of Cores:",),nbCore    
 print "-----------------------------------------------------------------------------------------"
-print " "
     
 #repRaw='/home/pbe/RawAutomatic'#'/data-matisse/TransFunc_LowFlux/OTHER'#'/home/pbe/RawAutomatic'
 #repResult='/home/pbe/ResultsAutomatic'
@@ -70,6 +71,8 @@ print " "
 listRaw = [os.path.join(repRaw, f) for f in os.listdir(repRaw) if os.path.isfile(os.path.join(repRaw, f)) and f[-5:] == '.fits']
 if (repArchive != ""):
     listArchive = [os.path.join(repArchive, f) for f in os.listdir(repArchive) if os.path.isfile(os.path.join(repArchive, f)) and f[-5:] == '.fits']
+else:
+    listArchive =[]
 
 # Determination of the number of Reduction Blocks
 keyTplStart=[]
@@ -86,6 +89,7 @@ for elt in keyTplStart:
 iterNumber=0
 while True:
     iterNumber+=1
+    print ""
     print "Iteration ",iterNumber
     print "-----------------------"
     if (iterNumber > 1):
@@ -123,13 +127,12 @@ while True:
         elt["tplstart"]=keyTplStartCurrent
 
 # Fill the list of calib in the Reduction Blocks List from repArchive
-    if (repArchive != ""):
-        for elt in listRedBlocks:
-            hdu=fits.open(elt["input"][0][0])
-            calib,status=matisseCalib(hdu[0].header,elt["action"],listArchive,elt['calib'])
-            hdu.close()
-            elt["calib"]=calib
-            elt["status"]=status
+    for elt in listRedBlocks:
+        hdu=fits.open(elt["input"][0][0])
+        calib,status=matisseCalib(hdu[0].header,elt["action"],listArchive,elt['calib'])
+        hdu.close()
+        elt["calib"]=calib
+        elt["status"]=status
             
 # Fill the list of calib in the Reduction Blocks List from repResult Iter i-1
     if (iterNumber > 1):
@@ -192,7 +195,7 @@ while True:
         else:
             cptStatusZero+=1
         cpt+=1
-    print '%40s' % ("Reduction Blocks to process:",),cptToProcess
+    print '%-40s' % ("Reduction Blocks to process:",),cptToProcess
                 
     if (listCmdEsorex == []):
         print " "
@@ -218,5 +221,5 @@ while True:
         pool = Pool(processes=nbCore)
 # Map our function to a data set - number 1 through 20
         pool.map(runEsorex, listCmdEsorex)
-    print '%40s' % ("Reduction Blocks processed:",),cptStatusOne
-    print '%40s' % ("Reduction Blocks not processed:",),cptStatusZero
+    print '%-40s' % ("Reduction Blocks processed:",),cptStatusOne
+    print '%-40s' % ("Reduction Blocks not processed:",),cptStatusZero
