@@ -3,27 +3,29 @@ from astropy.io import fits
 
 
 def matisseCalib(header,action,listCalibFile,calibPrevious):
-    keyDetReadCurname=header['HIERARCH ESO DET READ CURNAME']
-    keyDetChipName=header['HIERARCH ESO DET CHIP NAME']
-    keyDetSeq1Dit=header['HIERARCH ESO DET SEQ1 DIT']
-    keyDetSeq1Period=header['HIERARCH ESO DET SEQ1 PERIOD']
-    keyInsPilId=header['HIERARCH ESO INS PIL ID']
-    keyInsPinId=header['HIERARCH ESO INS PIN ID']
-    keyInsDilId=header['HIERARCH ESO INS DIL ID']
-    keyInsDinId=header['HIERARCH ESO INS DIN ID']
-    keyInsPolId=header['HIERARCH ESO INS POL ID']
-    keyInsFilId=header['HIERARCH ESO INS FIL ID']
-    keyInsPonId=header['HIERARCH ESO INS PON ID']
-    keyInsFinId=header['HIERARCH ESO INS FIN ID']
+    keyDetReadCurname = header['HIERARCH ESO DET READ CURNAME']
+    keyDetChipName    = header['HIERARCH ESO DET CHIP NAME']
+    keyDetSeq1Dit     = header['HIERARCH ESO DET SEQ1 DIT']
+    keyDetSeq1Period  = header['HIERARCH ESO DET SEQ1 PERIOD']
+    keyInsPilId       = header['HIERARCH ESO INS PIL ID']
+    keyInsPinId       = header['HIERARCH ESO INS PIN ID']
+    keyInsDilId       = header['HIERARCH ESO INS DIL ID']
+    keyInsDinId       = header['HIERARCH ESO INS DIN ID']
+    keyInsPolId       = header['HIERARCH ESO INS POL ID']
+    keyInsFilId       = header['HIERARCH ESO INS FIL ID']
+    keyInsPonId       = header['HIERARCH ESO INS PON ID']
+    keyInsFinId       = header['HIERARCH ESO INS FIN ID']
 
     res=calibPrevious
-    if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED" or 
-        action=="ACTION_MAT_CAL_DET_FAST_SPEED" or
-        action=="ACTION_MAT_CAL_DET_LOW_GAIN" or
-        action=="ACTION_MAT_CAL_DET_HIGH_GAIN"):
+    if (action == "ACTION_MAT_CAL_DET_SLOW_SPEED" or 
+        action == "ACTION_MAT_CAL_DET_FAST_SPEED" or
+        action == "ACTION_MAT_CAL_DET_LOW_GAIN" or
+        action == "ACTION_MAT_CAL_DET_HIGH_GAIN"):
         return [res,1]
 
-    if (action=="ACTION_MAT_IM_BASIC" or action=="ACTION_MAT_IM_EXTENDED" or action=="ACTION_MAT_IM_REM"):
+    if (action == "ACTION_MAT_IM_BASIC" or
+        action == "ACTION_MAT_IM_EXTENDED" or
+        action == "ACTION_MAT_IM_REM"):
         nbCalib=0
         for elt in res:
             if (elt[1]=="BADPIX"):
@@ -36,7 +38,9 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyTplStartCalib=hdu[0].header['HIERARCH ESO TPL START']
                 keyDetChipNameCalib=hdu[0].header['HIERARCH ESO DET CHIP NAME']
             hdu.close()
-            if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
+            if (tagCalib                == "BADPIX" and
+                (keyDetReadCurnameCalib == keyDetReadCurname and
+                 keyDetChipNameCalib    == keyDetChipName)):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -77,7 +81,9 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyDetSeq1DitCalib=header['HIERARCH ESO DET SEQ1 DIT']
                 keyTplStartCalib=hdu[0].header['HIERARCH ESO TPL START']
             hdu.close()
-            if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
+            if (tagCalib=="BADPIX" and
+                (keyDetReadCurnameCalib==keyDetReadCurname and
+                 keyDetChipNameCalib==keyDetChipName)):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -94,7 +100,15 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
-            if (tagCalib=="FLATFIELD" and ((keyDetChipNameCalib=="AQUARIUS" and keyDetChipName=="AQUARIUS" and keyDetReadCurnameCalib==keyDetReadCurname and keyDetSeq1DitCalib==keyDetSeq1Dit) or (keyDetChipNameCalib=="HAWAII-2RG" and keyDetChipName=="HAWAII-2RG" and keyDetReadCurnameCalib==keyDetReadCurname and keyDetSeq1DitCalib==keyDetSeq1Dit))):
+            if (tagCalib                 =="FLATFIELD" and
+                ((keyDetChipNameCalib    == "AQUARIUS" and
+                  keyDetChipName         == "AQUARIUS" and
+                  keyDetReadCurnameCalib == keyDetReadCurname and
+                  keyDetSeq1DitCalib     == keyDetSeq1Dit) or
+                 (keyDetChipNameCalib    == "HAWAII-2RG" and
+                  keyDetChipName         == "HAWAII-2RG" and
+                  keyDetReadCurnameCalib == keyDetReadCurname and
+                  keyDetSeq1DitCalib     == keyDetSeq1Dit))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -111,7 +125,15 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
-            if (tagCalib=="NONLINEARITY" and ((keyDetChipNameCalib=="AQUARIUS" and keyDetChipName=="AQUARIUS" and keyDetReadCurnameCalib==keyDetReadCurname and keyDetSeq1DitCalib==keyDetSeq1Dit) or (keyDetChipNameCalib=="HAWAII-2RG" and keyDetChipName=="HAWAII-2RG" and keyDetReadCurnameCalib==keyDetReadCurname and keyDetSeq1DitCalib==keyDetSeq1Dit))):
+            if (tagCalib                 == "NONLINEARITY" and
+                ((keyDetChipNameCalib    == "AQUARIUS" and
+                  keyDetChipName         == "AQUARIUS" and
+                  keyDetReadCurnameCalib == keyDetReadCurname and
+                  keyDetSeq1DitCalib     == keyDetSeq1Dit) or
+                 (keyDetChipNameCalib    == "HAWAII-2RG" and
+                  keyDetChipName         == "HAWAII-2RG" and
+                  keyDetReadCurnameCalib == keyDetReadCurname and
+                  keyDetSeq1DitCalib     == keyDetSeq1Dit))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -221,8 +243,14 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     res.append([elt,tagCalib])
                     nbCalib+=1
             if (tagCalib=="NONLINEARITY" and 
-                ((keyDetChipNameCalib=="AQUARIUS" and keyDetChipName=="AQUARIUS" and keyDetReadCurnameCalib==keyDetReadCurname and (keyDetSeq1DitCalib==keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period)) or 
-                 (keyDetChipNameCalib=="HAWAII-2RG" and keyDetChipName=="HAWAII-2RG" and keyDetReadCurnameCalib==keyDetReadCurname))):
+                ((keyDetChipNameCalib    =="AQUARIUS" and
+                  keyDetChipName         =="AQUARIUS" and
+                  keyDetReadCurnameCalib ==keyDetReadCurname and
+                  (keyDetSeq1DitCalib    ==keyDetSeq1Dit or
+                   keyDetSeq1DitCalib    ==keyDetSeq1Period)) or 
+                 (keyDetChipNameCalib    =="HAWAII-2RG" and
+                  keyDetChipName         =="HAWAII-2RG" and
+                  keyDetReadCurnameCalib ==keyDetReadCurname))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -241,8 +269,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                  (keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                 ((keyInsDilId   ==keyInsDilIdCalib and
+                   keyDetChipName=="HAWAII-2RG") or 
+                  (keyInsDinId   ==keyInsDinIdCalib and
+                   keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -288,12 +318,18 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     cpt+=1
                 if (idx == -1):
                     res.append([elt,tagCalib])
-        if ((keyDetChipName=="AQUARIUS" and keyInsPinId=="PHOTO") or (keyDetChipName=="HAWAII-2RG" and keyInsPilId=="PHOTO")):
+        if ((keyDetChipName=="AQUARIUS" and
+             keyInsPinId   =="PHOTO") or
+            (keyDetChipName=="HAWAII-2RG" and
+             keyInsPilId   =="PHOTO")):
             if (nbCalib==5):
                 status=1
             else:
                 status=0
-        if ((keyDetChipName=="AQUARIUS" and keyInsPinId!="PHOTO") or (keyDetChipName=="HAWAII-2RG" and keyInsPilId!="PHOTO")):
+        if ((keyDetChipName=="AQUARIUS" and
+             keyInsPinId   !="PHOTO") or
+            (keyDetChipName=="HAWAII-2RG" and
+             keyInsPilId   !="PHOTO")):
             if (nbCalib>=4):
                 status=1
             else:
@@ -346,10 +382,15 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     res.append([elt,tagCalib])
                     nbCalib+=1
             if (tagCalib=="OBS_FLATFIELD" and 
-                (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
-                 keyDetSeq1DitCalib==keyDetSeq1Dit  and 
-                 ((keyInsPilIdCalib=="PHOTO" and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                  (keyInsPinIdCalib=="PHOTO" and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                (keyDetChipNameCalib   == keyDetChipName and
+                 keyDetReadCurnameCalib== keyDetReadCurname and 
+                 keyDetSeq1DitCalib    == keyDetSeq1Dit  and 
+                 ((keyInsPilIdCalib    == "PHOTO" and
+                   keyInsDilId         == keyInsDilIdCalib and
+                   keyDetChipName      == "HAWAII-2RG") or 
+                  (keyInsPinIdCalib    == "PHOTO" and
+                   keyInsDinId         == keyInsDinIdCalib and
+                   keyDetChipName      == "AQUARIUS")))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -367,8 +408,13 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     res.append([elt,tagCalib])
                     nbCalib+=1
             if (tagCalib=="NONLINEARITY" and 
-                ((keyDetChipNameCalib=="AQUARIUS" and keyDetChipName=="AQUARIUS" and keyDetReadCurnameCalib==keyDetReadCurname and keyDetSeq1DitCalib==keyDetSeq1Dit) or 
-                 (keyDetChipNameCalib=="HAWAII-2RG" and keyDetChipName=="HAWAII-2RG" and keyDetReadCurnameCalib==keyDetReadCurname))):
+                ((keyDetChipNameCalib    == "AQUARIUS" and
+                  keyDetChipName         == "AQUARIUS" and
+                  keyDetReadCurnameCalib == keyDetReadCurname and
+                  keyDetSeq1DitCalib     == keyDetSeq1Dit) or 
+                 (keyDetChipNameCalib    == "HAWAII-2RG" and
+                  keyDetChipName         == "HAWAII-2RG" and
+                  keyDetReadCurnameCalib == keyDetReadCurname))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -387,8 +433,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                  (keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                 ((keyInsDilId    == keyInsDilIdCalib and
+                   keyDetChipName == "HAWAII-2RG") or 
+                  (keyInsDinId    == keyInsDinIdCalib and
+                   keyDetChipName == "AQUARIUS")))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -455,10 +503,15 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     res.append([elt,tagCalib])
                     nbCalib+=1
             if (tagCalib=="OBS_FLATFIELD" and 
-                (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
-                 keyDetSeq1DitCalib==keyDetSeq1Dit  and 
-                 ((keyInsPilIdCalib=="PHOTO" and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                  (keyInsPinIdCalib=="PHOTO" and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                (keyDetChipNameCalib    == keyDetChipName and
+                 keyDetReadCurnameCalib == keyDetReadCurname and 
+                 keyDetSeq1DitCalib     == keyDetSeq1Dit  and 
+                 ((keyInsPilIdCalib     == "PHOTO" and
+                   keyInsDilId          == keyInsDilIdCalib and
+                   keyDetChipName       == "HAWAII-2RG") or 
+                  (keyInsPinIdCalib     == "PHOTO" and
+                   keyInsDinId          == keyInsDinIdCalib and
+                   keyDetChipName       == "AQUARIUS")))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -476,8 +529,13 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     res.append([elt,tagCalib])
                     nbCalib+=1
             if (tagCalib=="NONLINEARITY" and 
-                ((keyDetChipNameCalib=="AQUARIUS" and keyDetChipName=="AQUARIUS" and keyDetReadCurnameCalib==keyDetReadCurname and keyDetSeq1DitCalib==keyDetSeq1Dit) or 
-                 (keyDetChipNameCalib=="HAWAII-2RG" and keyDetChipName=="HAWAII-2RG" and keyDetReadCurnameCalib==keyDetReadCurname))):
+                ((keyDetChipNameCalib    == "AQUARIUS" and
+                  keyDetChipName         == "AQUARIUS" and
+                  keyDetReadCurnameCalib == keyDetReadCurname and
+                  keyDetSeq1DitCalib     == keyDetSeq1Dit) or 
+                 (keyDetChipNameCalib    == "HAWAII-2RG" and
+                  keyDetChipName         == "HAWAII-2RG" and
+                  keyDetReadCurnameCalib == keyDetReadCurname))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -536,21 +594,38 @@ def matisseAction(header,tag):
     keyDetName=header['HIERARCH ESO DET NAME']
     keyDetReadCurname=header['HIERARCH ESO DET READ CURNAME']
 
-    if ((tag =="DARK" or tag=="FLAT") and keyDetName=="MATISSE-LM" and keyDetReadCurname=="SCI-SLOW-SPEED"):
+    if ((tag =="DARK" or tag=="FLAT") and
+        keyDetName=="MATISSE-LM" and
+        keyDetReadCurname=="SCI-SLOW-SPEED"):
         return "ACTION_MAT_CAL_DET_SLOW_SPEED"
-    if ((tag =="DARK" or tag=="FLAT") and keyDetName=="MATISSE-LM" and keyDetReadCurname=="SCI-FAST-SPEED"):
+    if ((tag =="DARK" or tag=="FLAT") and
+        keyDetName=="MATISSE-LM" and
+        keyDetReadCurname=="SCI-FAST-SPEED"):
         return "ACTION_MAT_CAL_DET_FAST_SPEED"
-    if ((tag =="DARK" or tag=="FLAT") and keyDetName=="MATISSE-N" and keyDetReadCurname=="SCI-LOW-GAIN"):
+    if ((tag =="DARK" or tag=="FLAT") and
+        keyDetName=="MATISSE-N" and
+        keyDetReadCurname=="SCI-LOW-GAIN"):
         return "ACTION_MAT_CAL_DET_LOW_GAIN"
-    if ((tag =="DARK" or tag=="FLAT") and keyDetName=="MATISSE-N" and keyDetReadCurname=="SCI-HIGH-GAIN"):
+    if ((tag =="DARK" or tag=="FLAT") and
+        keyDetName=="MATISSE-N" and
+        keyDetReadCurname=="SCI-HIGH-GAIN"):
         return "ACTION_MAT_CAL_DET_HIGH_GAIN"
     if (tag =="OBSDARK" or tag=="OBSFLAT"):
         return "ACTION_MAT_EST_FLAT"
-    if (tag =="DISTOR_HOTDARK" or tag=="DISTOR_IMAGES" or tag =="SPECTRA_HOTDARK" or tag=="SPECTRA_IMAGES" ):
+    if (tag =="DISTOR_HOTDARK" or
+        tag=="DISTOR_IMAGES" or
+        tag =="SPECTRA_HOTDARK" or
+        tag=="SPECTRA_IMAGES" ):
         return "ACTION_MAT_EST_SHIFT"
-    if (tag =="KAPPA_HOTDARK" or tag=="KAPPA_SRC" or tag =="KAPPA_SKY" or tag=="KAPPA_OBJ" ):
+    if (tag =="KAPPA_HOTDARK" or
+        tag=="KAPPA_SRC" or
+        tag =="KAPPA_SKY" or
+        tag=="KAPPA_OBJ" ):
         return "ACTION_MAT_EST_KAPPA"
-    if (tag =="TARGET_RAW" or tag=="CALIB_RAW" or tag =="HOT_DARK" or tag=="CALIB_SRC_RAW" ):
+    if (tag =="TARGET_RAW" or
+        tag=="CALIB_RAW" or
+        tag =="HOT_DARK" or
+        tag=="CALIB_SRC_RAW" ):
         return "ACTION_MAT_RAW_ESTIMATES"
     if (tag =="IM_COLD"):
         return "ACTION_MAT_IM_BASIC"
@@ -561,10 +636,10 @@ def matisseAction(header,tag):
     return "NO-ACTION"
 
 def matisseType(header):
-    res=""
-    catg=None
-    typ=None
-    tech=None
+    res  = ""
+    catg = None
+    typ  = None
+    tech = None
     try:
         catg=header['HIERARCH ESO PRO CATG']
     except:
