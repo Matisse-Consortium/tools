@@ -95,7 +95,7 @@ while True:
     if (iterNumber > 1):
         listIter=[]
         for iter in range(iterNumber-1):
-            repIterPrev='/home/pbe/ResultsAutomatic/Iter'+str(iter+1)
+            repIterPrev=repResult+'/Iter'+str(iter+1)
             listRepIter= [os.path.join(repIterPrev, f) for f in os.listdir(repIterPrev) if os.path.isdir(os.path.join(repIterPrev, f))]
             for elt in listRepIter:
                 listIter=listIter+[os.path.join(elt, f) for f in os.listdir(elt) if os.path.isfile(os.path.join(elt, f)) and f[-5:] == '.fits']
