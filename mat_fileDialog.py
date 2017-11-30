@@ -29,6 +29,7 @@
 """
 
 # Import necessary files
+from libAutoPipeline import matisseType
 import wx
 import os
 from ObjectListView import ObjectListView, ColumnDefn
@@ -40,13 +41,13 @@ import fnmatch
 import sys
 
 # Set useful paths
-fvpath = distutils.spawn.find_executable("fv")
-iconspath=os.path.join(os.path.dirname(__file__),"icons")
+fvpath    = distutils.spawn.find_executable("fv")
+iconspath = os.path.join(os.path.dirname(__file__),"icons")
 
 ###############################################################################
 
 class fileViewerKeyword:
-    def __init__(self,headerkeyword=None,name=None,checkheader=None,checkheader_cases=None,function=None,source=None):
+    def __init__(self,headerkeyword=None,name=None,checkheader=None, checkheader_cases=None,function=None,source=None):
         self.headerkeyword     = headerkeyword
         self.name              = name
         self.checkheader       = checkheader
@@ -93,68 +94,6 @@ class fileViewerKeyword:
 
 ###############################################################################
 
-def matisseType(header):
-    res=""
-    catg=None
-    typ=None
-    tech=None
-    try:
-        catg=header['HIERARCH ESO PRO CATG']
-    except:
-        try:
-            catg = header['HIERARCH ESO DPR CATG']
-            typ  = header['HIERARCH ESO DPR TYPE']
-            tech = header['HIERARCH ESO DPR TECH']
-        except:
-            pass
-    if (catg  =="CALIB" and typ=="DARK,DETCAL" and tech=="IMAGE") or (catg == "CALIB" and typ == "DARK" and tech=="IMAGE,DETCHAR"):
-        res="DARK"
-    elif (catg=="CALIB" and typ=="FLAT,DETCAL" and tech=="IMAGE") or (catg == "CALIB" and typ == "FLAT" and tech=="IMAGE,DETCHAR"):
-        res="FLAT"
-    elif (catg=="CALIB" and (typ=="DARK" or typ=="FLAT,OFF") and tech=="SPECTRUM") :
-        res="OBSDARK"
-    elif (catg=="CALIB" and (typ=="FLAT" or typ=="FLAT,BLACKBODY") and tech=="SPECTRUM") :
-        res="OBSFLAT"
-    elif (catg=="CALIB" and typ=="DARK,WAVE" and tech=="IMAGE") or (catg == "CALIB" and typ == "DARK" and tech == "IMAGE"):
-        res="DISTOR_HOTDARK"
-    elif (catg=="CALIB" and typ=="SOURCE,WAVE" and tech=="IMAGE") or (catg == "CALIB" and typ == "WAVE,LAMP,PINHOLE" and tech == "SPECTRUM"):
-        res="DISTOR_IMAGES"
-    elif (catg=="CALIB" and typ=="SOURCE,LAMP" and tech=="SPECTRUM") or (catg == "CALIB" and typ == "WAVE,LAMP,SLIT" and tech == "SPECTRUM"):
-        res="SPECTRA_HOTDARK"
-    elif (catg=="CALIB" and typ=="SOURCE,WAVE" and tech=="SPECTRUM") or (catg == "CALIB" and typ == "WAVE,LAMP,FOIL" and tech == "SPECTRUM"):
-        res="SPECTRA_IMAGES"
-    elif (catg=="CALIB" and typ=="DARK,FLUX" and tech=="IMAGE") or (catg == "CALIB" and typ == "KAPPA,BACKGROUND" and tech == "SPECTRUM"):
-        res="KAPPA_HOTDARK"
-    elif (catg=="CALIB" and typ=="SOURCE,FLUX" and tech=="IMAGE") or (catg == "CALIB" and typ == "KAPPA,LAMP" and tech == "SPECTRUM"):
-        res="KAPPA_SRC"
-    elif (catg=="SCIENCE" and typ=="OBJECT" and tech=="IMAGE") :
-        res="TARGET_RAW"
-    elif (catg=="CALIB" and typ=="OBJECT" and tech=="IMAGE") :
-        res="CALIB_RAW"
-    elif (catg=="CALIB" and typ=="DARK,IMB" and tech=="IMAGE") or (catg=="CALIB" and typ=="DARK" and tech=="IMAGE,BASIC"):
-        res="IM_COLD"
-    elif (catg=="CALIB" and typ=="FLAT,IME" and tech=="IMAGE") or (catg=="CALIB" and typ=="FLAT" and tech=="IMAGE,EXTENDED"):
-        res="IM_FLAT"
-    elif (catg=="CALIB" and typ=="DARK,IME" and tech=="IMAGE") or (catg=="CALIB" and typ=="DARK" and tech=="IMAGE,EXTENDED"):
-        res="IM_DARK"
-    elif (catg=="CALIB" and typ=="DARK,FLAT" and tech=="IMAGE") or (catg=="CALIB" and typ=="FLAT,LAMP" and tech=="IMAGE,REMANENCE"):
-        res="IM_PERIODIC"
-    elif (catg=="CALIB" and typ=="DARK" and tech=="INTERFEROMETRY") :
-        res="HOT_DARK"
-    elif (catg=="CALIB" and (typ=="SOURCE" or typ=="SOURCE,FLUX") and tech=="INTERFEROMETRY") :
-        res="CALIB_SRC_RAW"
-    elif ((catg=="SCIENCE" or catg=="TEST") and typ=="OBJECT" and tech=="INTERFEROMETRY") :
-        res="TARGET_RAW"
-    elif (catg == "TEST" and typ == "STD" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT,FLUX" and tech == "INTERFEROMETRY") : 
-        res="CALIB_RAW"
-    elif (catg == "TEST"  or catg=="CALIB") and typ == "SKY" and tech == "INTERFEROMETRY" : 
-        res="SKY_RAW"
-    else:
-        res=catg
-    return res
-
-###############################################################################
-
 keywords=[]
 
 keywords.append(fileViewerKeyword(
@@ -175,17 +114,19 @@ keywords.append(fileViewerKeyword(
     name          = "NDIT"))
 
 keywords.append(fileViewerKeyword(
-    headerkeyword = "HIERARCH ESO DET SEQ1 DIT",
+    headerkeyword = ["HIERARCH ESO DET SEQ1 DIT","HIERARCH ESO DET DIT"],
+    checkheader       = "INSTRUME",
+    checkheader_cases = ["MATISSE","AMBER"],
     name          = "DIT"))
 
 keywords.append(fileViewerKeyword(
-    headerkeyword   = ["HIERARCH ESO INS PIL NAME","HIERARCH ESO INS PIN NAME"],
+    headerkeyword  = ["HIERARCH ESO INS PIL NAME","HIERARCH ESO INS PIN NAME"],
     checkheader       = "HIERARCH ESO DET CHIP NAME",
     checkheader_cases = ["HAWAII-2RG","AQUARIUS"],
     name              = "Mode"))
 
 keywords.append(fileViewerKeyword(
-    headerkeyword   = ["HIERARCH ESO INS DIL NAME","HIERARCH ESO INS DIN NAME"],
+    headerkeyword  = ["HIERARCH ESO INS DIL NAME","HIERARCH ESO INS DIN NAME"],
     checkheader       = "HIERARCH ESO DET CHIP NAME",
     checkheader_cases = ["HAWAII-2RG","AQUARIUS"],
     name              = "Resolution"))
@@ -194,107 +135,50 @@ print(keywords)
 
 ###############################################################################
 
-class matisseFile(object):
+class identifyFile(object):
     def __init__(self,filename,folder):
         self.filename = filename
         self.folder   = folder
 
         self.header    = None
         self.isFits    = True
-        self.isMatisse = True
+        self.isKnown   = True
 
         if os.path.isfile(folder+"/"+filename):
             self.isDir = False
         else:
             self.isDir = True
 
-        if filename.endswith(".fits"):
+        if fnmatch.fnmatch(filename,"*.fits*"):
+            #filename.endswith(".fits"):
             try:
-                self.header=fits.getheader( self.folder+"/"+self.filename)
+                self.header = fits.getheader( self.folder+"/"+self.filename)
                 #self.header=self.readFitsHeader( self.folder+"/"+self.filename)
                 #print(self.header)
             except:
-                self.isFits    = False
-                self.isMatisse = False
-        elif fnmatch.fnmatch(filename,"*.fits*"):
-            try:
-                #self.header=fits.getheader( self.folder+"/"+self.filename)
-                self.header=self.readFitsHeader( self.folder+"/"+self.filename)
-                print(self.header)
-                
-            except:
-                self.isFits=False
-                self.isMatisse=False
+                self.isFits  = False
+                self.isKnown = False
         else:
-            self.isFits=False
-            self.isMatisse=False
+            self.isFits  = False
+            self.isKnown = False
 
         for keywordi in keywords:
             try:
-                self.__dict__[keywordi.name]=keywordi.evaluate(header=self.header,filename=folder+"/"+filename)
+                self.__dict__[keywordi.name] = keywordi.evaluate(header=self.header,filename=folder+"/"+filename)
 
             except:
                 self.__dict__[keywordi.name]=""
-                self.isMatisse=False
+                self.isKnown=False
 
         if self.isDir:
             self.icon="Directory"
         else:
-            if self.isMatisse:
-                self.icon="Matisse File"
+            if self.isKnown:
+                self.icon = self.header["INSTRUME"]+" File"
             elif self.isFits:
                 self.icon="Fits File"
             else:
                 self.icon="Normal File"
-                
-    def readFitsHeader(self,filename):
-        # Get the file extension
-        ext = os.path.splitext(filename)[1]
-        # Define cat command depending on if the file is compressed or not
-        if(fnmatch.fnmatch(filename,"*.fits.gz")):
-            catCommand = "gzip -d -c";
-        elif(fnmatch.fnmatch(filename,"*.fits.Z")):
-            catCommand = "gzip -d -c";
-        elif(fnmatch.fnmatch(filename,"*.fits.xz")):
-            catCommand = "xz --decompress --stdout";
-        elif(fnmatch.fnmatch(filename,"*.fits")):
-            catCommand = "cat";
-        else:
-            print("Unknown extension '"+ext+"'");
-            return 0;
-            
-        # Pipe a shell command to transform the fits header to formatted ascii
-        # text. Only read the 1000 first header and fits file lines
-        # (as I do not know how long the header is)
-                
-        # prefer fold instead of dfits  for reliability (dfits failed on some ubuntu 16.4 distribution)
-        if distutils.spawn.find_executable("dfits"): 
-            print(catCommand+" "+filename+" | dfits - ")
-            #fh = subprocess.check_output(catCommand+" "+filename+" | dfits - ", shell=True); 
-            fh = subprocess.Popen(['catCommand','filename','|','dfits','-'],stdin=subprocess.PIPE,stdout=subprocess.PIPE)
-            print(fh.stdout.readline())
-        elif distutils.spawn.find_executable("fold"):
-            print(catCommand+" "+filename+" | fold -w80")
-            fh = subprocess.check_output(catCommand+" "+filename+" | fold -w80");
-        else:
-            print("No suitable cat command '"+ext+"'");
-            return 0;
-        
-        count = 0
-        header = ""
-        for line in fh:
-            count+=1
-            lin = line.rstrip('\r\n')
-            print(lin)
-            header = header + lin
-            if line.strip() == "END":
-                break
-            if count==800:
-                break
-        fh.close()
-        return header
-                                
-                
 
 ###############################################################################
 
@@ -451,7 +335,9 @@ class mat_FileDialog(wx.Dialog):
         self.fileList = ObjectListView(splitter,wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.fileList.AddNamedImages("Directory",wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
         self.fileList.AddNamedImages("Normal File",wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
-        self.fileList.AddNamedImages("Matisse File",wx.Bitmap(os.path.join(iconspath,"matisseSmall.ico")))
+        self.fileList.AddNamedImages("MATISSE File",wx.Bitmap(os.path.join(iconspath,"matisseSmall.ico")))
+        self.fileList.AddNamedImages("AMBER File",wx.Bitmap(os.path.join(iconspath,"amberSmall.ico")))
+        self.fileList.AddNamedImages("GRAVITY File",wx.Bitmap(os.path.join(iconspath,"gravitySmall.ico")))
         self.fileList.AddNamedImages("Fits File",wx.Bitmap(os.path.join(iconspath,"fitsSmall.ico")))
         cols=[ColumnDefn("Filename","left",300,"filename",minimumWidth=250,imageGetter=FileImageGetter),
               ColumnDefn("Type","left",150,"icon",minimumWidth=50)]
@@ -459,15 +345,16 @@ class mat_FileDialog(wx.Dialog):
         self.fileList.SetColumns(cols)
         self.fileList.rowFormatter=self.setRowColor
         self.fileList.AutoSizeColumns()
+        
         # sort columns by default to file name and type
-        #self.fileList.SortBy(0, ascending=True)
+        self.fileList.SortBy(0, ascending=True)
         #self.fileList.SetSortColumn(0, resortNow=True)
-        self.fileList.SortBy(0)
-        self.fileList.SortBy(1)
+        #self.fileList.SortBy(0)
+        #self.fileList.SortBy(1)
         #self.fileList.SetSortColumn(1, resortNow=True)
         #self.fileList.DoSort("Type", SortOrder.Ascending)
-        splitter.SplitVertically(self.dirTree,self.fileList)
-        splitter.SetMinimumPaneSize(300)
+        splitter.SplitVertically(self.dirTree,self.fileList, sashPosition=350)
+        splitter.SetMinimumPaneSize(200)
         vbox.Add(splitter, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
 
         vbox.AddSpacer(10)
@@ -532,7 +419,7 @@ class mat_FileDialog(wx.Dialog):
 
        for filei in files:
            #if os.path.isfile(self.dir+"/"+filei):
-               matFile=matisseFile(filei,self.dir)
+               matFile=identifyFile(filei,self.dir)
                if filt=="All Files":
                    Append=True
                elif filt=="Fits Files" and matFile.isFits:
@@ -570,7 +457,7 @@ class mat_FileDialog(wx.Dialog):
 
     def fileListDoubleClicked(self,event):
         print "doubleclicked"
-        if matisseFile(self.path[0],self.dirTree.GetPath()).isDir:
+        if identifyFile(self.path[0],self.dirTree.GetPath()).isDir:
              self.dirTree.SetPath(self.dirTree.GetPath()+'/'+self.path[0])
 
     def fileListRightClicked(self,event):
@@ -630,8 +517,8 @@ class mat_FileDialog(wx.Dialog):
 if __name__ == '__main__':
 
     app = wx.App()
-    openFileDialog=mat_FileDialog(None, 'Open a file',"lmk,")
-    if openFileDialog.ShowModal()==wx.ID_OK:
+    openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
+    if openFileDialog.ShowModal() == wx.ID_OK:
         print openFileDialog.GetPaths()
     openFileDialog.Destroy()
     app.MainLoop()
