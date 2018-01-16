@@ -14,7 +14,7 @@ from scipy.optimize import curve_fit
 def gaus(x,a,b,x0,sigma):
     return b+a*np.exp(-(x-x0)**2/(2*sigma**2))
 
-
+# coefficients du polynome donnant la position du dernier pic frange
 coefHighL=[-4.03534524,54.94605543,-277.68461223,926.20906903]
 c=np.zeros(3,dtype=np.float)
 hdu = fits.open('CORRFLUX_CAL_MATISSE_GEN_LAMP_L101_0001_HIGH+M.fits')
