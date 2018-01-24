@@ -627,7 +627,8 @@ def matisseAction(header,tag):
     if (tag =="TARGET_RAW" or
         tag=="CALIB_RAW" or
         tag =="HOT_DARK" or
-        tag=="CALIB_SRC_RAW" ):
+        tag=="CALIB_SRC_RAW" or
+        tag=="SKY_RAW"):
         return "ACTION_MAT_RAW_ESTIMATES"
     if (tag =="IM_COLD"):
         return "ACTION_MAT_IM_BASIC"
