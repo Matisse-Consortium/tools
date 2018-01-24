@@ -223,7 +223,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="OBS_FLATFIELD" and 
                 (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
-#                 (keyDetSeq1DitCalib==keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period) and 
+# Commenter la ligne suivante
+                 (keyDetSeq1DitCalib==keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period) and 
                  ((keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPinId==keyInsPinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
@@ -291,7 +292,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1           
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+#                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0
@@ -681,13 +683,13 @@ def matisseType(header):
         res="IM_DARK"
     elif (catg=="CALIB" and typ=="DARK,FLAT" and tech=="IMAGE") or (catg=="CALIB" and typ=="FLAT,LAMP" and tech=="IMAGE,REMANENCE"):
         res="IM_PERIODIC"
-    elif (catg=="CALIB" and typ=="DARK" and tech=="INTERFEROMETRY") :
+    elif (catg=="CALIB" and (typ=="DARK" or typ=="BACKGROUND") and tech=="INTERFEROMETRY") :
         res="HOT_DARK"
-    elif (catg=="CALIB" and (typ=="SOURCE" or typ=="SOURCE,FLUX") and tech=="INTERFEROMETRY") :
+    elif (catg=="CALIB" and (typ=="LAMP" or typ=="SOURCE" or typ=="SOURCE,FLUX") and tech=="INTERFEROMETRY") :
         res="CALIB_SRC_RAW"
     elif ((catg=="SCIENCE" or catg=="TEST") and typ=="OBJECT" and tech=="INTERFEROMETRY") :
         res="TARGET_RAW"
-    elif (catg == "TEST" and typ == "STD" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT,FLUX" and tech == "INTERFEROMETRY") : 
+    elif (catg == "TEST" and typ == "STD" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT,FLUX" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "STD" and tech == "INTERFEROMETRY") : 
         res="CALIB_RAW"
     elif (catg == "TEST"  or catg=="CALIB") and typ == "SKY" and tech == "INTERFEROMETRY" : 
         res="SKY_RAW"
