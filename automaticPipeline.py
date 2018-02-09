@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 from astropy.io import fits
 import matplotlib.pyplot as plt
@@ -24,6 +25,8 @@ def runEsorex(cmd):
 repRaw=""
 repArchive=""
 repResult=""
+tplidsel=""
+tplstartsel=""
 nbCore=0
 listArg=sys.argv
 for elt in listArg:
@@ -44,6 +47,13 @@ for elt in listArg:
     if ('--nbCore' in elt):
         item=elt.split('=')
         nbCore=int(item[1])
+    if ('--tplID' in elt):
+        item=elt.split('=')
+        tplidsel=item[1]
+    if ('--tplSTART' in elt):
+        item=elt.split('=')
+        tplstartsel=item[1]
+
 print " "
 print "-----------------------------------------------------------------------------------------"
 if (repRaw == ""):
@@ -51,29 +61,52 @@ if (repRaw == ""):
     sys.exit(0)
 else:
     print '%-40s' % ("Raw Data Directory:",),repRaw
-if (repArchive==""):   
-        print "Info : Calibration Directory not specified"
-else:
-    print '%-40s' % ("Calibration Directory:",),repArchive
+if (repArchive==""):
+    repArchive="/data/CalibMap"
+    print "Info: Calibration Directory not specified. We used the default directory"
+print '%-40s' % ("Calibration Directory:",),repArchive
 if (repResult==""):
         repResult=os.getcwd()
         print "Info : Results Directory not specified. We use current directory"
 print '%-40s' % ("Results Directory:",),repResult
 if (nbCore==0):
-    nbCore=1
-    print "Info : Number of Cores not specified. We use one core only"
+    nbCore=8
+    print "Info : Number of Cores not specified. We use 8 cores"
 print '%-40s' % ("Number of Cores:",),nbCore    
 print "-----------------------------------------------------------------------------------------"
-    
+
+
 #repRaw='/home/pbe/RawAutomatic'#'/data-matisse/TransFunc_LowFlux/OTHER'#'/home/pbe/RawAutomatic'
 #repResult='/home/pbe/ResultsAutomatic'
 #repArchive='/home/pbe/ArchiveAutomatic'#'/data-matisse/TransFunc_LowFlux/COSMETIC'#'/home/pbe/ArchiveAutomatic'    
-listRaw = [os.path.join(repRaw, f) for f in os.listdir(repRaw) if os.path.isfile(os.path.join(repRaw, f)) and f[-5:] == '.fits']
+listRaw = [os.path.join(repRaw, f) for f in os.listdir(repRaw) if os.path.isfile(os.path.join(repRaw, f)) and f[-5:] == '.fits' and f[0:8]=="MATISSE_"]
 if (repArchive != ""):
     listArchive = [os.path.join(repArchive, f) for f in os.listdir(repArchive) if os.path.isfile(os.path.join(repArchive, f)) and f[-5:] == '.fits']
 else:
     listArchive =[]
 
+# Sort lisRaw
+listRawSorted=[]
+for filename in listRaw:
+    hdu=fits.open(filename)
+    if ('HIERARCH ESO TPL START' in hdu[0].header and 'HIERARCH ESO DET CHIP NAME' in hdu[0].header) :
+        tplid=hdu[0].header['HIERARCH ESO TPL ID']
+        tplstart=hdu[0].header['HIERARCH ESO TPL START']
+        if (tplidsel != "" and tplstartsel !=""):
+            if (tplid == tplidsel and tplstart==tplstartsel):
+                listRawSorted.append(filename)
+        if (tplidsel != "" and tplstartsel ==""):
+            if (tplid == tplidsel):
+                listRawSorted.append(filename)
+        if (tplidsel == "" and tplstartsel !=""):
+            if (tplstart == tplstartsel):
+                listRawSorted.append(filename)
+        if (tplidsel == "" and tplstartsel ==""):
+               listRawSorted.append(filename)
+    hdu.close()
+listRaw=listRawSorted
+
+    
 # Determination of the number of Reduction Blocks
 keyTplStart=[]
 listIterNumber=[]

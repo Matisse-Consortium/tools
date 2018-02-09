@@ -15,7 +15,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
     keyInsFilId       = header['HIERARCH ESO INS FIL ID']
     keyInsPonId       = header['HIERARCH ESO INS PON ID']
     keyInsFinId       = header['HIERARCH ESO INS FIN ID']
-
+    
+    
     res=calibPrevious
     if (action == "ACTION_MAT_CAL_DET_SLOW_SPEED" or 
         action == "ACTION_MAT_CAL_DET_FAST_SPEED" or
@@ -78,9 +79,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 tagCalib=="FLATFIELD"):
                 keyDetReadCurnameCalib=hdu[0].header['HIERARCH ESO DET READ CURNAME']
                 keyDetChipNameCalib=hdu[0].header['HIERARCH ESO DET CHIP NAME']
-                keyDetSeq1DitCalib=header['HIERARCH ESO DET SEQ1 DIT']
+                keyDetSeq1DitCalib=hdu[0].header['HIERARCH ESO DET SEQ1 DIT']
                 keyTplStartCalib=hdu[0].header['HIERARCH ESO TPL START']
             hdu.close()
+
             if (tagCalib=="BADPIX" and
                 (keyDetReadCurnameCalib==keyDetReadCurname and
                  keyDetChipNameCalib==keyDetChipName)):
@@ -107,8 +109,12 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   keyDetSeq1DitCalib     == keyDetSeq1Dit) or
                  (keyDetChipNameCalib    == "HAWAII-2RG" and
                   keyDetChipName         == "HAWAII-2RG" and
-                  keyDetReadCurnameCalib == keyDetReadCurname and
-                  keyDetSeq1DitCalib     == keyDetSeq1Dit))):
+                  keyDetReadCurnameCalib == keyDetReadCurname) )):
+
+
+#                  and
+#                  keyDetReadCurnameCalib == keyDetReadCurname and
+#                  keyDetSeq1DitCalib     == keyDetSeq1Dit))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -131,9 +137,12 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   keyDetReadCurnameCalib == keyDetReadCurname and
                   keyDetSeq1DitCalib     == keyDetSeq1Dit) or
                  (keyDetChipNameCalib    == "HAWAII-2RG" and
-                  keyDetChipName         == "HAWAII-2RG" and
-                  keyDetReadCurnameCalib == keyDetReadCurname and
-                  keyDetSeq1DitCalib     == keyDetSeq1Dit))):
+                  keyDetChipName         == "HAWAII-2RG" ) )):
+
+
+#                  and
+#                  keyDetReadCurnameCalib == keyDetReadCurname and
+#                  keyDetSeq1DitCalib     == keyDetSeq1Dit))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -292,8 +301,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1           
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-#                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+#                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0

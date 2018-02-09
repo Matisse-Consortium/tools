@@ -17,16 +17,20 @@ def gaus(x,a,b,x0,sigma):
 # coefficients du polynome donnant la position du dernier pic frange
 coefHighL=[-4.03534524,54.94605543,-277.68461223,926.20906903]
 c=np.zeros(3,dtype=np.float)
-hdu = fits.open('CORRFLUX_CAL_MATISSE_GEN_LAMP_L101_0001_HIGH+M.fits')
+hdu = fits.open('OBJ_CORR_FLUX_0001.fits')
 ftreal=hdu['OBJ_CORR_FLUX'].data['CORRFLUXREAL1']
 ftimag=hdu['OBJ_CORR_FLUX'].data['CORRFLUXIMAG1']
 corner=hdu['IMAGING_DETECTOR'].data['CORNER'][0][1]
 naxis=hdu['IMAGING_DETECTOR'].data['NAXIS'][0]
 hdu.close()
-
 dsp=(ftreal**2+ftimag**2).mean(axis=0)
 dsp/=np.max(dsp)
-boundary=[408,448]
+#boundary=[425,450]
+boundary=[410,430]
+plt.figure(2)
+plt.imshow(np.sqrt(np.sqrt(dsp)))
+coefdispLold=[4.1943,-1.4983E-4]
+coefdispMold=[4.8044,-1.5163E-4]
 
 
 #iBase=0
@@ -48,7 +52,13 @@ longu=np.zeros((naxis[1]),dtype=np.float)
 #coef[1]=54.94605543
 #coef[2]-277.68461223
 for iWlen in range(naxis[1]):
-    coef=coefHighL
+    coef=np.copy(coefHighL)
+    lamb=coefdispMold[0]+coefdispMold[1]*(corner+iWlen)
+    picpos=(coef[0]*lamb**3+coef[1]*lamb**2+coef[2]*lamb+coef[3])
+    print lamb,picpos,int(picpos)
+    boundary[0]=int(picpos)-10
+    boundary[1]=int(picpos)+10
+   
     n=boundary[1]-boundary[0]
     x=np.arange(n)+boundary[0]
     y=dsp[iWlen,boundary[0]:boundary[1]]
@@ -63,10 +73,11 @@ for iWlen in range(naxis[1]):
 longu_save=np.copy(longu)
 
 x=np.arange(naxis[1])+corner
-coeflamb=np.polyfit(x[650:1450],longu[650:1450],1)
+#coeflamb=np.polyfit(x[950:1450],longu[950:1450],1)
+coeflamb=np.polyfit(x[1250:1750],longu[1250:1750],1)
 p=np.poly1d(coeflamb)
 residu=longu-p(x)
-resstd=np.std(residu[950:1050])
+resstd=np.std(residu[1000:1050])
 print resstd
 
 for iWlen in range(naxis[1]):
@@ -75,8 +86,11 @@ for iWlen in range(naxis[1]):
         longu[iWlen]=p(x[iWlen])
         
 plt.figure(1)
+#plt.plot(longu)
 plt.plot(longu_save)
-coeflamb=np.polyfit(x[650:1450],longu[650:1450],1)
+#coeflamb=np.polyfit(x[950:1450],longu[950:1450],1)
+coeflamb=np.polyfit(x[1250:1750],longu[1250:1750],1)
 p=np.poly1d(coeflamb)
-
+print coeflamb
 plt.plot(p(x))
+plt.show()
