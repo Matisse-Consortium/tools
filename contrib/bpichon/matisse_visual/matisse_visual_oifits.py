@@ -115,7 +115,7 @@ def produce_oifits_report_common(oifits,filename,band):
 #BP
     ambi = ' not yet defined '
     
-    objname  = "Pichon star"    #BP FAUX BIEN SUR
+    objname  = "Artifical Source"    #BP FAUX BIEN SUR
     objalpha = "25.99"          #BP FAUX BIEN SUR
     objdelta = "99.99"          #BP FAUX BIEN SUR
     objmagL  = "-7.0"           #BP FAUX BIEN SUR
@@ -228,38 +228,83 @@ def produce_oifits_report_common(oifits,filename,band):
     yoffset = 0.88
     dislin.rlmess("Col 2 : Average squared visibility per baseline (vis^2 $\pm$ std) ==> page 2",xoffset_1,yoffset)
     yoffset = 0.81
-    dislin.rlmess("Col 3 : Average visibility amplitude per baseline (vis $\pm$ std) ==> page 3",xoffset_1,yoffset)
+    dislin.rlmess("Col 3 : Average differential visibility per baseline (vis $\pm$ std) ==> page 3",xoffset_1,yoffset)
     yoffset = 0.74
     dislin.rlmess("Col 4 : Average diffential phase per baseline (visphi $\pm$ std), in degrees ==> page 5",xoffset_1,yoffset)
+#
+    ixwave=[]
+    ixwaveedge=[]
+    ixwaveM=[]
+    flagM=False
+    if (oifits.header['HIERARCH ESO DET CHIP NAME'] == "AQUARIUS"):
+        for i in range(len(oifits.wave_sc)):
+            if (oifits.wave_sc[i]>=9.5 and oifits.wave_sc[i]<=10.):
+                ixwave.append(i)
+            if (oifits.wave_sc[i]>=8.25 and oifits.wave_sc[i]<=8.75):
+                ixwaveedge.append(i)
+    if (oifits.header['HIERARCH ESO DET CHIP NAME'] == "HAWAII-2RG"):
+        for i in range(len(oifits.wave_sc)):
+            if (oifits.wave_sc[i]>=3.4 and oifits.wave_sc[i]<=3.6):
+                ixwave.append(i)
+            if ((oifits.wave_sc[i]>=3.0 and oifits.wave_sc[i]<=3.1) or (oifits.wave_sc[i]>=4.0 and oifits.wave_sc[i]<=4.1)):
+                ixwaveedge.append(i)
+            if (oifits.wave_sc[i]>=4.6 and oifits.wave_sc[i]<=4.7):
+                ixwaveM.append(i)
+                flagM=True
     #
     dislin.height(36)
     xoffset_1 = 0.02
     xoffset_2 = 0.12
-    xoffset_3 = 0.40
-    xoffset_4 = 0.70
+    xoffset_3 = 0.65
+    xoffset_4 = 0.80
     yoffset = 0.64
-    dislin.rlmess("Baseline",xoffset_1,yoffset)
-    dislin.rlmess("      vis^2",xoffset_2,yoffset)
-    dislin.rlmess("      vis",xoffset_3,yoffset)
-    dislin.rlmess("      vis_phi",xoffset_4,yoffset)
+    dislin.rlmess("Base",xoffset_1,yoffset)
+    if (flagM == False):
+        dislin.rlmess("      vis^2(central/edge)",xoffset_2,yoffset)
+    else:
+        dislin.rlmess("      vis^2(central/edge/M)",xoffset_2,yoffset)
+    dislin.rlmess("      vis_diff",xoffset_3,yoffset)
+    dislin.rlmess("      phi_diff",xoffset_4,yoffset)
 
 #    les_posy = [0.60 , 0.50 , 0.40 , 0.30 , 0.20 , 0.10 ]
     les_posy = [0.54 , 0.44 , 0.34 , 0.24 , 0.14 , 0.04 ]
     #
+
+    vis2log=numpy.zeros((6,3),dtype=numpy.float)
+    visdifflog=numpy.zeros(6,dtype=numpy.float)
+    phidifflog=numpy.zeros(6,dtype=numpy.float)
+    philog=numpy.zeros((4,3),dtype=numpy.float)
+    
     dislin.fixspc(0.50)
     for base in range(6) :
         dislin.rlmess(base_list[base],xoffset_1,les_posy[base])
 #        z1 = numpy.mean(oifits.oi_vis2_sc_vis2data[base,:])
-        z1 = numpy.average(oifits.oi_vis2_sc_vis2data[base,:],weights=oifits.oi_vis2_sc_vis2err[base,:]**(-2))
-        z2 = numpy.median(oifits.oi_vis2_sc_vis2err[base,:])
-        dislin.rlmess("%.3f"%(z1)+" $\pm$ "+"%.3f"%(z2),xoffset_2,les_posy[base])
+        z1 = numpy.average(oifits.oi_vis2_sc_vis2data[base,ixwave],weights=oifits.oi_vis2_sc_vis2err[base,ixwave]**(-2))
+        z2 = numpy.median(oifits.oi_vis2_sc_vis2err[base,ixwave])
+        z3 = numpy.average(oifits.oi_vis2_sc_vis2data[base,ixwaveedge],weights=oifits.oi_vis2_sc_vis2err[base,ixwaveedge]**(-2))
+        z4 = numpy.median(oifits.oi_vis2_sc_vis2err[base,ixwaveedge])
+        vis2log[base,0]=z1
+        vis2log[base,1]=z3
+        if (flagM == False):
+            dislin.rlmess("%.3f"%(z1)+" $\pm$"+"%.2f"%(z2)+" / %.3f"%(z3)+" $\pm$"+"%.2f"%(z4),xoffset_2,les_posy[base])
+        else:
+            z5 = numpy.average(oifits.oi_vis2_sc_vis2data[base,ixwaveM],weights=oifits.oi_vis2_sc_vis2err[base,ixwaveM]**(-2))
+            z6 = numpy.median(oifits.oi_vis2_sc_vis2err[base,ixwaveM])
+            vis2log[base,2]=z5
+            dislin.rlmess("%.3f"%(z1)+" $\pm$"+"%.2f"%(z2)+" / %.3f"%(z3)+" $\pm$"+"%.2f"%(z4)+" / %.3f"%(z5)+" $\pm$"+"%.2f"%(z6),xoffset_2,les_posy[base])
+            
 #    ===> Code modifie car les erreurs sont toutes nulles dans les donnees  <=== 
-        z1 = numpy.average(oifits.oi_vis_sc_visamp[base,:])
-        z2 = numpy.median(oifits.oi_vis_sc_visamperr[base,:])
-        dislin.rlmess("%+.3f"%(z1)+" $\pm$ "+"%.3f"%(z2),xoffset_3,les_posy[base])
-        z1 = numpy.average(oifits.oi_vis_sc_visphi[base,:],weights=oifits.oi_vis_sc_visphierr[base,:] ) * (180.0/numpy.pi)
-        z2 = numpy.median(oifits.oi_vis_sc_visphierr[base,:]) * (180.0/numpy.pi)
-        dislin.rlmess("%+8.3f"%(z1)+" $\pm$ "+"%.3f"%(z2),xoffset_4,les_posy[base])
+        z1 = numpy.average(oifits.oi_vis_sc_visamp[base,ixwave])
+        z2 = numpy.median(oifits.oi_vis_sc_visamperr[base,ixwave])
+        visdifflog[base]=z1
+        dislin.rlmess("%+.3f"%(z1)+" $\pm$"+"%.2f"%(z2),xoffset_3,les_posy[base])
+        if (numpy.max(oifits.oi_vis_sc_visphierr[base,ixwave]) == 0):
+            z1 = numpy.average(oifits.oi_vis_sc_visphi[base,ixwave])
+        else:
+            z1 = numpy.average(oifits.oi_vis_sc_visphi[base,ixwave],weights=oifits.oi_vis_sc_visphierr[base,ixwave] ) * (180.0/numpy.pi)
+        z2 = numpy.median(oifits.oi_vis_sc_visphierr[base,ixwave]) * (180.0/numpy.pi)
+        phidifflog[base]=z1
+        dislin.rlmess("%+8.3f"%(z1)+" $\pm$"+"%.2f"%(z2),xoffset_4,les_posy[base])
     #
     dislin.reset("fixspc")
     dislin.sendbf()
@@ -280,23 +325,41 @@ def produce_oifits_report_common(oifits,filename,band):
     dislin.graf( 0.0,1.0,0.0,1.0, -0.05,1.0,0.0,1.0 )
     #
     dislin.height(30)
-    yoffset = 0.90
+    yoffset = 0.92
     dislin.rlmess("Average closure phase per triplet (t3phi $\pm$ std), in degrees ==> page 4",xoffset_1,yoffset)
 
     dislin.height(36)
     xoffset = 0.02
-    yoffset_1 = 0.55
-    yoffset_2 = 0.20
+    yoffset_1 = 0.72
+    yoffset_2 = 0.52
     dislin.rlmess("Triplet",xoffset,yoffset_1)
-    dislin.rlmess("Phi(deg)",xoffset,yoffset_2)
-    les_posx = [0.16 , 0.37 , 0.58 , 0.80 ]
+    dislin.rlmess("Phi-center",xoffset,yoffset_2)
+    dislin.rlmess("Phi-edge",xoffset,yoffset_2-0.2)
+    if (flagM == True):
+        dislin.rlmess("Phi-M",xoffset,yoffset_2-0.4)
+    les_posx = [0.19 , 0.38 , 0.59 , 0.81 ]
     dislin.fixspc(0.5)
 
     for triplet in range(4) :
         dislin.rlmess(triplet_list[triplet],les_posx[triplet],yoffset_1)
-        z1 = numpy.average(oifits.t3phi_sc[triplet,:],weights=oifits.t3phierr_sc[triplet,:]) * (180.0/numpy.pi)
-        z2 = numpy.median(oifits.t3phierr_sc[triplet,:]) * (180.0/numpy.pi)
-        dislin.rlmess("%+.3f"%(z1)+" $\pm$ "+"%.3f"%(z2),les_posx[triplet],yoffset_2)
+        z1 = numpy.average(oifits.t3phi_sc[triplet,ixwave],weights=oifits.t3phierr_sc[triplet,ixwave]) * (180.0/numpy.pi)
+        z2 = numpy.median(oifits.t3phierr_sc[triplet,ixwave]) * (180.0/numpy.pi)
+        philog[triplet,0]=z1
+        dislin.rlmess("%+.2f"%(z1)+" $\pm$ "+"%.2f"%(z2),les_posx[triplet],yoffset_2)
+    for triplet in range(4) :
+        dislin.rlmess(triplet_list[triplet],les_posx[triplet],yoffset_1)
+        z1 = numpy.average(oifits.t3phi_sc[triplet,ixwaveedge],weights=oifits.t3phierr_sc[triplet,ixwaveedge]) * (180.0/numpy.pi)
+        philog[triplet,1]=z1
+        z2 = numpy.median(oifits.t3phierr_sc[triplet,ixwaveedge]) * (180.0/numpy.pi)
+        dislin.rlmess("%+.2f"%(z1)+" $\pm$ "+"%.2f"%(z2),les_posx[triplet],yoffset_2-0.2)
+    if (flagM == True):
+        for triplet in range(4) :
+            dislin.rlmess(triplet_list[triplet],les_posx[triplet],yoffset_1)
+            z1 = numpy.average(oifits.t3phi_sc[triplet,ixwaveM],weights=oifits.t3phierr_sc[triplet,ixwaveM]) * (180.0/numpy.pi)
+            philog[triplet,2]=z1
+            z2 = numpy.median(oifits.t3phierr_sc[triplet,ixwaveM]) * (180.0/numpy.pi)
+            dislin.rlmess("%+.2f"%(z1)+" $\pm$ "+"%.2f"%(z2),les_posx[triplet],yoffset_2-0.4)
+        
     
     dislin.reset("fixspc")
     dislin.sendbf()
@@ -801,3 +864,31 @@ def produce_oifits_report_common(oifits,filename,band):
         print ("==========================================================================")
     else:        
         dislin.newpag()
+
+
+    if band[0] == "LM":
+        oml1=oifits.header['HIERARCH ESO INS OML1 VOLT']
+        oml2=oifits.header['HIERARCH ESO INS OML2 VOLT']
+        oml3=oifits.header['HIERARCH ESO INS OML3 VOLT']
+        oml4=oifits.header['HIERARCH ESO INS OML4 VOLT']
+        print oml1,oml2,oml3,oml4
+        if (numpy.abs(oml1-4) > 0.15 or numpy.abs(oml2-4) > 0.15 or numpy.abs(oml3-4) > 0.15 or numpy.abs(oml4-4) > 0.15):
+            opdmod="YES"
+        else:
+            opdmod="NO"
+        print filename+".fits",";",oifits.header['ESO TPL START'],";",oifits.header['HIERARCH ESO DET CHIP NAME'],";",oifits.header['HIERARCH ESO INS DIL ID'],";",oifits.header['HIERARCH ESO INS PIL ID'],";",oifits.header['HIERARCH ESO INS POL ID'],";",oifits.header['HIERARCH ESO INS FIL ID'],";",oifits.header['HIERARCH ESO INS SFL ID'],";",oifits.header['HIERARCH ESO INS BCD1 ID'],";",oifits.header['HIERARCH ESO INS BCD2 ID'],";",opdmod,";",oifits.header['HIERARCH ESO DET SEQ1 DIT'],";",vis2log[0,0],";",vis2log[1,0],";",vis2log[2,0],";",vis2log[3,0],";",vis2log[4,0],";",vis2log[5,0],";",vis2log[0,1],";",vis2log[1,1],";",vis2log[2,1],";",vis2log[3,1],";",vis2log[4,1],";",vis2log[5,1],";",vis2log[0,2],";",vis2log[1,2],";",vis2log[2,2],";",vis2log[3,2],";",vis2log[4,2],";",vis2log[5,2],";",philog[0,0],";",philog[1,0],";",philog[2,0],";",philog[3,0],";",philog[0,1],";",philog[1,1],";",philog[2,1],";",philog[3,1],";",philog[0,2],";",philog[1,2],";",philog[2,2],";",philog[3,2],";",visdifflog[0],";",visdifflog[1],";",visdifflog[2],";",visdifflog[3],";",visdifflog[4],";",visdifflog[5],";",phidifflog[0],";",phidifflog[1],";",phidifflog[2],";",phidifflog[3],";",phidifflog[4],";",phidifflog[5]
+
+    else:
+        omn1=oifits.header['HIERARCH ESO INS OMN1 VOLT']
+        omn2=oifits.header['HIERARCH ESO INS OMN2 VOLT']
+        omn3=oifits.header['HIERARCH ESO INS OMN3 VOLT']
+        omn4=oifits.header['HIERARCH ESO INS OMN4 VOLT']
+        print omn1,omn2,omn3,omn4
+        if (numpy.abs(omn1-5) > 0.15 or numpy.abs(omn2-5) > 0.15 or numpy.abs(omn3-5) > 0.15 or numpy.abs(omn4-5) > 0.15):
+            opdmod="YES"
+        else:
+            opdmod="NO"
+        print filename+".fits",";",oifits.header['ESO TPL START'],";",oifits.header['HIERARCH ESO DET CHIP NAME'],";",oifits.header['HIERARCH ESO INS DIN ID'],";",oifits.header['HIERARCH ESO INS PIN ID'],";",oifits.header['HIERARCH ESO INS PON ID'],";",oifits.header['HIERARCH ESO INS FIN ID'],";",oifits.header['HIERARCH ESO INS SFN ID'],";",oifits.header['HIERARCH ESO INS BCD1 ID'],";",oifits.header['HIERARCH ESO INS BCD2 ID'],";",opdmod,";",oifits.header['HIERARCH ESO DET SEQ1 DIT'],";",vis2log[0,0],";",vis2log[1,0],";",vis2log[2,0],";",vis2log[3,0],";",vis2log[4,0],";",vis2log[5,0],";",vis2log[0,1],";",vis2log[1,1],";",vis2log[2,1],";",vis2log[3,1],";",vis2log[4,1],";",vis2log[5,1],";",vis2log[0,2],";",vis2log[1,2],";",vis2log[2,2],";",vis2log[3,2],";",vis2log[4,2],";",vis2log[5,2],";",philog[0,0],";",philog[1,0],";",philog[2,0],";",philog[3,0],";",philog[0,1],";",philog[1,1],";",philog[2,1],";",philog[3,1],";",philog[0,2],";",philog[1,2],";",philog[2,2],";",philog[3,2],";",visdifflog[0],";",visdifflog[1],";",visdifflog[2],";",visdifflog[3],";",visdifflog[4],";",visdifflog[5],";",phidifflog[0],";",phidifflog[1],";",phidifflog[2],";",phidifflog[3],";",phidifflog[4],";",phidifflog[5]
+
+
+ 
