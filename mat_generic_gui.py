@@ -1,7 +1,7 @@
 #!/usr/bin/python  
 # -*- coding: utf-8 -*-
 """
-  $Id: mat_raw_estimates_gui.py 61 2017-04-12 08:09:56Z fmillour $
+  $Id$
  
   This file is part of the Matisse pipeline GUI series
   Copyright (C) 2017- Observatoire de la Côte d'Azur
@@ -22,8 +22,8 @@
  
   Created on Wed Apr  5 10:18:07 2017
 
-  $Author: fmillour $
-  $Date: 2017-04-12 10:09:56 +0200 (mer., 12 avr. 2017) $
+  $Author$
+  $Date$
   $Revision$
 """
 
