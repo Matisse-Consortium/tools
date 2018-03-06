@@ -40,6 +40,19 @@ import distutils.spawn
 import fnmatch
 import sys
 
+
+listArg = sys.argv
+for elt in listArg:
+    if ('--help' in elt):
+        print "Usage: mat_fileDialog.py [--dir=start directory]"
+        sys.exit(0)
+
+repBase = []
+for elt in listArg:
+    if ('--dir' in elt):
+        item=elt.split('=')
+        repBase=item[1]
+
 # Set useful paths
 fvpath    = distutils.spawn.find_executable("fv")
 iconspath = os.path.join(os.path.dirname(__file__),"icons")
@@ -185,58 +198,61 @@ class identifyFile(object):
 matisseColor={
 # Palette here http://colrd.com/palette/19308/
 # Dark files
-"DARK"           :wx.Colour(124,159,176),
-"HOT_DARK"       :wx.Colour(124,159,176),
-"OBSDARK"        :wx.Colour(124,159,176),
+"DARK"           :wx.Colour(64,64,64),
+"HOT_DARK"       :wx.Colour(192,192,192),
+"OBSDARK"        :wx.Colour(64,64,64),
 "DISTOR_HOTDARK" :wx.Colour(124,159,176),
 "SPECTRA_HOTDARK":wx.Colour(124,159,176),
-"KAPPA_HOTDARK"  :wx.Colour(124,159,176),
+"KAPPA_HOTDARK"  :wx.Colour(128,128,255),
 "REF_HOTDARK"    :wx.Colour(124,159,176),
 "IM_COLD"        :wx.Colour(124,159,176),
 
 # Sky files
+"SKY_RAW"        :wx.Colour(64,255,255),
+    
+# Files with fringes (observations)
+"TARGET_RAW"     :wx.Colour(154,255,136),
+"CALIB_RAW"      :wx.Colour(154,255,136),
 
 # Shift map
-"SHIFT_MAP"    :wx.Colour(116,196,147),
+"SHIFT_MAP"      :wx.Colour(116,196,147),
 
 # Bad Pixel file
 "BADPIX"         :wx.Colour(201,74,83),
 
 # NLM file
-"NONLINEARITY"         :wx.Colour(101,56,125),
+"NONLINEARITY"   :wx.Colour(101,56,125),
 
 # Flat files
-"FLAT"         :wx.Colour(228,191,128),
-"OBSFLAT"      :wx.Colour(228,191,128),
-"OBS_FLATFIELD":wx.Colour(228,191,128),
-"IM_FLAT"      :wx.Colour(228,191,128),
+"FLAT"           :wx.Colour(228,191,128),
+"OBSFLAT"        :wx.Colour(228,191,128),
+"OBS_FLATFIELD"  :wx.Colour(228,191,128),
+"IM_FLAT"        :wx.Colour(228,191,128),
 
 # Distorsion, spectral cliabration files
-"DISTOR_IMAGES" :wx.Colour(0,220,0),
-"SPECTRA_IMAGES":wx.Colour(0,220,0),
+"DISTOR_IMAGES"  :wx.Colour(0,220,0),
+"SPECTRA_IMAGES" :wx.Colour(0,220,0),
 
 # Kappa matrix
-"KAPPA_SKY" :wx.Colour(150,0,50),
-"KAPPA_SRC" :wx.Colour(50,50,0),
-"KAPPA_OBJ" :wx.Colour(150,50,0),
+"KAPPA_SKY"      :wx.Colour(150,0,50),
+"KAPPA_SRC"      :wx.Colour(50,50,0),
+"KAPPA_OBJ"      :wx.Colour(150,50,0),
 
-# Files with fringes
-"TARGET_RAW"   :wx.Colour(154,191,136),
-"CALIB_RAW"    :wx.Colour(154,191,136),
-"CALIB_SRC_RAW":wx.Colour(154,191,136),
+    # Files with fringes (lab)
+"CALIB_SRC_RAW"  :wx.Colour(154,191,136),
 
 # Other files
-"IM_PERIODIC":wx.Colour(0,200,50),
-"IM_REF"     :wx.Colour(150,0,50),
+"IM_PERIODIC"    :wx.Colour(0,200,50),
+"IM_REF"         :wx.Colour(150,0,50),
 
 # Palette here http://colrd.com/image-dna/23291/
 # Also picked up some colours from "La Cinq"
 # Products
-"CALIB_CAL" :wx.Colour(201,194,175),
+"CALIB_CAL"      :wx.Colour(201,194,175),
 
-"OBJ_CORR_FLUX" :wx.Colour(96,189,175),
-"PHOT_BEAMS"    :wx.Colour(161,216,177),
-"OI_OPDWVPO"    :wx.Colour(107,150,129),
+"OBJ_CORR_FLUX"  :wx.Colour(96,189,175),
+"PHOT_BEAMS"     :wx.Colour(161,216,177),
+"OI_OPDWVPO"     :wx.Colour(107,150,129),
 #"OI_OPDWVPO"    :wx.Colour(237,152,294),
 
 # oifits
@@ -246,7 +262,7 @@ matisseColor={
 "RAW_SPECTRUM"   :wx.Colour(51,88,180),
 "TARGET_RAW_INT" :wx.Colour(237,152,255),
 
-"UNKNOWN":wx.Colour(220,220,220)
+"UNKNOWN"        :wx.Colour(235,235,235)
 }
 ###############################################################################
 
@@ -261,13 +277,13 @@ class dirButtons(wx.BoxSizer):
         super(dirButtons, self).__init__(wx.HORIZONTAL)
         self.parent=parent
         self.setPath(path)
-        self.updateFunction=updateFunction
+        self.updateFunction = updateFunction
 
     def setPath(self,path):
         self.path=path
         #self.dirs=[diri for diri in path.split("/") if diri !='']
         self.dirs=path.split("/")
-        self.DeleteWindows()
+        self.Clear()
         self.Layout()
         self.ButtonList=[]
         size=0
@@ -312,14 +328,15 @@ class mat_FileDialog(wx.Dialog):
 
         panel = wx.Panel(self)
 
-        font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+        font  = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
+            
         font.SetPointSize(9)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox  = wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(10)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.dirButtons=dirButtons(panel)
+        hbox  = wx.BoxSizer(wx.HORIZONTAL)
+        self.dirButtons = dirButtons(panel)
         hbox.Add(self.dirButtons)
 
 
@@ -327,14 +344,14 @@ class mat_FileDialog(wx.Dialog):
 
         vbox.AddSpacer(10)
 
-        splitter=wx.SplitterWindow(panel)
+        splitter     = wx.SplitterWindow(panel)
         self.dirTree = wx.GenericDirCtrl(splitter, style=wx.DIRCTRL_DIR_ONLY|wx.DIRCTRL_EDIT_LABELS)
         self.dirButtons.updateFunction=self.dirTree.SetPath
         if self.dir:
             self.dirTree.SetPath(self.dir)
         self.fileList = ObjectListView(splitter,wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.fileList.AddNamedImages("Directory",wx.ArtProvider_GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
-        self.fileList.AddNamedImages("Normal File",wx.ArtProvider_GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
+        self.fileList.AddNamedImages("Directory",wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
+        self.fileList.AddNamedImages("Normal File",wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
         self.fileList.AddNamedImages("MATISSE File",wx.Bitmap(os.path.join(iconspath,"matisseSmall.ico")))
         self.fileList.AddNamedImages("AMBER File",wx.Bitmap(os.path.join(iconspath,"amberSmall.ico")))
         self.fileList.AddNamedImages("GRAVITY File",wx.Bitmap(os.path.join(iconspath,"gravitySmall.ico")))
@@ -359,12 +376,12 @@ class mat_FileDialog(wx.Dialog):
 
         vbox.AddSpacer(10)
 
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.addDirButton=wx.Button(panel,label="+")
+        hbox2             = wx.BoxSizer(wx.HORIZONTAL)
+        self.addDirButton = wx.Button(panel,label="+")
         hbox2.Add(self.addDirButton, proportion=0.1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        self.pathText=wx.TextCtrl(panel,style=wx.TE_READONLY)
+        self.pathText  = wx.TextCtrl(panel,style=wx.TE_READONLY)
         hbox2.Add(self.pathText, proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        self.filterBox=wx.ComboBox(panel,choices=["All Files","Fits Files","Matisse Files"],style=wx.CB_DROPDOWN|wx.CB_READONLY)
+        self.filterBox = wx.ComboBox(panel,choices=["All Files","Fits Files","Matisse Files"],style    = wx.CB_DROPDOWN|wx.CB_READONLY)
         self.filterBox.SetValue("All Files")
         hbox2.Add(self.filterBox, proportion=0.2,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         self.cancelButton = wx.Button(panel,wx.ID_CANCEL)
@@ -378,7 +395,7 @@ class mat_FileDialog(wx.Dialog):
 
 
         tree = self.dirTree.GetTreeCtrl()
-        self.Bind(wx.wx.EVT_TREE_SEL_CHANGED, self.dirChanged,tree)
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.dirChanged,tree)
         self.Bind(wx.EVT_BUTTON, self.okClicked, self.okButton)
         self.Bind(wx.EVT_BUTTON, self.cancelClicked, self.cancelButton)
         self.Bind(wx.EVT_COMBOBOX, self.filterChanged, self.filterBox)
@@ -517,7 +534,7 @@ class mat_FileDialog(wx.Dialog):
 if __name__ == '__main__':
 
     app = wx.App()
-    openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
+    openFileDialog = mat_FileDialog(None, 'Open a file',repBase)
     if openFileDialog.ShowModal() == wx.ID_OK:
         print openFileDialog.GetPaths()
     openFileDialog.Destroy()
