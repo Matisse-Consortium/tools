@@ -24,7 +24,7 @@
 
   $Author: fmillour $
   $Date: 2017-04-12 10:09:56 +0200 (mer., 12 avr. 2017) $
-  $Revision: 61 $
+  $Revision$
 """
 
 import wx

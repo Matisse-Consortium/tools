@@ -24,7 +24,7 @@
 
   $Author: ame $
   $Date: 2017-04-10 17:56:52 +0200 (lun. 10 avril 2017) $
-  $Revision: 59 $
+  $Revision$
   $Name:  $
 """
 
