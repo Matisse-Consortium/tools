@@ -27,19 +27,30 @@
   $Revision$
   $Name:  $
 """
+# Changelog:
+# - 2018-03-15, added buffering capability (jvarga): while entering a directory, it saves the matisseFileList
+#   variable into a buffer file (with pickle). Upon re-entering the directory, it opens the buffer file and
+#   loads the file list, thus avoiding re-opening the fits files. If there is a mismatch between the buffered
+#   file list and the actual contents of the folder, the buffer will be synchronized
+#
+# Known issues:
+# - currently it only works properly when filter is set to "All files"
+
+#TODO: fix file type filter issues
+#TODO: if a folder does not contain fits files, then don't create the buffer file
 
 # Import necessary files
 from libAutoPipeline import matisseType
 import wx
 import os
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView import ObjectListView, ColumnDefn, Filter
 from astropy.io import fits
 import subprocess
 from fitsheaderviewer import fitsHeaderViewer
 import distutils.spawn
 import fnmatch
 import sys
-
+import cPickle as pickle
 
 listArg = sys.argv
 for elt in listArg:
@@ -56,6 +67,8 @@ for elt in listArg:
 # Set useful paths
 fvpath    = distutils.spawn.find_executable("fv")
 iconspath = os.path.join(os.path.dirname(__file__),"icons")
+# Set buffer filename:
+FileList_FileName='mat_fileDialog.pkl'
 
 ###############################################################################
 
@@ -434,20 +447,94 @@ class mat_FileDialog(wx.Dialog):
        matisseFileList=[]
        filt=self.filterBox.GetValue()
 
-       for filei in files:
-           #if os.path.isfile(self.dir+"/"+filei):
-               matFile=identifyFile(filei,self.dir)
-               if filt=="All Files":
-                   Append=True
-               elif filt=="Fits Files" and matFile.isFits:
-                   Append=True
-               elif filt=="Matisse Files" and matFile.isMatisse:
-                   Append=True
-               else:
-                   Append=False
-               if Append:
-                   matisseFileList.append(matFile)
+       #try to open the FileList_File in the directory
+       #if os.path.isfile(self.dir + '/' + FileList_FileName):
+       #print "----dirChanged-----"
+       try:
+           # if file exists, open it
+           #print "Open existing FileList_File"
+           FileList_File = open(self.dir + '/' + FileList_FileName, 'rb')
+           #print "Load with pickle"
+           matisseFileList = pickle.load(FileList_File)
+           FileList_File.close()
+           tmp_filename_list = []
+           #print "Generate tmp_filename_list"
+           for i in range(len(matisseFileList)):
+               #print "   " + matisseFileList[i].filename
+               tmp_filename_list.append(matisseFileList[i].filename)
+
+           #synchronize matisseFileList with the actual directory listing
+           #print "Generate sets"
+           A = set(tmp_filename_list)
+           B = set(files)
+           # list of files present in the buffer but not in the current directory listing
+           #print "delete_list"
+           delete_list = list(A - B)
+           delete_flag = 0
+           if delete_list:
+               #print "there are files to delete from list"
+               #these files have been removed from the directory, so they should be removed from the file list
+               for filei in delete_list:
+                   #print "   " + filei
+                   del_idx = delete_list.index(filei)
+                   del matisseFileList[del_idx]
+                   delete_flag = 1
+           # list of files present in the directory but not present in the file list
+           #print "add_list"
+           add_list = list(B - A)
+           add_flag = 0
+           if add_list:
+               #print "add new files to the file list"
+               #add new files to the file list
+               for filei in add_list:
+                   #if os.path.isfile(self.dir+"/"+filei):
+                       #print "   " + filei
+                       matFile=identifyFile(filei,self.dir)
+                       if filt=="All Files":
+                           Append=True
+                       elif filt=="Fits Files" and matFile.isFits:
+                           Append=True
+                       elif filt=="Matisse Files" and matFile.isMatisse:
+                           Append=True
+                       else:
+                           Append=False
+                       if Append:
+                           matisseFileList.append(matFile)
+                           add_flag = 1
+           #if there were changes in the file list, overwrite the old list file
+           if (delete_flag == 1 or add_flag == 1):
+               #print "there were changes in the file list, overwrite the old list file"
+               # save matisseFileList in binary file
+               FileList_File = open(self.dir + '/' + FileList_FileName, 'w+b')
+               pickle.dump(matisseFileList, FileList_File)
+               FileList_File.close()
+       except (IOError,EOFError) as error:
+           # the file is not exists, or empty
+           #print "Create new FileList_File"
+           #print "add new files to the file list"
+           for filei in files:
+               #if os.path.isfile(self.dir+"/"+filei):
+                   #print "   " + filei
+                   matFile=identifyFile(filei,self.dir)
+                   if filt=="All Files":
+                       Append=True
+                   elif filt=="Fits Files" and matFile.isFits:
+                       Append=True
+                   elif filt=="Matisse Files" and matFile.isMatisse:
+                       Append=True
+                   else:
+                       Append=False
+                   if Append:
+                       matisseFileList.append(matFile)
+           #save matisseFileList in file
+           #print "save matisseFileList in file"
+           FileList_File = open(self.dir+'/'+ FileList_FileName, 'w+b')
+           pickle.dump(matisseFileList, FileList_File)
+           FileList_File.close()
+
        self.fileList.SetObjects(matisseFileList)
+       #flt = Filter.TextSearch(self, columns=self.fileList.columns[1], text="Fits File")
+       #self.fileList.SetFilter(flt)
        self.fileList.AutoSizeColumns()
 
        for icol in range(len(keywords)+1):
