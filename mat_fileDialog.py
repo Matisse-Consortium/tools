@@ -25,7 +25,6 @@
   $Author$
   $Date$
   $Revision$
-  $Name:  $
 """
 # Changelog:
 # - 2018-03-15, added buffering capability (jvarga): while entering a directory, it saves the matisseFileList
@@ -120,6 +119,10 @@ class fileViewerKeyword:
 
 ###############################################################################
 
+dict_keys = ['DATE-OBS', 'INSTRUME', 'HIERARCH ESO DET CHIP NAME', 'HIERARCH ESO DET NDIT', 'HIERARCH ESO DET SEQ1 DIT','HIERARCH ESO DET DIT', 'HIERARCH ESO INS PIL NAME','HIERARCH ESO INS PIN NAME','HIERARCH ESO INS DIL NAME','HIERARCH ESO INS DIN NAME', 'HIERARCH ESO PRO CATG', 'HIERARCH ESO DPR CATG', 'HIERARCH ESO DPR TYPE','HIERARCH ESO DPR TECH', 'HIERARCH ESO DET NAME', 'HIERARCH ESO DET READ CURNAME', 'HIERARCH ESO TPL START', 'HIERARCH ESO INS PIL ID', 'HIERARCH ESO INS PIN ID', 'HIERARCH ESO INS DIL ID', 'HIERARCH ESO INS DIN ID', 'HIERARCH ESO INS POL ID', 'HIERARCH ESO INS FIL ID', 'HIERARCH ESO INS PON ID', 'HIERARCH ESO INS FIN ID', 'HIERARCH ESO DET SEQ1 PERIOD']
+
+type(dict_keys)
+
 keywords=[]
 
 keywords.append(fileViewerKeyword(
@@ -177,8 +180,19 @@ class identifyFile(object):
 
         if fnmatch.fnmatch(filename,"*.fits*"):
             #filename.endswith(".fits"):
-            try:
-                self.header = fits.getheader( self.folder+"/"+self.filename)
+            try:                      
+                tmp_header = fits.getheader( self.folder+"/"+self.filename)
+                self.header = tmp_header.fromkeys(dict_keys)
+                for ky in dict_keys:
+                    try:
+                        self.header[ky] = tmp_header[ky]
+                    except:
+                        print('Error!')
+                        print(ky)
+                
+                #print(self.tmp_header['DATE-OBS'])
+                #print(self.header['DATE-OBS'])
+                
                 #self.header=self.readFitsHeader( self.folder+"/"+self.filename)
                 #print(self.header)
             except:
@@ -406,7 +420,6 @@ class mat_FileDialog(wx.Dialog):
 
         panel.SetSizer(vbox)
 
-
         tree = self.dirTree.GetTreeCtrl()
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.dirChanged,tree)
         self.Bind(wx.EVT_BUTTON, self.okClicked, self.okButton)
@@ -489,15 +502,15 @@ class mat_FileDialog(wx.Dialog):
                for filei in add_list:
                    #if os.path.isfile(self.dir+"/"+filei):
                        #print "   " + filei
-                       matFile=identifyFile(filei,self.dir)
-                       if filt=="All Files":
-                           Append=True
-                       elif filt=="Fits Files" and matFile.isFits:
-                           Append=True
-                       elif filt=="Matisse Files" and matFile.isMatisse:
-                           Append=True
+                       matFile = identifyFile(filei,self.dir)
+                       if filt == "All Files":
+                           Append = True
+                       elif filt == "Fits Files" and matFile.isFits:
+                           Append = True
+                       elif filt == "Matisse Files" and matFile.isMatisse:
+                           Append = True
                        else:
-                           Append=False
+                           Append = False
                        if Append:
                            matisseFileList.append(matFile)
                            add_flag = 1
@@ -509,21 +522,21 @@ class mat_FileDialog(wx.Dialog):
                pickle.dump(matisseFileList, FileList_File)
                FileList_File.close()
        except (IOError,EOFError) as error:
-           # the file is not exists, or empty
+           # the file does not exists, or is empty
            #print "Create new FileList_File"
            #print "add new files to the file list"
            for filei in files:
                #if os.path.isfile(self.dir+"/"+filei):
                    #print "   " + filei
-                   matFile=identifyFile(filei,self.dir)
-                   if filt=="All Files":
-                       Append=True
-                   elif filt=="Fits Files" and matFile.isFits:
-                       Append=True
-                   elif filt=="Matisse Files" and matFile.isMatisse:
-                       Append=True
+                   matFile = identifyFile(filei,self.dir)
+                   if filt == "All Files":
+                       Append = True
+                   elif filt == "Fits Files" and matFile.isFits:
+                       Append = True
+                   elif filt == "Matisse Files" and matFile.isMatisse:
+                       Append = True
                    else:
-                       Append=False
+                       Append = False
                    if Append:
                        matisseFileList.append(matFile)
            #save matisseFileList in file
@@ -619,7 +632,6 @@ class mat_FileDialog(wx.Dialog):
 ###############################################################################
 
 if __name__ == '__main__':
-
     app = wx.App()
     openFileDialog = mat_FileDialog(None, 'Open a file',repBase)
     if openFileDialog.ShowModal() == wx.ID_OK:
@@ -627,4 +639,3 @@ if __name__ == '__main__':
     openFileDialog.Destroy()
     app.MainLoop()
     app.Destroy()
-
