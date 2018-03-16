@@ -1,32 +1,55 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Tue Dec 20 13:22:21 2016
+  $Id$
 
-@author: asoulain
+  This file is part of the Matisse pipeline GUI series
+  Copyright (C) 2017- Observatoire de la Côte d'Azur
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+  
+  Created on Tue Dec 20 13:22:21 2016
+
+  @author: asoulain
 """
 
 # Import necessary libraries
 import matplotlib as mpl
 mpl.use('TkAgg')
-
 import sys
 from matplotlib import pyplot as plt
-import pyfits
+from astropy.io import fits as pyfits
 import os
-import cPickle
+import pickle as cPickle
 import numpy as np
 import matplotlib.gridspec as gridspec
+from mat_fileDialog import mat_FileDialog
+import wx
+import fnmatch
+import tempfile
+
 
 # Save the file content in a temporary python binary file
-_dBfile_matisse = '/tmp/data_matisse.dpy'
+_dBfile_matisse = tempfile.gettempdir()+'/data_matisse.dpy'
     
 def readDb_matisse(name_file):
     global _dBfile_matisse
     if not os.path.exists(_dBfile_matisse):
         return None
-    f = open(_dBfile_matisse)
-    db = cPickle.load(f)
+    f = open(_dBfile_matisse, 'rb')
+    db = cPickle.load(f, encoding="utf8")
     f.close()
     if name_file in db.keys():
         return db[name_file]
@@ -37,12 +60,12 @@ def readDb_matisse(name_file):
 def writeDb_matisse(name_file, data):
     global _dBfile_matisse
     if not os.path.exists(_dBfile_matisse):
-        #print ' > getData: creating', _dBfile_matisse
+        print (' > getData: creating', _dBfile_matisse)
         db = {name_file:data}
     else:
-        #print ' > getData: updating', _dBfile_matisse
-        f = open(_dBfile_matisse)
-        db = cPickle.load(f)
+        print (' > getData: updating', _dBfile_matisse)
+        f  = open(_dBfile_matisse, 'rb')
+        db = cPickle.load(f, encoding="utf8")
         f.close()
     db[name_file] = data
     f = open(_dBfile_matisse, 'wb')
@@ -53,110 +76,118 @@ def writeDb_matisse(name_file, data):
 def open_mat(name_file):
     tmp = readDb_matisse(name_file)
     if not tmp is None:
-        #print ' > getData: %s already in database MATISSE'%name_file.split('/')[-1]
+        print (' > getData: data already in database MATISSE '+_dBfile_matisse)
         return tmp
-    hdu = pyfits.open(name_file)
-    img_data = hdu['IMAGING_DATA']
-    
-    interf = img_data.data['DATA11'].mean(axis = 0)
-    phot1 =  img_data.data['DATA13'].mean(axis = 0)
-    phot2 =  img_data.data['DATA12'].mean(axis = 0)
-    phot3 =  img_data.data['DATA9'].mean(axis = 0)
-    phot4 =  img_data.data['DATA10'].mean(axis = 0)
+    hdu      = pyfits.open(name_file)
+    img_det  = hdu['IMAGING_DETECTOR']
+    img_data = hdu['IMAGING_DATA'].data
         
-    dic = {'INTERF':interf, 'PHOT1':phot1, 'PHOT2':phot2, 'PHOT3':phot3, 'PHOT4':phot4}
+    # read region names in imaging_detector and select photometries and interferometries only
+    region_name = img_det.data['REGNAME']
+    pht  = []
+    intf = []
+    for i,item in enumerate(region_name):
+        if fnmatch.fnmatch(item, '*PHOT*'):
+            pht.append(img_data.field(i))
+        if fnmatch.fnmatch(item, '*INTERF*'):
+            intf.append(img_data.field(i))
+    print("tutu")
+    print(len(region_name))
+    print(region_name)
+    
+    #print(pht)
+    #print(intf)
+    
+    # Select data with interferometries and photometries
+    if intf:
+        interf = intf
+        # convert to plain regular numpy array
+        interf2 = interf#.view(interf.dtype.fields or interf.dtype, np.ndarray)
+        print(type(interf))
+        #print(np.shape(interf))
+        print(len(interf))
+        print(type(interf2))
+        #print(np.shape(interf2))
+        print(len(interf2))
+    else:
+        interf2 = [];
+    if pht:
+        phot  = pht
+        # convert to plain regular numpy array
+        phot2 = phot#.view(phot.dtype.fields or phot.dtype, np.ndarray)
+    else:
+        phot2 = [];
+        
+    dic = {'INTERF':interf2, 'PHOT':phot2}
     writeDb_matisse(name_file, dic)
     return dic
+
+def show_mat(dic):
+    interf = dic['INTERF'];
+    print("titi")
+    print(type(interf))
+    #print(np.shape(interf))
+    print(len(interf))
     
+    phot = dic['PHOT']
+    print(type(phot))
+    #print(np.shape(interf))
+    print(len(phot))
+    
+    plt.close('all')
+    plt.figure(figsize = (9, 6))
+    G = gridspec.GridSpec(1, len(interf))
+    
+    
+    for i,it in enumerate(interf):
+        axes_i = plt.subplot(G[:,i])
+        plt.xticks([]), plt.yticks([])
+        axes_i.imshow(it[0], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
+        axes_i.set_title('INTERF')
+        
+        
+    for p,ph in enumerate(phot):
+        axes_p = plt.subplot(G[:,i])
+        axes_p.imshow(ph[0], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
+        axes_p.set_title('PHOT')
+    
+    
+    
+    
+    plt.xticks([]), plt.yticks([])
+    
+    plt.tight_layout()
+    G.update(wspace=0.1)
+    plt.show()
 
-#name_file = '/Users/asoulain/Documents/These/DRS_MATISSE/DATA/2016-09-28/Kappa-03/input/MATISSE_GEN_cal_kappa_N_HIGH_shut1_IMG_272_0001.fits'
-#name_file = '/Users/asoulain/Documents/These/DRS_MATISSE/DATA/2016-09-21/Kappa-01/input/MATISSE_GEN_cal_kappa_N_LOW_shut1_DARK_265_0001.fits'
-#name_file = '/Users/asoulain/Documents/These/DRS_MATISSE/DATA/2016-09-21/Kappa-01/test1.fits'
+###############################################################################
 
-dis = True
-try:
-    name_file = sys.argv[1]
+listArg = sys.argv
+name_file = []
+for elt in listArg:
+    if ('--help' in elt):
+        print( "Usage: mat_show_rawdata.py [--dir=start directory]")
+        sys.exit(0)
+    elif len(listArg) == 2:
+        name_file = sys.argv[1]
+        print(name_file)
+        
+
+if __name__ == '__main__':
+
+    app = wx.App()
+    if not name_file:
+        print("No input name given, running file selector...")
+        openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
+        if openFileDialog.ShowModal() == wx.ID_OK:
+            name_file = openFileDialog.GetPaths()[0]
+            print( name_file)
+        openFileDialog.Destroy()
+    app.MainLoop()
+    app.Destroy()
+    print("Reading file "+name_file+"...")
     dic = open_mat(name_file)
-except IOError:
-    dis= False
-    print '\n #### File not found ####'
-except KeyError:
-    dis= False
-    print "\n #### Extension 'IMAGING_DATA' not found ####"
-except IndexError:
-    print "\n #### Enter a MATISSE fits file name as argument ####"
-    dis = False
-    
-if dis:
-    if len(sys.argv) == 3:
-        res = sys.argv[2]
-    else:
-        res = 'HIGH'
-    
-    if not res == '-l':
-        plt.close('all')
-        plt.figure(figsize = (9, 6))
-        G = gridspec.GridSpec(2, 6)
-        
-        axes_1 = plt.subplot(G[:, 0])
-        axes_1.imshow(dic['PHOT1'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_1.set_title('PHOT1')
-        
-        plt.xticks([]), plt.yticks([])
-        
-        axes_2 = plt.subplot(G[:,1])
-        plt.xticks([]), plt.yticks([])
-        axes_2.imshow(dic['PHOT2'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_2.set_title('PHOT2')
-        
-        axes_3 = plt.subplot(G[:,2:4])
-        plt.xticks([]), plt.yticks([])
-        axes_3.imshow(dic['INTERF'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_3.set_title('INTERF')
-        
-        axes_4 = plt.subplot(G[:,4])
-        plt.xticks([]), plt.yticks([])
-        axes_4.imshow(dic['PHOT3'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_4.set_title('PHOT3')
-        
-        axes_5 = plt.subplot(G[:,5])
-        plt.xticks([]), plt.yticks([])
-        axes_5.imshow(dic['PHOT4'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_5.set_title('PHOT4')
-        plt.tight_layout()
-        G.update(wspace=0.1)
-        plt.show()
-    else:
-        plt.close('all')
-        plt.figure(figsize = (12, 4))
-        G = gridspec.GridSpec(2, 8)
-        
-        axes_1 = plt.subplot(G[:, 0])
-        axes_1.imshow(dic['PHOT1'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_1.set_title('PHOT1')
-        
-        plt.xticks([]), plt.yticks([])
-        
-        axes_2 = plt.subplot(G[:,1])
-        plt.xticks([]), plt.yticks([])
-        axes_2.imshow(dic['PHOT2'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_2.set_title('PHOT2')
-        
-        axes_3 = plt.subplot(G[:,2:6])
-        plt.xticks([]), plt.yticks([])
-        axes_3.imshow(dic['INTERF'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_3.set_title('INTERF')
-        
-        axes_4 = plt.subplot(G[:,6])
-        plt.xticks([]), plt.yticks([])
-        axes_4.imshow(dic['PHOT3'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_4.set_title('PHOT3')
-        
-        axes_5 = plt.subplot(G[:,7])
-        plt.xticks([]), plt.yticks([])
-        axes_5.imshow(dic['PHOT4'], interpolation = 'nearest', cmap = 'afmhot', origin = 'down')
-        axes_5.set_title('PHOT4')
-        plt.tight_layout()
-        G.update(wspace=0.1)
-        plt.show()
+    print("Plotting data "+name_file+"...")
+    show_mat(dic)
+
 
