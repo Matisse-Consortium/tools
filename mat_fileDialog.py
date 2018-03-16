@@ -31,7 +31,8 @@
 #   variable into a buffer file (with pickle). Upon re-entering the directory, it opens the buffer file and
 #   loads the file list, thus avoiding re-opening the fits files. If there is a mismatch between the buffered
 #   file list and the actual contents of the folder, the buffer will be synchronized
-#
+# - 2018-03-15, only selected keywords are extracted from the fits headers and saved to buffer file (fmillour, jvarga)
+# - 2018-03-15, fixed row coloring problem; changed pickle data protocol to binary (jvarga)
 # Known issues:
 # - currently it only works properly when filter is set to "All files"
 
@@ -119,7 +120,7 @@ class fileViewerKeyword:
 
 ###############################################################################
 
-dict_keys = ['DATE-OBS', 'INSTRUME', 'HIERARCH ESO DET CHIP NAME', 'HIERARCH ESO DET NDIT', 'HIERARCH ESO DET SEQ1 DIT','HIERARCH ESO DET DIT', 'HIERARCH ESO INS PIL NAME','HIERARCH ESO INS PIN NAME','HIERARCH ESO INS DIL NAME','HIERARCH ESO INS DIN NAME', 'HIERARCH ESO PRO CATG', 'HIERARCH ESO DPR CATG', 'HIERARCH ESO DPR TYPE','HIERARCH ESO DPR TECH', 'HIERARCH ESO DET NAME', 'HIERARCH ESO DET READ CURNAME', 'HIERARCH ESO TPL START', 'HIERARCH ESO INS PIL ID', 'HIERARCH ESO INS PIN ID', 'HIERARCH ESO INS DIL ID', 'HIERARCH ESO INS DIN ID', 'HIERARCH ESO INS POL ID', 'HIERARCH ESO INS FIL ID', 'HIERARCH ESO INS PON ID', 'HIERARCH ESO INS FIN ID', 'HIERARCH ESO DET SEQ1 PERIOD']
+dict_keys = ['DATE-OBS', 'INSTRUME','OBJECT', 'HIERARCH ESO DET CHIP NAME', 'HIERARCH ESO DET NDIT', 'HIERARCH ESO DET SEQ1 DIT','HIERARCH ESO DET DIT', 'HIERARCH ESO INS PIL NAME','HIERARCH ESO INS PIN NAME','HIERARCH ESO INS DIL NAME','HIERARCH ESO INS DIN NAME', 'HIERARCH ESO PRO CATG', 'HIERARCH ESO DPR CATG', 'HIERARCH ESO DPR TYPE','HIERARCH ESO DPR TECH', 'HIERARCH ESO DET NAME', 'HIERARCH ESO DET READ CURNAME', 'HIERARCH ESO TPL START', 'HIERARCH ESO INS PIL ID', 'HIERARCH ESO INS PIN ID', 'HIERARCH ESO INS DIL ID', 'HIERARCH ESO INS DIN ID', 'HIERARCH ESO INS POL ID', 'HIERARCH ESO INS FIL ID', 'HIERARCH ESO INS PON ID', 'HIERARCH ESO INS FIN ID', 'HIERARCH ESO DET SEQ1 PERIOD']
 
 type(dict_keys)
 
@@ -187,9 +188,8 @@ class identifyFile(object):
                     try:
                         self.header[ky] = tmp_header[ky]
                     except:
-                        print('Error!')
-                        print(ky)
-                
+                        self.header.remove(ky, ignore_missing=True, remove_all=False)
+
                 #print(self.tmp_header['DATE-OBS'])
                 #print(self.header['DATE-OBS'])
                 
@@ -518,8 +518,8 @@ class mat_FileDialog(wx.Dialog):
            if (delete_flag == 1 or add_flag == 1):
                #print "there were changes in the file list, overwrite the old list file"
                # save matisseFileList in binary file
-               FileList_File = open(self.dir + '/' + FileList_FileName, 'w+b')
-               pickle.dump(matisseFileList, FileList_File)
+               FileList_File = open(self.dir + '/' + FileList_FileName, 'wb')
+               pickle.dump(matisseFileList, FileList_File,2)#pickle.HIGHEST_PROTOCOL)
                FileList_File.close()
        except (IOError,EOFError) as error:
            # the file does not exists, or is empty
