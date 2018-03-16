@@ -55,7 +55,7 @@ import cPickle as pickle
 listArg = sys.argv
 for elt in listArg:
     if ('--help' in elt):
-        print "Usage: mat_fileDialog.py [--dir=start directory]"
+        print ("Usage: mat_fileDialog.py [--dir=start directory]")
         sys.exit(0)
 
 repBase = []
@@ -315,7 +315,7 @@ class dirButtons(wx.BoxSizer):
         self.ButtonList=[]
         size=0
         for diri in self.dirs:
-            buti=wx.Button(self.parent,label=diri,style=wx.BU_EXACTFIT)
+            buti = wx.Button(self.parent,label=diri,style=wx.BU_EXACTFIT)
             self.ButtonList.append(buti)
             self.Add(buti,flag=wx.LEFT)
             size+=buti.GetSize()[0]
@@ -326,12 +326,15 @@ class dirButtons(wx.BoxSizer):
         self.Layout()
 
     def ButtonClicked(self,event):
-        label=event.GetEventObject().GetLabel()
+        btn   = event.GetEventObject()
+        label = btn.GetLabel()
+        #self.Hide(btn)
+        #self.Remove(btn)
         i=self.dirs.index(label)
         newDir= ''.join([diri+"/" for diri in self.dirs[0:i+1]])
         if self.updateFunction:
             self.updateFunction(newDir)
-
+            
 ###############################################################################
 
 class mat_FileDialog(wx.Dialog):
@@ -353,29 +356,32 @@ class mat_FileDialog(wx.Dialog):
 
     def InitUI(self):
 
+        # Gobal window
         panel = wx.Panel(self)
-
         font  = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-            
         font.SetPointSize(9)
 
+        # Structure the window vertically
         vbox  = wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(10)
 
+        # Top arborescence
         hbox  = wx.BoxSizer(wx.HORIZONTAL)
         self.dirButtons = dirButtons(panel)
         hbox.Add(self.dirButtons)
-
-
         vbox.Add(hbox, proportion=0.1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
-
         vbox.AddSpacer(10)
+        
 
+        # File browser with side panel
         splitter     = wx.SplitterWindow(panel)
+        # Directories tree (left panel)
         self.dirTree = wx.GenericDirCtrl(splitter, style=wx.DIRCTRL_DIR_ONLY|wx.DIRCTRL_EDIT_LABELS)
         self.dirButtons.updateFunction=self.dirTree.SetPath
         if self.dir:
             self.dirTree.SetPath(self.dir)
+            
+        # List of files with colours (right panel)
         self.fileList = ObjectListView(splitter,wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.fileList.AddNamedImages("Directory",wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
         self.fileList.AddNamedImages("Normal File",wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
@@ -437,8 +443,13 @@ class mat_FileDialog(wx.Dialog):
 
         if data.DoCatg:
             try:
-                txtcol=wx.BLACK
                 bkgcol=matisseColor[data.DoCatg]
+                sm = sum(bkgcol)
+                if sm > 2*255:
+                    txtcol=wx.BLACK
+                else:
+                    txtcol=wx.WHITE
+                    
             except:
                 txtcol=wx.BLACK
                 bkgcol=matisseColor["UNKNOWN"]
@@ -573,12 +584,12 @@ class mat_FileDialog(wx.Dialog):
 
 
     def fileListDoubleClicked(self,event):
-        print "doubleclicked"
+        print ("doubleclicked")
         if identifyFile(self.path[0],self.dirTree.GetPath()).isDir:
              self.dirTree.SetPath(self.dirTree.GetPath()+'/'+self.path[0])
 
     def fileListRightClicked(self,event):
-        print "rightclicked"
+        print ("rightclicked")
         menu = wx.Menu()
 
         menu.Append( 0, "Show Header" )
@@ -611,20 +622,20 @@ class mat_FileDialog(wx.Dialog):
         return [self.dir+'/'+pathi for pathi in self.path]
 
     def showHeader(self,event):
-        print "show header {0}".format(self.GetPaths())
+        print ("show header {0}".format(self.GetPaths()))
         for filei in self.path:
              if filei.endswith('.fits'):
-                 print self.dir+'/'+filei
+                 print (self.dir+'/'+filei)
                  fitsHeaderViewer(self.dirTree.GetPath()+'/'+filei)
 
     def showImagingDetector(self,event):
-        print "show IMAGING_DETECTOR {0}".format(self.GetPaths())
+        print ("show IMAGING_DETECTOR {0}".format(self.GetPaths()))
 
     def showImagingData(self,event):
-        print "show IMAGING_DATA {0}".format(self.GetPaths())
+        print ("show IMAGING_DATA {0}".format(self.GetPaths()))
 
     def openWithFv(self,event):
-        print "Open with fv {0}".format(self.GetPaths())
+        print ("Open with fv {0}".format(self.GetPaths()))
         for filei in self.path:
             if filei.endswith('.fits'):
                 subprocess.Popen([fvpath,self.dirTree.GetPath()+'/'+filei])
@@ -635,7 +646,7 @@ if __name__ == '__main__':
     app = wx.App()
     openFileDialog = mat_FileDialog(None, 'Open a file',repBase)
     if openFileDialog.ShowModal() == wx.ID_OK:
-        print openFileDialog.GetPaths()
+        print (openFileDialog.GetPaths())
     openFileDialog.Destroy()
     app.MainLoop()
     app.Destroy()
