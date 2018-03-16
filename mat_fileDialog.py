@@ -50,7 +50,8 @@ from fitsheaderviewer import fitsHeaderViewer
 import distutils.spawn
 import fnmatch
 import sys
-import cPickle as pickle
+#import cPickle as pickle
+import pickle
 
 listArg = sys.argv
 for elt in listArg:
@@ -120,7 +121,33 @@ class fileViewerKeyword:
 
 ###############################################################################
 
-dict_keys = ['DATE-OBS', 'INSTRUME','OBJECT', 'HIERARCH ESO DET CHIP NAME', 'HIERARCH ESO DET NDIT', 'HIERARCH ESO DET SEQ1 DIT','HIERARCH ESO DET DIT', 'HIERARCH ESO INS PIL NAME','HIERARCH ESO INS PIN NAME','HIERARCH ESO INS DIL NAME','HIERARCH ESO INS DIN NAME', 'HIERARCH ESO PRO CATG', 'HIERARCH ESO DPR CATG', 'HIERARCH ESO DPR TYPE','HIERARCH ESO DPR TECH', 'HIERARCH ESO DET NAME', 'HIERARCH ESO DET READ CURNAME', 'HIERARCH ESO TPL START', 'HIERARCH ESO INS PIL ID', 'HIERARCH ESO INS PIN ID', 'HIERARCH ESO INS DIL ID', 'HIERARCH ESO INS DIN ID', 'HIERARCH ESO INS POL ID', 'HIERARCH ESO INS FIL ID', 'HIERARCH ESO INS PON ID', 'HIERARCH ESO INS FIN ID', 'HIERARCH ESO DET SEQ1 PERIOD']
+dict_keys = ['DATE-OBS', 'INSTRUME','OBJECT', 
+             'HIERARCH ESO OBS TARG NAME',
+             'HIERARCH ESO DET CHIP NAME',
+             'HIERARCH ESO DET CHIP TYPE',
+             'HIERARCH ESO DET NDIT',
+             'HIERARCH ESO DET SEQ1 DIT',
+             'HIERARCH ESO DET DIT',
+             'HIERARCH ESO INS PIL NAME',
+             'HIERARCH ESO INS PIN NAME',
+             'HIERARCH ESO INS DIL NAME',
+             'HIERARCH ESO INS DIN NAME',
+             'HIERARCH ESO PRO CATG',
+             'HIERARCH ESO DPR CATG',
+             'HIERARCH ESO DPR TYPE',
+             'HIERARCH ESO DPR TECH',
+             'HIERARCH ESO DET NAME',
+             'HIERARCH ESO DET READ CURNAME',
+             'HIERARCH ESO TPL START',
+             'HIERARCH ESO INS PIL ID',
+             'HIERARCH ESO INS PIN ID',
+             'HIERARCH ESO INS DIL ID',
+             'HIERARCH ESO INS DIN ID',
+             'HIERARCH ESO INS POL ID',
+             'HIERARCH ESO INS FIL ID',
+             'HIERARCH ESO INS PON ID',
+             'HIERARCH ESO INS FIN ID',
+             'HIERARCH ESO DET SEQ1 PERIOD']
 
 type(dict_keys)
 
@@ -131,23 +158,27 @@ keywords.append(fileViewerKeyword(
     name="Date"))
 
 keywords.append(fileViewerKeyword(
+    headerkeyword = "HIERARCH ESO OBS TARG NAME",
+    name          = "Target"))
+
+keywords.append(fileViewerKeyword(
     function = "matisseType",
     source   = "header",
     name     = "DoCatg"))
 
 keywords.append(fileViewerKeyword(
-    headerkeyword = "HIERARCH ESO DET CHIP NAME",
-    name          = "Detector"))
-
-keywords.append(fileViewerKeyword(
-    headerkeyword = "HIERARCH ESO DET NDIT",
-    name          = "NDIT"))
+    headerkeyword = "HIERARCH ESO DET CHIP TYPE",
+    name          = "Wavelength"))
 
 keywords.append(fileViewerKeyword(
     headerkeyword = ["HIERARCH ESO DET SEQ1 DIT","HIERARCH ESO DET DIT"],
     checkheader       = "INSTRUME",
     checkheader_cases = ["MATISSE","AMBER"],
     name          = "DIT"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword = "HIERARCH ESO DET NDIT",
+    name          = "NDIT"))
 
 keywords.append(fileViewerKeyword(
     headerkeyword  = ["HIERARCH ESO INS PIL NAME","HIERARCH ESO INS PIN NAME"],
@@ -383,21 +414,21 @@ class mat_FileDialog(wx.Dialog):
             
         # List of files with colours (right panel)
         self.fileList = ObjectListView(splitter,wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.fileList.AddNamedImages("Directory",wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
-        self.fileList.AddNamedImages("Normal File",wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
-        self.fileList.AddNamedImages("MATISSE File",wx.Bitmap(os.path.join(iconspath,"matisseSmall.ico")))
-        self.fileList.AddNamedImages("AMBER File",wx.Bitmap(os.path.join(iconspath,"amberSmall.ico")))
-        self.fileList.AddNamedImages("GRAVITY File",wx.Bitmap(os.path.join(iconspath,"gravitySmall.ico")))
-        self.fileList.AddNamedImages("Fits File",wx.Bitmap(os.path.join(iconspath,"fitsSmall.ico")))
+        self.fileList.AddNamedImages("Directory",    wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
+        self.fileList.AddNamedImages("Normal File",  wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, wx.Size(16,16)))
+        self.fileList.AddNamedImages("MATISSE File", wx.Bitmap(os.path.join(iconspath,"matisseSmall.ico")))
+        self.fileList.AddNamedImages("AMBER File",   wx.Bitmap(os.path.join(iconspath,"amberSmall.ico")))
+        self.fileList.AddNamedImages("GRAVITY File", wx.Bitmap(os.path.join(iconspath,"gravitySmall.ico")))
+        self.fileList.AddNamedImages("Fits File",    wx.Bitmap(os.path.join(iconspath,"fitsSmall.ico")))
         cols=[ColumnDefn("Filename","left",300,"filename",minimumWidth=250,imageGetter=FileImageGetter),
               ColumnDefn("Type","left",150,"icon",minimumWidth=50)]
-        cols.extend([ColumnDefn(keywordi.name,"left",75,keywordi.name,minimumWidth=75) for keywordi in keywords])
+        cols.extend([ColumnDefn(keywordi.name,"left",75,keywordi.name,minimumWidth=50) for keywordi in keywords])
         self.fileList.SetColumns(cols)
         self.fileList.rowFormatter=self.setRowColor
         self.fileList.AutoSizeColumns()
         
         # sort columns by default to file name and type
-        self.fileList.SortBy(0, ascending=True)
+        self.fileList.SortBy(2, ascending=True)
         #self.fileList.SetSortColumn(0, resortNow=True)
         #self.fileList.SortBy(0)
         #self.fileList.SortBy(1)
