@@ -70,7 +70,7 @@ if (repResult==""):
         print "Info : Results Directory not specified. We use current directory"
 print '%-40s' % ("Results Directory:",),repResult
 if (nbCore==0):
-    nbCore=8
+    nbCore=3
     print "Info : Number of Cores not specified. We use 8 cores"
 print '%-40s' % ("Number of Cores:",),nbCore    
 print "-----------------------------------------------------------------------------------------"
@@ -151,30 +151,30 @@ while True:
     for elt in listRedBlocks:
         hdu=fits.open(elt["input"][0][0])
         keyTplStartCurrent=hdu[0].header['HIERARCH ESO TPL START']+'.'+hdu[0].header['HIERARCH ESO DET CHIP NAME']
-        action=matisseAction(hdu[0].header,elt["input"][0][1])
-        recipes,param=matisseRecipes(action)
+        action          = matisseAction(hdu[0].header,elt["input"][0][1])
+        recipes,param   = matisseRecipes(action)
         hdu.close()
-        elt["action"]=action
-        elt["recipes"]=recipes
-        elt["param"]=param
-        elt["tplstart"]=keyTplStartCurrent
+        elt["action"]   = action
+        elt["recipes"]  = recipes
+        elt["param"]    = param
+        elt["tplstart"] = keyTplStartCurrent.replace(':','_')
 
 # Fill the list of calib in the Reduction Blocks List from repArchive
     for elt in listRedBlocks:
         hdu=fits.open(elt["input"][0][0])
         calib,status=matisseCalib(hdu[0].header,elt["action"],listArchive,elt['calib'])
         hdu.close()
-        elt["calib"]=calib
-        elt["status"]=status
+        elt["calib"]  = calib
+        elt["status"] = status
             
 # Fill the list of calib in the Reduction Blocks List from repResult Iter i-1
     if (iterNumber > 1):
         for elt in listRedBlocks:
-            hdu=fits.open(elt["input"][0][0])
-            calib,status=matisseCalib(hdu[0].header,elt["action"],listIter,elt['calib'])
+            hdu          = fits.open(elt["input"][0][0])
+            calib,status = matisseCalib(hdu[0].header,elt["action"],listIter,elt['calib'])
             hdu.close()
-            elt["calib"]=calib
-            elt["status"]=status
+            elt["calib"]  = calib
+            elt["status"] = status
             
 # Create the SOF files
     repIter=repResult+"/Iter"+str(iterNumber)
@@ -192,8 +192,8 @@ while True:
     for elt in listRedBlocks:
         if (elt["status"]==1):
             cptStatusOne+=1
-            sofname=repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"       
-            outputDir=repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".rb"
+            sofname   = repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"       
+            outputDir = repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".rb"
             os.mkdir(outputDir)
             fp=open(sofname,'w')
             for frame,tag in elt['input']:
