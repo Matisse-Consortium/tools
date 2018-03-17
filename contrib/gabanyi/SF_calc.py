@@ -9,6 +9,7 @@ gabanyi@konkoly.hu
 # 2018-03-15: rewritten into function form (to be able to call it from system shell) (jvarga)
 # 2018-03-15: images are not interpolated anymore (jvarga)
 # 2018-03-15: separately plot SF for averaged image and for central pixel (jvarga)
+# 2018-03-15: fix error when given timelag (TL) is larger than the maximum timelag of the data (jvarga)
 
 # Caveats:
 # - Currently only works if the observations are equally sequenced in time (within the given PREC)
@@ -51,7 +52,7 @@ def get_path():
 	dialog.Destroy()
 	return path
 
-def SF_calc(input_path="",output_path="",r=1,TL=4.0,PREC=2):
+def SF_calc(input_path="",output_path="",r=8,TL=4.0,PREC=2):
 	if input_path == "":
 		input_path = get_path()
 	abs_path = os.path.abspath(input_path)
@@ -60,12 +61,12 @@ def SF_calc(input_path="",output_path="",r=1,TL=4.0,PREC=2):
 	if output_path == "":
 		# if output dir is not given, create a folder in the input directory to store the results
 		try:
-			output_dir = input_path_dir + '/' + input_filename.split('.')[0] + '_SNR'
+			output_dir = input_path_dir + '/' + input_filename.split('.')[0] + '_SF'
 			os.makedirs(output_dir)
 		except OSError:
 			# creating output_directory_failed
 			if os.path.isdir(output_dir):
-				output_dir = input_path_dir + '/' + input_filename.split('.')[0] + '_SNR'
+				output_dir = input_path_dir + '/' + input_filename.split('.')[0] + '_SF'
 			else:
 				output_dir = input_path_dir
 	else:
@@ -95,6 +96,8 @@ def SF_calc(input_path="",output_path="",r=1,TL=4.0,PREC=2):
 			time_lags[i] = np.unique(np.round((-hdul['IMAGING_DATA'].data['TIME'][0:(NO_ROWS - 1 - i)] + hdul['IMAGING_DATA'].data['TIME'][(i + 1):NO_ROWS])*3600.0*24.0,PREC))
 			images[i] = np.average(np.power(((0.0 + hdul['IMAGING_DATA'].data['DATA' + str(r)][0:(NO_ROWS - 1 - i)]) - (0.0 + hdul['IMAGING_DATA'].data['DATA' + str(r)][(i + 1):NO_ROWS])),2.0),axis = 0)
 
+		if np.nanmax(time_lags) < TL:
+			TL = np.nanmax(time_lags)
 		#Save the time_lags and the SF of the image averages and SF of the central pixels to a text file
 		f = open(output_dir + "/SF_data_region" + str(r) + '.dat', "w")
 		f.write("#time lag, SF value averaged over the whole image, SF value for the central pixel\n")
