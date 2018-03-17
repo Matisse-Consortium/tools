@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 Created on Fri Mar 16 19:38:46 2018
@@ -6,7 +7,7 @@ Created on Fri Mar 16 19:38:46 2018
 """
 
 import os
-import wx
+#import wx
 import sys
 import glob
 from astropy.io import fits
