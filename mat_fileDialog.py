@@ -33,7 +33,8 @@
 #   file list and the actual contents of the folder, the buffer will be synchronized
 # - 2018-03-15, only selected keywords are extracted from the fits headers and saved to buffer file (fmillour, jvarga)
 # - 2018-03-15, fixed row coloring problem; changed pickle data protocol to binary (jvarga)
-# - 2018-03-16, New item in right-click menu: Copy list to clipboard
+# - 2018-03-16, New item in right-click menu: Copy list to clipboard (jvarga)
+# - 2018-03-16, added a new column to the list (TPL START) (jvarga)
 # Known issues:
 # - currently it only works properly when filter is set to "All files"
 # - The selected rows cannot be copied to the clipboard using Ctrl-C (on Windows)
@@ -193,6 +194,10 @@ keywords.append(fileViewerKeyword(
     checkheader       = "HIERARCH ESO DET CHIP NAME",
     checkheader_cases = ["HAWAII-2RG","AQUARIUS"],
     name              = "Resolution"))
+
+keywords.append(fileViewerKeyword(
+    headerkeyword= "HIERARCH ESO TPL START",
+    name="TPL Start Date"))
 
 print(keywords)
 
