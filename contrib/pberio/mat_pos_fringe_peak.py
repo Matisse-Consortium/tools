@@ -4,6 +4,8 @@ Created on Fri Mar 03 09:09:57 2017
 
 @author: pbe
 """
+def gaus(x,a,b,x0,sigma):
+    return b+a*np.exp(-(x-x0)**2/(2*sigma**2))
 
 def wavelength(px,corner,c):
     return c[0]+c[1]*(px+corner)+c[2]*(px+corner)**2
@@ -11,9 +13,10 @@ def wavelength(px,corner,c):
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
+from scipy.optimize import curve_fit
 
 c=np.zeros(3,dtype=np.float)
-hdu = fits.open('CORRFLUX_CAL_MATISSE_GEN_LAMP_N096_0001_LOW3.fits')
+hdu = fits.open('/data/users/Berio/results/2018-02-10/Iter1/mat_raw_estimates.2018-02-10T00:04:06.AQUARIUS.rb/OBJ_CORR_FLUX_0001.fits')
 ftreal=hdu['OBJ_CORR_FLUX'].data['CORRFLUXREAL1']
 ftimag=hdu['OBJ_CORR_FLUX'].data['CORRFLUXIMAG1']
 corner=hdu['IMAGING_DETECTOR'].data['CORNER'][0][1]
@@ -43,7 +46,19 @@ for iWave in range(naxis[1]):
             uPixelMin=naxis[0]-2
         if uPixelMax==(naxis[0]/2):
             uPixelMax+=1
-        posFringePeak[iBase,iWave]=np.argmax(dsp[iWave,uPixelMin:uPixelMax])+uPixelMin
+        uPixelMin=np.int(uPixelMin)
+        uPixelMax=np.int(uPixelMax)
+            
+        try:
+            n=uPixelMax-uPixelMin
+            x=np.arange(n)+uPixelMin
+            y=dsp[iWave,uPixelMin:uPixelMax]
+            
+            popt,pcov = curve_fit(gaus,x,y,p0=[np.max(y),0.,(uPixelMax+uPixelMin)/2. ,3.])
+            posFringePeak[iBase,iWave]=popt[2]
+        except RuntimeError:
+            posFringePeak[iBase,iWave]=np.argmax(dsp[iWave,uPixelMin:uPixelMax])+uPixelMin
+        print iBase,popt[2],np.argmax(dsp[iWave,uPixelMin:uPixelMax])+uPixelMin
 
 deg=3
 coefPol=np.zeros((6,deg+1),dtype=np.float)
@@ -69,7 +84,7 @@ x=np.arange(9)+7
 #x=np.arange(5)+2
 for iWave in range(naxis[1]):
     p = np.poly1d(coefPol[5,:])
-    lam[iWave]=wave[150]*(p(wave[150])-(naxis[0]/2))/(p(wave[iWave])-(naxis[0]/2))
+    lam[iWave]=wave[123]*(p(wave[123])-(naxis[0]/2))/(p(wave[iWave])-(naxis[0]/2))
 plt.figure(10)
 plt.plot(lam,wave)
 plt.plot(x,x)
@@ -110,3 +125,4 @@ for i in range(dim):
 coef=np.polyfit(385+ix[0][:],longu[:],2)
 print coef
 
+plt.show()

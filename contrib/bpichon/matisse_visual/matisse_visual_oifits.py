@@ -244,7 +244,7 @@ def produce_oifits_report_common(oifits,filename,band):
                 ixwaveedge.append(i)
     if (oifits.header['HIERARCH ESO DET CHIP NAME'] == "HAWAII-2RG"):
         for i in range(len(oifits.wave_sc)):
-            if (oifits.wave_sc[i]>=3.4 and oifits.wave_sc[i]<=3.6):
+            if (oifits.wave_sc[i]>=3.3 and oifits.wave_sc[i]<=3.5):
                 ixwave.append(i)
             if ((oifits.wave_sc[i]>=3.0 and oifits.wave_sc[i]<=3.1) or (oifits.wave_sc[i]>=4.0 and oifits.wave_sc[i]<=4.1)):
                 ixwaveedge.append(i)
@@ -294,15 +294,15 @@ def produce_oifits_report_common(oifits,filename,band):
             dislin.rlmess("%.3f"%(z1)+" $\pm$"+"%.2f"%(z2)+" / %.3f"%(z3)+" $\pm$"+"%.2f"%(z4)+" / %.3f"%(z5)+" $\pm$"+"%.2f"%(z6),xoffset_2,les_posy[base])
             
 #    ===> Code modifie car les erreurs sont toutes nulles dans les donnees  <=== 
-        z1 = numpy.average(oifits.oi_vis_sc_visamp[base,ixwave])
-        z2 = numpy.median(oifits.oi_vis_sc_visamperr[base,ixwave])
+        z1 = numpy.average(oifits.oi_vis_sc_visamp[base,ixwaveedge])
+        z2 = numpy.median(oifits.oi_vis_sc_visamperr[base,ixwaveedge])
         visdifflog[base]=z1
         dislin.rlmess("%+.3f"%(z1)+" $\pm$"+"%.2f"%(z2),xoffset_3,les_posy[base])
         if (numpy.max(oifits.oi_vis_sc_visphierr[base,ixwave]) == 0):
             z1 = numpy.average(oifits.oi_vis_sc_visphi[base,ixwave])
         else:
-            z1 = numpy.average(oifits.oi_vis_sc_visphi[base,ixwave],weights=oifits.oi_vis_sc_visphierr[base,ixwave] ) * (180.0/numpy.pi)
-        z2 = numpy.median(oifits.oi_vis_sc_visphierr[base,ixwave]) * (180.0/numpy.pi)
+            z1 = numpy.average(oifits.oi_vis_sc_visphi[base,ixwaveedge],weights=oifits.oi_vis_sc_visphierr[base,ixwaveedge] ) * (180.0/numpy.pi)
+        z2 = numpy.median(oifits.oi_vis_sc_visphierr[base,ixwaveedge]) * (180.0/numpy.pi)
         phidifflog[base]=z1
         dislin.rlmess("%+8.3f"%(z1)+" $\pm$"+"%.2f"%(z2),xoffset_4,les_posy[base])
     #

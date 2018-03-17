@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from matplotlib.backends.backend_pdf import PdfPages
 
-hdulist = fits.open('C:\Users\pbe\Desktop\Doc-TestPlan\kappa_N_low.fits')
+hdulist = fits.open('/data/users/Berio/results/2018-02-03/KAPPAMATRIX/Iter1/mat_est_kappa.2018-02-03T20:00:09.HAWAII-2RG.rb/KAPPA_MATRIX.fits')
 
 nBeam=4
 regName=[]
@@ -100,6 +100,6 @@ axarr[2].legend(prop={'size':8},loc=1)
 axarr[2].set_ylabel('Shift')
 axarr[2].set_xlabel('Wavelength ($\mu$m)')
 
-pp=PdfPages('C:\Users\pbe\Desktop\Doc-TestPlan\kappa_N_low.pdf')
+pp=PdfPages('/data/users/Berio/results/2018-02-03/KAPPAMATRIX/Iter1/mat_est_kappa.2018-02-03T20:00:09.HAWAII-2RG.rb/KAPPA_MATRIX.pdf')
 pp.savefig(f)
 pp.close()

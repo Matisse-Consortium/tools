@@ -73,6 +73,7 @@ def mat_show_opd(input_path="",output_path=""):
     opd = hdu_list['OI_OPD'].data['OPD']
     opd = np.array(opd)
     N_tot = len(opd)
+    print(np.shape(N_tot))
     opd = np.reshape(opd,[N_tot/n_baselines,n_baselines])
     mjd = np.reshape(mjd,[N_tot/n_baselines,n_baselines])
 
