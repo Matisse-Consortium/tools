@@ -7,9 +7,8 @@ Created on Fri Mar 16 19:38:46 2018
 """
 
 import os
-#import wx
+import wx
 import sys
-import glob
 from astropy.io import fits
 from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
@@ -78,19 +77,21 @@ if __name__ == '__main__':
         print("Listing files in directory")
         
         print(os.path.join(name_file,"**/*.fits*"))
-        for file in glob.iglob(os.path.join(name_file,"**/*.fits*"), recursive=True):
-            print(file)
-            try:
-                hdu    = fits.getheader(file)
-                if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT':
-                    print('Found an oifits file. Copying it...')
-                    print(file)
-                    fil = os.path.basename(file)
-    
-                    copyfile(file, os.path.join(newdir,fil))
-                    change_oifitsFile_name(os.path.join(newdir,file))
-            except:
-                print("Not a fits file!")
+        for root,subfolders,files in os.walk(name_file):
+            for file in files:
+                print(file)
+                try:
+                    hdu    = fits.getheader(os.path.join(root,file))
+                    if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT':
+                        print('Found an oifits file. Copying it...')
+                        print(file)
+                        fil = os.path.basename(file)
+                        
+                        copyfile(os.path.join(root,file),
+                                 os.path.join(newdir,fil))
+                        change_oifitsFile_name(os.path.join(newdir,file))
+                except:
+                    print("Not a fits file!")
         
 
 
