@@ -48,51 +48,87 @@ from mat_fileDialog import identifyFile
 from astropy.io import fits as fits
     
 def open_oi(oi_file):
-    #tmp = readDb_matisse(name_file)
-    #if not tmp is None:
-    #    print (' > getData: data already in database MATISSE '+_dBfile_matisse)
-    #    return tmp
     hdu      = fits.open(oi_file)
     wl   = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
+    dic = {'WLEN':wl}
     
-    vis2 = hdu['OI_VIS2'].data['VIS2DATA']
-    vis2e = hdu['OI_VIS2'].data['VIS2ERR']
-    u = hdu['OI_VIS2'].data['UCOORD']
-    v = hdu['OI_VIS2'].data['VCOORD']
-    
-    cp   = hdu['OI_T3'].data['T3PHI']
-    u1 = hdu['OI_T3'].data['U1COORD']
-    v1 = hdu['OI_T3'].data['V1COORD']
-    u2 = hdu['OI_T3'].data['U2COORD']
-    v2 = hdu['OI_T3'].data['V2COORD']
-                
-    dic = {'WLEN':wl, 'VIS2':vis2, 'VIS2ERR':vis2e, 'CP':cp, 'U':u, 'V':v, 'U1':u1, 'V1':v1, 'U2':u2, 'V2':v2}
+    try:
+        dic['CFLUX']    = hdu['OI_VIS'].data['VISAMP'];
+        dic['CFLUXERR'] = hdu['OI_VIS'].data['VISAMPERR'];
+        dic['DPHI']     = hdu['OI_VIS'].data['VISPHI']
+        dic['DPHIERR']  = hdu['OI_VIS'].data['VISPHIERR']
+        dic['DPHI_U']   = hdu['OI_VIS'].data['UCOORD']
+        dic['DPHI_V']   = hdu['OI_VIS'].data['VCOORD']
+    except:  
+        print("WARNING: No OI_VIS table!")
+        
+    try:
+        dic['VIS2']    = hdu['OI_VIS2'].data['VIS2DATA']
+        dic['VIS2ERR'] = hdu['OI_VIS2'].data['VIS2ERR']
+        dic['VIS2_U']  = hdu['OI_VIS2'].data['UCOORD']
+        dic['VIS2_V']  = hdu['OI_VIS2'].data['VCOORD']
+    except:    
+        print("WARNING: No OI_VIS2 table!")
+        
+    try:    
+        dic['T3AMP']    = hdu['OI_T3'].data['T3AMP']
+        dic['T3AMPERR'] = hdu['OI_T3'].data['T3AMPERR']
+        dic['CLOS']     = hdu['OI_T3'].data['T3PHI']
+        dic['CLOSERR']  = hdu['OI_T3'].data['T3PHIERR']
+        dic['U1']       = hdu['OI_T3'].data['U1COORD']
+        dic['V1']       = hdu['OI_T3'].data['V1COORD']
+        dic['U2']       = hdu['OI_T3'].data['U2COORD']
+        dic['V2']       = hdu['OI_T3'].data['V2COORD']
+    except:
+        print("WARNING: No OI_T3 table!")
+        
     return dic
 
-def show_oi(dic):
-    wl = dic['WLEN'];
-    vis2 = dic['VIS2'];
+def show_oi_vs_freq(dic):
+    wl    = dic['WLEN'];
+    vis2  = dic['VIS2'];
     vis2e = dic['VIS2ERR'];
-    u = dic['U'];
-    v = dic['V'];
-    cp = dic['CP'];
+    u     = dic['VIS2_U'];
+    v     = dic['VIS2_V'];
+    cp    = dic['CLOS'];
+    cpe   = dic['CLOSERR'];
+    u1    = dic['U1'];
+    v1    = dic['V1'];
+    u2    = dic['U2'];
+    v2    = dic['V2'];
     
-    print(np.shape(vis2))
+    plt.figure(figsize = (9, 6))
+    G = gridspec.GridSpec(2, 1)
     
+    axes_v2 = plt.subplot(G[0,:])
     for i,j in enumerate(u):
         r = np.sqrt(u[i]**2 + v[i]**2);
         freq = r/wl;
         
-        test = np.logical_and(vis2[i,:] >= 0, vis2e[i,:] / vis2[i,:] < 0.5)
-        print(vis2[i,:])
-        #plt.plot(freq, vis2[i,:])
-        plt.figure(1)
-        #plt.plot(freq[test], vis2[i,test])
-        plt.semilogy(freq[test], vis2[i,test])
-        plt.ylim([-0.2,1.1])
+        test = np.logical_and(vis2[i,:] >= 0, vis2e[i,:] / vis2[i,:] < 1)
         
-        plt.figure(2)
-        plt.plot(wl, vis2e[i,:])
+        #plt.plot(freq, vis2[i,:])
+        #plt.plot(freq[test], vis2[i,test])
+        plt.semilogy(freq, vis2[i,:],color='lightgray')
+        plt.semilogy(freq[test], vis2[i,test])
+        plt.ylim([1e-4,1.1])
+        axes_v2.set_title('Squared visibilities vs frequencies')
+        
+    axes_cp = plt.subplot(G[1,:])
+    for i,j in enumerate(u1):
+        r1 = np.sqrt(u1[i]**2 + v1[i]**2);
+        r2 = np.sqrt(u2[i]**2 + v2[i]**2);
+        r3 = np.sqrt((u1[i]+u2[i])**2 + (v1[i]+v2[i])**2);
+        freq = np.maximum(np.maximum(r1,r2),r3)/wl;
+        
+        test = np.absolute(cpe[i,:]) < 180/pi/3
+        
+        #plt.plot(freq, vis2[i,:])
+        #plt.plot(freq[test], vis2[i,test])
+        plt.plot(freq, cp[i,:],color='lightgray')
+        plt.plot(freq[test], cp[i,test])
+        plt.ylim([-200,200])
+        axes_cp.set_title('Closure phase vs frequencies')
         
 
 if __name__ == '__main__':
@@ -119,6 +155,6 @@ if __name__ == '__main__':
     print("Reading file "+name_file+"...")
     dic = open_oi(name_file)
     print("Plotting data "+name_file+"...")
-    show_oi(dic)
+    show_oi_vs_freq(dic)
 
 
