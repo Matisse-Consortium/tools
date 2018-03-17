@@ -33,8 +33,10 @@
 #   file list and the actual contents of the folder, the buffer will be synchronized
 # - 2018-03-15, only selected keywords are extracted from the fits headers and saved to buffer file (fmillour, jvarga)
 # - 2018-03-15, fixed row coloring problem; changed pickle data protocol to binary (jvarga)
+# - 2018-03-16, New item in right-click menu: Copy list to clipboard
 # Known issues:
 # - currently it only works properly when filter is set to "All files"
+# - The selected rows cannot be copied to the clipboard using Ctrl-C (on Windows)
 
 #TODO: fix file type filter issues
 #TODO: if a folder does not contain fits files, then don't create the buffer file
@@ -426,7 +428,7 @@ class mat_FileDialog(wx.Dialog):
         self.fileList.SetColumns(cols)
         self.fileList.rowFormatter=self.setRowColor
         self.fileList.AutoSizeColumns()
-        
+
         # sort columns by default to file name and type
         self.fileList.SortBy(2, ascending=True)
         #self.fileList.SetSortColumn(0, resortNow=True)
@@ -622,7 +624,6 @@ class mat_FileDialog(wx.Dialog):
     def fileListRightClicked(self,event):
         print ("rightclicked")
         menu = wx.Menu()
-
         menu.Append( 0, "Show Header" )
         wx.EVT_MENU( menu, 0, self.showHeader)
         menu.Append( 1, "Show IMAGING_DETECTOR")
@@ -631,6 +632,8 @@ class mat_FileDialog(wx.Dialog):
         wx.EVT_MENU( menu, 2, self.showImagingData)
         menu.Append( 3, "Open with fv" )
         wx.EVT_MENU( menu, 3, self.openWithFv)
+        menu.Append(4, "Copy list to clipboard")
+        wx.EVT_MENU(menu, 4, self.copyListToClipboard)
 
         self.fileList.PopupMenu( menu, event.GetPoint())
     def okClicked(self,event):
@@ -670,6 +673,27 @@ class mat_FileDialog(wx.Dialog):
         for filei in self.path:
             if filei.endswith('.fits'):
                 subprocess.Popen([fvpath,self.dirTree.GetPath()+'/'+filei])
+
+    def copyListToClipboard(self,event):
+        print ("Copy list to clipboard")
+        self.dataObj = wx.TextDataObject()
+        # Get the column header text
+        h = []
+        for n in range(self.fileList.GetColumnCount()):
+            col = self.fileList.GetColumn(n)
+            h.append(col.GetText())
+        header = ';'.join(h)
+        # Get all the values of the given rows into multi-list
+        rows = self.fileList._GetValuesAsMultiList(self.fileList.GetObjects())
+        # Make a text version of the values
+        lines = [";".join(x) for x in rows]
+        txt = '#' + header + '\n' + "\n".join(lines) + "\n"
+        self.dataObj.SetText(txt)
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(self.dataObj)
+            wx.TheClipboard.Close()
+        else:
+            print ("Unable to open the clipboard")
 
 ###############################################################################
 
