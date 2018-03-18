@@ -20,7 +20,7 @@ def change_oifitsFile_name(oifits):
     # First check this is indeed an oifits file
     try:
         hdu     = fits.getheader(oifits)
-        if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT':
+        if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
             print('yay let\'s do it!')
             
             try:
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                 print(file)
                 try:
                     hdu    = fits.getheader(os.path.join(root,file))
-                    if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT':
+                    if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
                         print('Found an oifits file. Copying it...')
                         print(file)
                         fil = os.path.basename(file)
