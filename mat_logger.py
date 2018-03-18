@@ -260,37 +260,33 @@ class mat_logger(wx.Dialog):
 							tplstart=findHeaderKeyword(h,'HIERARCH ESO TPL START')
 							#tplstart=h['HIERARCH ESO TPL START']
 							print "{0} ==> {1}".format(filei,tplstart)
-							if (tplstart in self.tplList):
+							if (tplstart in self.tplList):           
 								i=self.tplList.index(tplstart)
+								print("not new")
 								self.tplListObj[i].nbFiles+=1
 								#if self.tplListObj[i].nexp<findHeaderKeyword(h,['HIERARCH ESO TPL NEXP']):
 								#	self.tplListObj[i].nexp=findHeaderKeyword(h,['HIERARCH ESO TPL NEXP'])
 								if self.tplListObj[i].nexp<h['HIERARCH ESO TPL NEXP']:
 									self.tplListObj[i].nexp=h['HIERARCH ESO TPL NEXP']
 								self.tplListObj[i].listOfFiles.append(mat_fileData(filei,h))
-								self.fileList.append(filei)  
-								
+								self.fileList.append(filei)  	
 							else:
+								print("new")
 								self.tplList.append(tplstart)    
 								try :
-									target= h['HIERARCH ESO OBS TARG NAME']
-									#target= findHeaderKeyword(h,['HIERARCH ESO OBS TARG NAME'])									
+									target= findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')									
 								except:
 									target=""
 								try :
-									target= h['HIERARCH ESO OBS PROG ID']
-									#progid= findHeaderKeyword(h,['HIERARCH ESO OBS PROG ID'])
+									progid= findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
 								except:
 									progid=""
 							 
 									
 								self.tplListObj.append(mat_logData(tplstart,
-									h['HIERARCH ESO TPL ID'],target,progid,1,
-									h['HIERARCH ESO TPL NEXP'],"No Comment",
+									findHeaderKeyword(h,'HIERARCH ESO TPL ID'),target,progid,1,
+									findHeaderKeyword(h,'HIERARCH ESO TPL NEXP'),"No Comment",
 									mat_fileData(filei,h),"Started"))
-									#findHeaderKeyword(h,['HIERARCH ESO TPL ID']),target,progid,1,
-									#findHeaderKeyword(h,['HIERARCH ESO TPL NEXP']),"No Comment",
-									#mat_fileData(filei,h),"Started"))
 								self.fileList.append(filei)  
 						except:
 							print "skipping file {0}".format(filei)													
