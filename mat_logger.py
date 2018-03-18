@@ -87,7 +87,7 @@ class mat_fileData():
         self.date    = findHeaderKeyword(h,'DATE')
         self.expno= "{0}/{1}".format(findHeaderKeyword(h,'HIERARCH ESO TPL EXPNO'),
                                    findHeaderKeyword(h,'HIERARCH ESO TPL NEXP'))
-    
+ 
     
 ###############################################################################
 
@@ -165,11 +165,11 @@ class mat_logger(wx.Dialog):
         panel.SetSizer(vbox)
 
          
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED,self.fileSelected,self.tplListWidget)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED,self.tplSelected,self.tplListWidget)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED,self.updateClicked,self.updateBut)
         self.Bind(wx.EVT_TEXT,self.commentChanged,self.commentTxtCtrl)
         
-        
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.fileListRightClicked,self.fileListWidget)
         
         
         
@@ -183,6 +183,34 @@ class mat_logger(wx.Dialog):
             print "No log file for {0} ...".format(self.date)
                          
         self.getInfosFromNight()
+        
+#------------------------------------------------------------------------------                
+    def fileListRightClicked(self,event):
+        menu = wx.Menu()
+        m1=menu.Append( 0, "Show Header" )
+        menu.Bind(wx.EVT_MENU,self.showHeader,m1)
+        #wx.EVT_MENU( menu, 0, self.showHeader)
+        m2=menu.Append( 1, "Show RAW DATA")
+        menu.Bind(wx.EVT_MENU,self.showRawData,m2)
+        #wx.EVT_MENU( menu, 1, self.showRawData)
+        self.fileListWidget.PopupMenu( menu, event.GetPoint())
+        
+#------------------------------------------------------------------------------
+        
+    def showHeader(self,event):
+        print("Show header")
+        itemNum=self.fileListWidget.GetNextSelected(-1)            
+        idx=self.fileListWidget.GetItem(itemNum).GetData()
+        l=self.fileListWidget.GetObjects()
+        filename=l[idx].filename
+
+        fitsHeaderViewer(dir0+"/"+self.date+'/'+filename)       
+                 
+#------------------------------------------------------------------------------
+                
+    def showRawData(self,event):
+        print ("Show IMAGING_DATA")    
+        
 #------------------------------------------------------------------------------
 
     def saveData(self):
@@ -208,7 +236,7 @@ class mat_logger(wx.Dialog):
             self.saveData()
 #------------------------------------------------------------------------------
            
-    def fileSelected(self,event):
+    def tplSelected(self,event):
         #nfiles=self.tplListWidget.GetSelectedItemCount()
         itemNum=self.tplListWidget.GetNextSelected(-1)
         
