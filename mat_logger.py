@@ -1,34 +1,48 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  $Id: mat_fileDialog.py 175 2018-03-15 21:03:50Z fmillour $
+  $Id:  $
 
   This file is part of the Matisse pipeline GUI series
   Copyright (C) 2017- Observatoire de la Côte d'Azur
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+  Created on 2018-03-15
+  @author: ame
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  This software is a computer program whose purpose is to produce a smart log
+  for the MATISSE instrument.
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+  This software is governed by the CeCILL  license under French law and
+  abiding by the rules of distribution of free software.  You can  use, 
+  modify and/ or redistribute the software under the terms of the CeCILL
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info". 
 
-  Created on Wed Apr  5 10:18:07 2017
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability. 
 
-  $Author: fmillour $
-  $Date: 2018-03-15 18:03:50 -0300 (jeu., 15 mars 2018) $
-  $Revision: 175 $
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or 
+  data to be ensured and,  more generally, to use and operate it in the 
+  same conditions as regards security. 
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL license and that you accept its terms.
 """
 
 # Import necessary files
 from libAutoPipeline import matisseType
+from mat_fileDialog import mat_FileDialog
+from mat_fileDialog import identifyFile
 import wx
 import os
 from ObjectListView import ObjectListView, ColumnDefn
@@ -59,8 +73,8 @@ def findHeaderKeyword(h,key):
     try :
         res=h[key]
     except:
-		print "keyword {0} not found".format(key)
-		res=""
+        print ("keyword {0} not found".format(key))
+        res=""
     return res
 
     
@@ -174,13 +188,13 @@ class mat_logger(wx.Dialog):
         
         
         if os.path.isfile(self.logfilename):
-            print "log file exist for {0} ... loading".format(self.date)
+            print ("log file exist for {0} ... loading".format(self.date))
             pik=open(self.logfilename, 'rb')
             self.tplList    = pickle.load(pik) 
             self.tplListObj = pickle.load(pik)
             self.fileList   = pickle.load(pik)       
         else:
-            print "No log file for {0} ...".format(self.date)
+            print ("No log file for {0} ...".format(self.date))
                          
         self.getInfosFromNight()
         
@@ -210,11 +224,14 @@ class mat_logger(wx.Dialog):
                 
     def showRawData(self,event):
         print ("Show IMAGING_DATA")    
+#------------------------------------------------------------------------------
+                
+    def saveBackup(self,event):
+        print ("Saving pkl file")    
         
 #------------------------------------------------------------------------------
 
     def saveData(self):
-        
         pik     = open(self.logfilename, 'wb')
         pickle.dump(self.tplList, pik, pickle.HIGHEST_PROTOCOL)
         pickle.dump(self.tplListObj, pik, pickle.HIGHEST_PROTOCOL)
@@ -253,47 +270,47 @@ class mat_logger(wx.Dialog):
         files=os.listdir(dir0+self.date)  
         for filei in files:
             if not(filei in self.fileList):
-				if filei.endswith(".fits"):
-					try :
-						h=fits.getheader( dir0+"/"+self.date+"/"+filei)
-						try : 
-							tplstart=findHeaderKeyword(h,'HIERARCH ESO TPL START')
-							#tplstart=h['HIERARCH ESO TPL START']
-							print "{0} ==> {1}".format(filei,tplstart)
-							if (tplstart in self.tplList):           
-								i=self.tplList.index(tplstart)
-								print("not new")
-								self.tplListObj[i].nbFiles+=1
-								#if self.tplListObj[i].nexp<findHeaderKeyword(h,['HIERARCH ESO TPL NEXP']):
-								#	self.tplListObj[i].nexp=findHeaderKeyword(h,['HIERARCH ESO TPL NEXP'])
-								if self.tplListObj[i].nexp<h['HIERARCH ESO TPL NEXP']:
-									self.tplListObj[i].nexp=h['HIERARCH ESO TPL NEXP']
-								self.tplListObj[i].listOfFiles.append(mat_fileData(filei,h))
-								self.fileList.append(filei)  	
-							else:
-								print("new")
-								self.tplList.append(tplstart)    
-								try :
-									target= findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')									
-								except:
-									target=""
-								try :
-									progid= findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
-								except:
-									progid=""
-							 
-									
-								self.tplListObj.append(mat_logData(tplstart,
-									findHeaderKeyword(h,'HIERARCH ESO TPL ID'),target,progid,1,
-									findHeaderKeyword(h,'HIERARCH ESO TPL NEXP'),"No Comment",
-									mat_fileData(filei,h),"Started"))
-								self.fileList.append(filei)  
-						except:
-							print "skipping file {0}".format(filei)													
-					except:	
-						print "skipping file {0} : not valid fits file".format(filei)
-				else:
-					print "skipping file {0} : not fits file".format(filei)
+                if filei.endswith(".fits"):
+                    try :
+                        h=fits.getheader( dir0+"/"+self.date+"/"+filei)
+                        try : 
+                            tplstart=findHeaderKeyword(h,'HIERARCH ESO TPL START')
+                            #tplstart=h['HIERARCH ESO TPL START']
+                            print ("{0} ==> {1}".format(filei,tplstart))
+                            if (tplstart in self.tplList):           
+                                i=self.tplList.index(tplstart)
+                                print("not new")
+                                self.tplListObj[i].nbFiles+=1
+                                #if self.tplListObj[i].nexp<findHeaderKeyword(h,['HIERARCH ESO TPL NEXP']):
+                                #    self.tplListObj[i].nexp=findHeaderKeyword(h,['HIERARCH ESO TPL NEXP'])
+                                if self.tplListObj[i].nexp<h['HIERARCH ESO TPL NEXP']:
+                                    self.tplListObj[i].nexp=h['HIERARCH ESO TPL NEXP']
+                                self.tplListObj[i].listOfFiles.append(mat_fileData(filei,h))
+                                self.fileList.append(filei)      
+                            else:
+                                print("new")
+                                self.tplList.append(tplstart)    
+                                try :
+                                    target= findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')                                    
+                                except:
+                                    target=""
+                                try :
+                                    progid= findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
+                                except:
+                                    progid=""
+                             
+                                    
+                                self.tplListObj.append(mat_logData(tplstart,
+                                    findHeaderKeyword(h,'HIERARCH ESO TPL ID'),target,progid,1,
+                                    findHeaderKeyword(h,'HIERARCH ESO TPL NEXP'),"No Comment",
+                                    mat_fileData(filei,h),"Started"))
+                                self.fileList.append(filei)  
+                        except:
+                            print ("skipping file {0}".format(filei)    )                                                
+                    except:    
+                        print( "skipping file {0} : not valid fits file".format(filei))
+                else:
+                    print ("skipping file {0} : not fits file".format(filei))
         self.tplListWidget.SetObjects(self.tplListObj)
         self.saveData()        
 #------------------------------------------------------------------------------
@@ -322,10 +339,32 @@ if __name__ == '__main__':
     except:
         pass
     
-    print sys.argv[1]
-    openLogger = mat_logger(None,sys.argv[1])
+    # Scan the command line arguments
+    listArg = sys.argv
+    name_file = []
+    for elt in listArg:
+        if ('--help' in elt):
+            print( "Usage: mat_logger.py <name of night directory>")
+            sys.exit(0)
+        elif len(listArg) == 2:
+            name_file = sys.argv[1]
+            print(name_file)
+            
+    # If no argument is given, then open the file dialog to select directory
+    app2 = wx.App()
+    if not name_file:
+        print("No input directory given, running file selector...")
+        openFileDialog = mat_FileDialog(None, 'Open a night directory',"lmk,")
+        if openFileDialog.ShowModal() == wx.ID_OK:
+            name_file = openFileDialog.GetPaths()[0]
+            print( name_file)
+        openFileDialog.Destroy()
+    app2.MainLoop()
+    app2.Destroy()
+    
+    openLogger = mat_logger(None,name_file)
     if openLogger.ShowModal() == wx.ID_OK:
-        print "OK"
+        print ("OK")
     openLogger.Destroy()
     app.MainLoop()
     app.Destroy()
