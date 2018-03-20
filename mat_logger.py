@@ -334,10 +334,6 @@ class mat_logger(wx.Dialog):
 ###############################################################################
    
 if __name__ == '__main__':
-    try :
-        app = wx.App()
-    except:
-        pass
     
     # Scan the command line arguments
     listArg = sys.argv
@@ -351,16 +347,21 @@ if __name__ == '__main__':
             print(name_file)
             
     # If no argument is given, then open the file dialog to select directory
-    app2 = wx.App()
     if not name_file:
+        app2 = wx.App()
         print("No input directory given, running file selector...")
         openFileDialog = mat_FileDialog(None, 'Open a night directory',"lmk,")
         if openFileDialog.ShowModal() == wx.ID_OK:
             name_file = openFileDialog.GetPaths()[0]
             print( name_file)
         openFileDialog.Destroy()
-    app2.MainLoop()
-    app2.Destroy()
+        app2.MainLoop()
+        app2.Destroy()
+    
+    try :
+        app = wx.App()
+    except:
+        pass
     
     openLogger = mat_logger(None,name_file)
     if openLogger.ShowModal() == wx.ID_OK:
