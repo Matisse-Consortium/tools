@@ -701,7 +701,7 @@ def matisseType(header):
         res="TARGET_RAW"
     elif (catg == "TEST" and typ == "STD" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT,FLUX" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "STD" and tech == "INTERFEROMETRY") : 
         res="CALIB_RAW"
-    elif (catg == "TEST"  or catg=="CALIB") and typ == "SKY" and tech == "INTERFEROMETRY" : 
+    elif (catg == "TEST"  or catg=="CALIB" or catg=="SCIENCE" ) and typ == "SKY" and tech == "INTERFEROMETRY" : 
         res="SKY_RAW"
     else:
         res=catg
