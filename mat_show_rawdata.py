@@ -244,6 +244,18 @@ def show_mat(dic):
     plt.tight_layout()
     G.update(wspace=0.1)
     plt.show()
+    
+    
+def show_spec(dic):
+    interf = dic['INTERF'];
+    phot   = dic['PHOT']
+    tartyp = dic['TARTYP']
+    
+    for i,it in enumerate(interf):
+        print(np.shape(it)) 
+        spec = np.median(it,axis=(0,2))
+        plt.figure()
+        plt.plot(spec)
 
 ###############################################################################
 
@@ -273,5 +285,6 @@ if __name__ == '__main__':
     dic = open_mat(name_file)
     print("Plotting data "+name_file+"...")
     show_mat(dic)
+    show_spec(dic)
 
 
