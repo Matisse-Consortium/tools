@@ -30,9 +30,9 @@ for file in files:
                 print(typ),
                 try:
                     dit = header['HIERARCH ESO DET SEQ1 DIT']
+                    chip = header["HIERARCH ESO DET CHIP NAME"]
                 except:
                     pass
-                chip = header["HIERARCH ESO DET CHIP NAME"]
                 if chip == "HAWAII-2RG":
                     DITS_LM = np.append(DITS_LM, dit)
                 elif chip == "AQUARIUS":
