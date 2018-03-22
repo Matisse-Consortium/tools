@@ -48,15 +48,62 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 from mat_fileDialog import mat_FileDialog
-#from mat_fileDialog import identifyFile
+from mat_fileDialog import identifyFile
 from astropy.io import fits as fits
+import os
+import glob
 
 ###############################################################################
 
 def open_oi(oi_file):
-    hdu = fits.open(oi_file)
+    try:
+        hdu = fits.open(oi_file)
+    except IOError:
+        print "Unable to read fits file: "+oi_file
+        return {}
+
+    hdr = hdu[0].header
+
     wl  = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN':wl}
+
+    target_name = hdu['OI_TARGET'].data['TARGET'][0]
+    if not target_name:
+        try:
+            target_name = hdr['HIERARCH ESO OBS TARG NAME']
+        except KeyError:
+            print "Target name not found."
+            target_name = ""
+    dic['TARGET'] = target_name
+    try:
+        dateobs = hdr['DATE-OBS']
+    except KeyError:
+        dateobs = ""
+    dic['DATEOBS'] = dateobs
+    try:
+        det_name = hdr['HIERARCH ESO DET CHIP NAME']
+    except KeyError:
+        print "Detector name not found."
+        det_name = ""
+    if (det_name == 'AQUARIUS'):
+        band = 'N'
+    elif (det_name == 'HAWAII-2RG'):
+        band = 'LM'
+    else:
+        band = ''
+    dic['BAND'] = band
+    try:
+        dispersion_name = hdr['HIERARCH ESO DET DISP NAME']
+    except KeyError:
+        print "Dispersion name not found."
+        dispersion_name = ""
+    dic['DISP'] = dispersion_name
+    try:
+        DIT = hdr["HIERARCH ESO DET SEQ1 DIT"]  # (s)
+    except KeyError:
+        DIT = np.nan
+        print "DIT not found"
+    dic['DIT'] = DIT
 
     try:
         dic['VIS'] = {}
@@ -82,10 +129,10 @@ def open_oi(oi_file):
 
     try:
         dic['TF2'] = {}
-        dic['TF2']['VIS2']    = hdu['OI_TF2'].data['VIS2DATA']
-        dic['TF2']['VIS2ERR'] = hdu['OI_TF2'].data['VIS2ERR']
-        dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
-        dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
+        dic['TF2']['VIS2']    = hdu['OI_TF2'].data['TF2']
+        dic['TF2']['VIS2ERR'] = hdu['OI_TF2'].data['TF2ERR']
+        #dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
+        #dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
         dic['TF2']['TIME']    = hdu['OI_TF2'].data['MJD'];
     except:
         print("WARNING: No OI_TF2 table!")
@@ -195,14 +242,102 @@ def show_oi_vs_wlen(dic,wlen,datatype="VIS2"):
         plt.plot(wlen*1e6, data[i,:])
 
 ###############################################################################
+# This function shows the selected oifits data (flux, visibility, closure phase etc.)
+# as a function of time. It reads data from multiple oifits files in a given
+# directory.
+# The data to be plotted can be filtered with the filter_oi_list function.
+# Example usage:
+# filtered_list_of_dicts = filter_oi_list(oifits_dir,dates=["2018-03-14"],bands=['LM'],spectral_resolutions=['MED'],DIT_range=[0,0.2],targets=['l pup'])
+# show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2", datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
+#
+def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
+    plot_colors = ['red','blue','green','gold','magenta','cyan','orange','pink','purple','darkgreen']
+    # wl = []
+    # data = [] #{datatype: []}
+    # datae = [] #{datatype+"ERR": []}
+    # datat = [] #{"TIME": []}
+    datax = []
+    datay = []
+    datayerr = []
+    j=0
+    n_rows = -1
+    irregular_data_flag = 0
+    for dic in list_of_dicts:
+        if dic:
+            #wl.append(dic['WLEN'])
+            #data.append(dic[key][datatype])
+            #datae.append(dic[key][datatype+"ERR"])
+            #datat.append(dic[key]["TIME"])
+            wl = np.array(dic['WLEN'])
+            data = np.array(dic[key][datatype])
+            datae = np.array(dic[key][datatype+"ERR"])
+            datat = np.array(dic[key]["TIME"])
+            if data.shape[0] > 6:
+                irregular_data_flag = 1
+            #print data.shape[0],irregular_data_flag
+            wlenRange_idx = np.logical_and(wl > wlenRange[0]/1.0e6,wl < wlenRange[1]/1.0e6)
+            if irregular_data_flag == 0:
+                datax.append(datat)
+                datay.append(np.nanmean(data[:,wlenRange_idx],axis=1))
+                datayerr.append(np.nanmean(datae[:,wlenRange_idx],axis=1))
+            else:
+                datax.append(datat[0:6])
+                datay.append(np.nanmean(data[0:6,wlenRange_idx],axis=1))
+                datayerr.append(np.nanmean(datae[0:6,wlenRange_idx],axis=1))
+    datax = np.array(datax)
+    datay = np.array(datay)
+    datayerr = np.array(datayerr)
+    #print datay.shape[0]
+    if datay.shape[0] > 0:
+        n_rows = datay.shape[1]
+        plt.figure(figsize=(9, 6))
+        for i in range(n_rows):
+            plt.errorbar(datax[:,i], datay[:,i],yerr=datayerr[:,i],fmt='o',color=plot_colors[i],elinewidth=1.5)
+        if "VIS" in datatype:
+            plt.ylim([-0.1, 1.1])
+        plt.ylabel(datatype)
+        plt.xlabel('MJD')
+        plt.title(datatype+' vs time')
+        plt.show()
+    else:
+        print "No data to plot."
 
-def show_oi_vs_time(dic,wlenRange,datatype="VIS2"):
-    data  = dic[datatype];
-    datae = dic[datatype+"ERR"];
-    datat = dic["TIME"];
+###############################################################################
+# dates = example format: ["2018-03-16"]
+# bands = 'LM', 'N'
+# spectral_resolutions: 'LOW','MED','HIGH'
+# DIT_range: [min,max] (s)
+# targets =
+def filter_oi_list(input_dir, dates=[],bands=[],spectral_resolutions=[],DIT_range=[],targets=[]):
+    oifits_file_list = glob.glob(input_dir + '/*')
+    N_files = len(oifits_file_list)
+    filtered_list_of_dicts = []
+    for file in oifits_file_list:
+        dic = open_oi(file)
+        if dic:
+            date = dic['DATEOBS'][0:10]
+            if dates:
+                if date not in dates:
+                    continue
+            if bands:
+                if dic['BAND'] not in bands:
+                    continue
+            if spectral_resolutions:
+                if dic['DISP'] not in spectral_resolutions:
+                    continue
+            if DIT_range:
+                if not(dic['DIT'] >= DIT_range[0] and dic['DIT'] <= DIT_range[1]):
+                    continue
+            target = dic['TARGET']
+            if targets:
+                targets = [x.lower().replace("_"," ") for x in targets]
+                target = target.lower().replace("_"," ")
+                if target not in targets:
+                    continue
+            print target, date, dic['BAND'], dic['DISP'], dic['DIT']
+            filtered_list_of_dicts.append(dic)
 
-    for i,j in enumerate(data):
-        plt.plot(datat, np.average(data[i,wlenRange[0]:wlenRange[1]]))
+    return filtered_list_of_dicts
 
 ###############################################################################
 
@@ -229,18 +364,21 @@ if __name__ == '__main__':
     app.Destroy()
 
     dic = {};
-    
-    print("Reading file "+name_file+"...")
-    dic = open_oi(name_file)
-    print("Plotting data "+name_file+"...")
-    show_oi_vs_freq(dic)
-    print("Plotting data "+name_file+"...")
-    plt.figure()
-    show_oi_vs_wlen(dic['FLUX'] ,dic['WLEN'],datatype='FLUX')
-    print("Plotting data "+name_file+"...")
-    plt.figure()
-    wlen = dic['WLEN']
-    print(wlen)
-    show_oi_vs_time(dic['FLUX'] ,[3.5,3.95],datatype='FLUX')
+    if os.path.isfile(name_file):
+        print("Reading file "+name_file+"...")
+        dic = open_oi(name_file)
+        print("Plotting data "+name_file+"...")
+        show_oi_vs_freq(dic)
+        print("Plotting data "+name_file+"...")
+        plt.figure()
+        show_oi_vs_wlen(dic['FLUX'] ,dic['WLEN'],datatype='FLUX')
+        print("Plotting data "+name_file+"...")
+        plt.figure()
+        wlen = dic['WLEN']
+        print(wlen)
+    elif os.path.isdir(name_file):
+        name_dir = name_file
+        filtered_list_of_dicts = filter_oi_list(name_dir)
+        show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key="VIS2", datatype='VIS2')
 
 
