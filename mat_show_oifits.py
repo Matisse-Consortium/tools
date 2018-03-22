@@ -54,8 +54,8 @@ from astropy.io import fits as fits
 ###############################################################################
 
 def open_oi(oi_file):
-    hdu      = fits.open(oi_file)
-    wl   = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
+    hdu = fits.open(oi_file)
+    wl  = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN':wl}
 
     try:
@@ -66,6 +66,7 @@ def open_oi(oi_file):
         dic['VIS']['DPHIERR']  = hdu['OI_VIS'].data['VISPHIERR']
         dic['VIS']['U']        = hdu['OI_VIS'].data['UCOORD']
         dic['VIS']['V']        = hdu['OI_VIS'].data['VCOORD']
+        dic['VIS']['TIME']     = hdu['OI_VIS'].data['MJD'];
     except:
         print("WARNING: No OI_VIS table!")
 
@@ -75,8 +76,19 @@ def open_oi(oi_file):
         dic['VIS2']['VIS2ERR'] = hdu['OI_VIS2'].data['VIS2ERR']
         dic['VIS2']['U']       = hdu['OI_VIS2'].data['UCOORD']
         dic['VIS2']['V']       = hdu['OI_VIS2'].data['VCOORD']
+        dic['VIS2']['TIME']    = hdu['OI_VIS2'].data['MJD'];
     except:
         print("WARNING: No OI_VIS2 table!")
+
+    try:
+        dic['TF2'] = {}
+        dic['TF2']['VIS2']    = hdu['OI_TF2'].data['VIS2DATA']
+        dic['TF2']['VIS2ERR'] = hdu['OI_TF2'].data['VIS2ERR']
+        dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
+        dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
+        dic['TF2']['TIME']    = hdu['OI_TF2'].data['MJD'];
+    except:
+        print("WARNING: No OI_TF2 table!")
 
     try:
         dic['T3'] = {}
@@ -88,6 +100,7 @@ def open_oi(oi_file):
         dic['T3']['V1']       = hdu['OI_T3'].data['V1COORD']
         dic['T3']['U2']       = hdu['OI_T3'].data['U2COORD']
         dic['T3']['V2']       = hdu['OI_T3'].data['V2COORD']
+        dic['T3']['TIME']     = hdu['OI_T3'].data['MJD'];
     except:
         print("WARNING: No OI_T3 table!")
 
@@ -95,6 +108,7 @@ def open_oi(oi_file):
         dic['FLUX'] = {}
         dic['FLUX']['FLUX']    = hdu['OI_FLUX'].data['FLUXDATA']
         dic['FLUX']['FLUXERR'] = hdu['OI_FLUX'].data['FLUXERR']
+        dic['FLUX']['TIME']    = hdu['OI_FLUX'].data['MJD'];
     except:
         print("WARNING: No OI_FLUX table!")
 
@@ -180,6 +194,17 @@ def show_oi_vs_wlen(dic,wlen,datatype="VIS2"):
     for i,j in enumerate(data):
         plt.plot(wlen*1e6, data[i,:])
 
+###############################################################################
+
+def show_oi_vs_time(dic,wlenRange,datatype="VIS2"):
+    data  = dic[datatype];
+    datae = dic[datatype+"ERR"];
+    datat = dic["TIME"];
+
+    for i,j in enumerate(data):
+        plt.plot(datat, np.average(data[i,wlenRange[0]:wlenRange[1]]))
+
+###############################################################################
 
 if __name__ == '__main__':
     listArg = sys.argv
@@ -203,6 +228,8 @@ if __name__ == '__main__':
     app.MainLoop()
     app.Destroy()
 
+    dic = {};
+    
     print("Reading file "+name_file+"...")
     dic = open_oi(name_file)
     print("Plotting data "+name_file+"...")
@@ -210,5 +237,10 @@ if __name__ == '__main__':
     print("Plotting data "+name_file+"...")
     plt.figure()
     show_oi_vs_wlen(dic['FLUX'] ,dic['WLEN'],datatype='FLUX')
+    print("Plotting data "+name_file+"...")
+    plt.figure()
+    wlen = dic['WLEN']
+    print(wlen)
+    show_oi_vs_time(dic['FLUX'] ,[3.5,3.95],datatype='FLUX')
 
 
