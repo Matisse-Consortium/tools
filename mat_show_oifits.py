@@ -129,8 +129,8 @@ def open_oi(oi_file):
 
     try:
         dic['TF2'] = {}
-        dic['TF2']['VIS2']    = hdu['OI_TF2'].data['TF2']
-        dic['TF2']['VIS2ERR'] = hdu['OI_TF2'].data['TF2ERR']
+        dic['TF2']['TF2']    = hdu['OI_TF2'].data['TF2']
+        dic['TF2']['TF2ERR'] = hdu['OI_TF2'].data['TF2ERR']
         #dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
         #dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
         dic['TF2']['TIME']    = hdu['OI_TF2'].data['MJD'];
@@ -263,13 +263,14 @@ def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
     n_rows = -1
     irregular_data_flag = 0
     for dic in list_of_dicts:
-        if dic:
+        try:
             #wl.append(dic['WLEN'])
             #data.append(dic[key][datatype])
             #datae.append(dic[key][datatype+"ERR"])
             #datat.append(dic[key]["TIME"])
-            wl = np.array(dic['WLEN'])
-            data = np.array(dic[key][datatype])
+            wl    = np.array(dic['WLEN'])
+            
+            data  = np.array(dic[key][datatype])
             datae = np.array(dic[key][datatype+"ERR"])
             datat = np.array(dic[key]["TIME"])
             if data.shape[0] > 6:
@@ -284,6 +285,8 @@ def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
                 datax.append(datat[0:6])
                 datay.append(np.nanmean(data[0:6,wlenRange_idx],axis=1))
                 datayerr.append(np.nanmean(datae[0:6,wlenRange_idx],axis=1))
+        except:
+            pass
     datax = np.array(datax)
     datay = np.array(datay)
     datayerr = np.array(datayerr)
@@ -309,7 +312,8 @@ def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
 # DIT_range: [min,max] (s)
 # targets =
 def filter_oi_list(input_dir, dates=[],bands=[],spectral_resolutions=[],DIT_range=[],targets=[]):
-    oifits_file_list = glob.glob(input_dir + '/*')
+    oifits_file_list = glob.glob(input_dir + '/*fits*')
+    
     N_files = len(oifits_file_list)
     filtered_list_of_dicts = []
     for file in oifits_file_list:
@@ -344,13 +348,29 @@ def filter_oi_list(input_dir, dates=[],bands=[],spectral_resolutions=[],DIT_rang
 if __name__ == '__main__':
     listArg = sys.argv
     name_file = []
+    typePlot = "VIS2"
     for elt in listArg:
         if ('--help' in elt):
             print( "Usage: mat_show_rawdata.py [--dir=start directory]")
             sys.exit(0)
-        elif len(listArg) == 2:
-            name_file = sys.argv[1]
-            print(name_file)
+        elif ('--typePlot' in elt):
+            typePlot = elt.split("=")[1]
+        #elif len(listArg) == 2:
+       #     name_file = sys.argv[1]
+       #     print(name_file)
+
+    if typePlot=="VIS2":
+        table = "VIS2"
+    elif typePlot=="CLOS":
+        table="T3"
+    elif typePlot=="TF2":
+        typePlot="TF2"
+        table="TF2"
+    elif typePlot=="FLUX":
+        table="FLUX"
+    elif typePlot=="DPHI":
+        table="VIS"
+        
 
     app = wx.App()
     if not name_file:
@@ -379,6 +399,5 @@ if __name__ == '__main__':
     elif os.path.isdir(name_file):
         name_dir = name_file
         filtered_list_of_dicts = filter_oi_list(name_dir)
-        show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key="VIS2", datatype='VIS2')
-
-
+        show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key=table, datatype=typePlot)
+        
