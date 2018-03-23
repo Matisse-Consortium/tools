@@ -57,12 +57,11 @@ import mat_show_rawdata
 import threading
 import time
 
-
 # Set useful paths
 fvpath    = distutils.spawn.find_executable("fv")
 iconspath = os.path.join(os.path.dirname(__file__),"icons")
 
-#various dir0 for debug 
+#various dir0 for debug
 if socket.gethostname()=="pc-amepro":
     dir0="D:\\Documents\\Travail\\MATISSE\\"
 else:
@@ -72,7 +71,6 @@ print ("working in directory : {0}".format(dir0))
 
 cleanLog = False
 
-################################################################################
 
 def findHeaderKeyword(h,key):
     try :
@@ -81,26 +79,22 @@ def findHeaderKeyword(h,key):
         print ("keyword {0} not found".format(key))
         res = ""
     return res
+
     
-################################################################################
+###############################################################################
 
 class mat_logData():
-    def __init__(self,tplstart,tplid,target,progid,nbFiles,nexp,
-                 comment,firstFileData,status):
-        print("Init logData")
+    def __init__(self,tplstart,tplid,target,progid,nbFiles,nexp,comment,firstFileData,status):
         self.tplstart    = tplstart
         self.tplid       = tplid
         self.target      = target
         self.progid      = progid
         self.nbFiles     = nbFiles
         self.nexp        = nexp
-        #self.disp        = disp
         self.comment     = comment
         self.listOfFiles = [firstFileData]
         self.status      = status
-
-#------------------------------------------------------------------------------
- 
+ #------------------------------------------------------------------------------         
     def getCSV(self,delimiter=";"):
         
         print("CSV formatting")
@@ -109,11 +103,21 @@ class mat_logData():
             
             listOfFilesTxt += f.filename
             listOfFilesTxt += "#"
+
+        print(delimiter)
+        print(self.tplstart)
+        print(self.tplid)
+        print(self.target)
+        print(self.progid)
+        print(self.nbFiles)
+        print(self.nexp)
+        print(self.comment)
+        print(listOfFilesTxt)
+        print(self.status)
             
-        #res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}{0}{11}".format(
-        res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}".format(
         #res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}".format(
-            delimiter,
+        #res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}{0}{11}".format(
+        res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}".format(delimiter,
             self.tplstart,
             self.tplid,
             self.target,
@@ -125,13 +129,14 @@ class mat_logData():
             self.comment,
             listOfFilesTxt,
             self.status)
-        
-        return res.replace('\n',' ').replace('\r','')
+
+        return res
     
 ###############################################################################
         
 class mat_fileData():
       def __init__(self,filename,h):
+        print("Entering mat_filedata")
         self.filename = filename
         self.doCatg   = matisseType(h)
         self.date     = findHeaderKeyword(h,'DATE')
@@ -152,6 +157,7 @@ class mat_fileData():
             self.disp=""
             #self.pisp=""
 
+        print("reading chopping")
         hdu      = fits.open(self.filename)
         img_data = hdu['IMAGING_DATA'].data
         tartyp   = img_data.field('TARTYP')
@@ -161,9 +167,10 @@ class mat_fileData():
         utyp = list(setl)
         
         if(len(utyp)==1):
-            self.chop="NOCHOP"
+            self.chop = "NOCHOP"
         else:
-            self.chop="CHOP"
+            self.chop = "CHOP"
+        print("Finished reading chopping")
 
 ###############################################################################
 
@@ -185,11 +192,12 @@ class mat_logger(wx.Dialog):
         self.Centre()
         self.Show()
         self.path=""
-            
+                    
 #------------------------------------------------------------------------------
 
     def InitUI(self):
         panel = wx.Panel(self)
+
         font  = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
             
         font.SetPointSize(9)
@@ -201,15 +209,15 @@ class mat_logger(wx.Dialog):
        
         self.tplListWidget = ObjectListView(panel,wx.ID_ANY, style=wx.LC_REPORT)   
         cols=[ ColumnDefn("TPL START","left",160,"tplstart",minimumWidth=20),
-               ColumnDefn("TPL ID","left",140,"tplid",minimumWidth=20),
-               ColumnDefn("TARGET","left",80,"target",minimumWidth=20),
-               #ColumnDefn("PROG. ID","left",70,"progid",minimumWidth=20),    
-               ColumnDefn("Files","left",30,"nbFiles",minimumWidth=20),         
-               ColumnDefn("NEXP","left",30,"nexp",minimumWidth=20)]    
+               ColumnDefn("TPL ID",   "left",140,"tplid",   minimumWidth=20),
+               ColumnDefn("TARGET",   "left",80, "target",  minimumWidth=20),
+               #ColumnDefn("PROG. ID","left",70,"progid",minimumWidth=20),                        
+               ColumnDefn("Files",    "left",30, "nbFiles", minimumWidth=20),                         
+               ColumnDefn("NEXP",     "left",30, "nexp",    minimumWidth=20)]    
         self.tplListWidget.SetColumns(cols)
         self.tplListWidget.rowFormatter=self.setRowColorTpl
         self.tplListWidget.AutoSizeColumns()
-        self.tplListWidget.SortBy(0, ascending=True)
+        self.tplListWidget.SortBy(0, ascending=False)
                 
               
         self.commentTxtCtrl= wx.TextCtrl(panel,style=wx.TE_MULTILINE)
@@ -221,42 +229,39 @@ class mat_logger(wx.Dialog):
                ColumnDefn("Dispersion", "left",100,"disp",    minimumWidth=20),
                ColumnDefn("DIT",        "left",100,"dit",     minimumWidth=20),
                ColumnDefn("NDIT",       "left",100,"ndit",    minimumWidth=20),
-               ColumnDefn("CHOP",        "left",100,"chop",   minimumWidth=20),
+               ColumnDefn("CHOP",       "left",100,"chop",    minimumWidth=20),
                ColumnDefn("EXPNO",      "left",50, "expno",   minimumWidth=20)]
         self.fileListWidget.SetColumns(cols2)
         self.fileListWidget.rowFormatter=self.setRowColorFile
         self.fileListWidget.AutoSizeColumns()
-        self.fileListWidget.SortBy(0, ascending=True)
+        self.fileListWidget.SortBy(0, ascending=False)
     
         self.updateBut    = wx.Button(panel,label="Update",style=wx.BU_EXACTFIT)
         self.exportCSVBut = wx.Button(panel,label="Export CSV",style=wx.BU_EXACTFIT)
-        self.byebyeBut = wx.Button(panel,label="Exit",style=wx.BU_EXACTFIT)
-       
+        self.byebyeBut    = wx.Button(panel,label="Exit",style=wx.BU_EXACTFIT)
+               
         vbox2.Add(self.fileListWidget, proportion=3, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
         vbox2.Add(self.commentTxtCtrl, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
         
-        hbox.Add(self.tplListWidget, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)  
-        hbox.Add(vbox2, proportion=2,flag=wx.LEFT|wx.RIGHT|wx.EXPAND);
-        
-        
-        hbox2.Add(self.updateBut, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        hbox.Add(self.tplListWidget,  proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)  
+        hbox.Add(vbox2,               proportion=2,flag=wx.LEFT|wx.RIGHT|wx.EXPAND);
+                
+        hbox2.Add(self.updateBut,    proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
         hbox2.Add(self.exportCSVBut, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
-        hbox2.Add(self.byebyeBut, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        hbox2.Add(self.byebyeBut,    proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
 
-        vbox.Add(hbox,proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        vbox.Add(hbox2,proportion=0.1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        vbox.Add(hbox,               proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        vbox.Add(hbox2,              proportion=0.1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
 
         panel.SetSizer(vbox)
          
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED,self.tplSelected,self.tplListWidget)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED,self.updateClicked,self.updateBut)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED,self.byebye,self.byebyeBut)
-        self.Bind(wx.EVT_TEXT,self.commentChanged,self.commentTxtCtrl)
-        
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED,   self.tplSelected,   self.tplListWidget)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED,   self.updateClicked, self.updateBut)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED,   self.byebye,        self.byebyeBut)
+        self.Bind(wx.EVT_TEXT,                 self.commentChanged,self.commentTxtCtrl)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.fileListRightClicked,self.fileListWidget)
-        self.byebyeBut.Bind(wx.EVT_BUTTON, self.byebye)
-        self.exportCSVBut.Bind(wx.EVT_BUTTON, self.exportCSVClicked)
-        self.updateBut.Bind(wx.EVT_BUTTON, self.updateClicked)
+        self.exportCSVBut.Bind(wx.EVT_BUTTON,  self.exportCSVClicked)
+        self.updateBut.Bind(wx.EVT_BUTTON,     self.updateClicked)
       
         if cleanLog==False:
             if os.path.isfile(self.logfilename):
@@ -269,13 +274,15 @@ class mat_logger(wx.Dialog):
                 print "No log file for {0} ...".format(self.date)
                          
         self.getInfosFromNight()
-
+            
 #------------------------------------------------------------------------------                
     def exportCSVClicked(self,event):
         print("Saving csv file to "+self.csvfilename)
         csvfile = open(self.csvfilename,'wb')
-        for tplListObji in self.tplListObj:        
-            csvfile.write(tplListObji.getCSV())
+        for tplListObji in self.tplListObj:
+            if tplListObji.getCSV():
+                csvfile.write(tplListObji.getCSV())
+                print(len(tplListObji.getCSV()))
             csvfile.write("\n")
         csvfile.close()
           
@@ -324,25 +331,25 @@ class mat_logger(wx.Dialog):
         
     def updateClicked(self,event):
         self.getInfosFromNight()
-        self.tplListWidget.SortBy(0, ascending=True)
+        self.tplListWidget.SortBy(0, ascending=False)
         
 #------------------------------------------------------------------------------
         
     def byebye(self,event):
+        print("Bye bye!")
         openLogger.Destroy()
         app.MainLoop()
         app.Destroy()
         return 0
     
 #------------------------------------------------------------------------------
-        
-        
+                
     def commentChanged(self,event):
         itemNum = self.tplListWidget.GetNextSelected(-1)
         if (itemNum!=-1):
             txt = self.tplListWidget.GetItemText(itemNum)
             idx = self.tplList.index(txt)   
-            self.tplListObj[idx].comment=self.commentTxtCtrl.GetValue()
+            self.tplListObj[idx].comment = self.commentTxtCtrl.GetValue()
             self.saveData()
 #------------------------------------------------------------------------------
            
@@ -357,46 +364,31 @@ class mat_logger(wx.Dialog):
 #------------------------------------------------------------------------------
 
     def getInfosFromNight(self):
-                  
-        files=os.listdir(dir0)  
+        files = os.listdir(dir0)  
         for filei in files:
             if not(filei in self.fileList):
                 if filei.endswith(".fits"):
                     try:
-                        h        = fits.getheader( dir0+"/"+filei)
+                        h        = fits.getheader(dir0+"/"+filei)
                         tplstart = findHeaderKeyword(h,'HIERARCH ESO TPL START')
-                        print ("{0} ==> {1}".format(filei,tplstart))
-                        if (tplstart in self.tplList):           
-                            i = self.tplList.index(tplstart)
-                            print("not new")
+                        print "{0} ==> {1}".format(filei,tplstart)
+                        if (tplstart in self.tplList):
+
+          
+                            i=self.tplList.index(tplstart)
                             self.tplListObj[i].nbFiles+=1
-                            if self.tplListObj[i].nexp  < h['HIERARCH ESO TPL NEXP']:
-                                self.tplListObj[i].nexp = h['HIERARCH ESO TPL NEXP']
+                            if self.tplListObj[i].nexp  < findHeaderKeyword(h, 'HIERARCH ESO TPL NEXP'):
+                                self.tplListObj[i].nexp = findHeaderKeyword(h, 'HIERARCH ESO TPL NEXP')
                             self.tplListObj[i].listOfFiles.append(mat_fileData(filei,h))
                             self.fileList.append(filei)     
                         elif tplstart!="":
-                            print("new")
                             self.tplList.append(tplstart)                           
-                            target = findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')                                  
-                            progid = findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
-                            tplid  = findHeaderKeyword(h,'HIERARCH ESO TPL ID') 
-                            nexp   = findHeaderKeyword(h,'HIERARCH ESO TPL NEXP')
-                            
-                            det = findHeaderKeyword(h,"HIERARCH ESO DET CHIP NAME")
-                            if det == "HAWAII-2RG":
-                                disp = findHeaderKeyword(h,"HIERARCH ESO INS DIL NAME")
-                            elif det=="AQUARIUS":
-                                disp = findHeaderKeyword(h,"HIERARCH ESO INS DIN NAME") 
-                            else:
-                                disp = ""
-
-
-                            self.tplListObj.append(
-                                mat_logData(tplstart,tplid,target,progid,
-                                            1,nexp,
-                                            "No Comment",
-                                            mat_fileData(filei,h),"Started"))
-                            print("la")
+                            target= findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')                                  
+                            progid= findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
+                            tplid=findHeaderKeyword(h,'HIERARCH ESO TPL ID')  
+                            nexp=findHeaderKeyword(h,'HIERARCH ESO TPL NEXP')                                                
+                            self.tplListObj.append(mat_logData(tplstart,tplid,target,progid,
+                                       1,nexp,"No Comment",mat_fileData(filei,h),"Started"))
                             self.fileList.append(filei)
                         else :  
                             print ("skipping file without tplstart{0}".format(filei))
@@ -405,8 +397,7 @@ class mat_logger(wx.Dialog):
                 else:
                     print ("skipping file {0} : not fits file".format(filei))
         self.tplListWidget.SetObjects(self.tplListObj)
-        self.saveData()
-
+        self.saveData()        
 #------------------------------------------------------------------------------
 
 # Colour of text for tpl list
@@ -418,7 +409,6 @@ class mat_logger(wx.Dialog):
                 txtcol=wx.Colour(116,147,196)
         else:
                 txtcol=wx.Colour(155,155,155)      
-         
         listItem.SetBackgroundColour(txtcol)
 
     # Colour of text for file list
@@ -450,9 +440,30 @@ class saveBackup(object):
         while True:
             # Do something
             print('Save backup or something like that')
+            logfilename = self.logfilename
+            print(logfilename)
 
             time.sleep(self.interval)
+            
+#------------------------------------------------------------------------------
 
+class autoUpdate(object):
+    def __init__(self, interval=1):
+        self.interval = interval
+
+        thread = threading.Thread(target=self.run, args=())
+        thread.daemon = True                            # Daemonize thread
+        thread.start()  
+    def run(self):
+        """ Method that runs forever """
+        while True:
+            # Do something
+            print('Updating stuff...')
+            logfilename = mat_logger.logfilename
+            print(logfilename)
+
+            time.sleep(self.interval)
+            
 ###############################################################################
 
 if __name__ == '__main__':
@@ -491,9 +502,10 @@ if __name__ == '__main__':
         app = wx.App()
     except:
         pass
-
+    
     # Save a backup pkl file, just in case something happens
     saveBackup()
+    autoUpdate()
     
     openLogger = mat_logger(None,dir0)
     if openLogger.ShowModal() == wx.ID_OK:
