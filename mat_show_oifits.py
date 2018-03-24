@@ -43,7 +43,6 @@
   2018-03-23: new functions: oi_data_select_frame, filter_oi_list, open_oi_dir, show_vis2_tf2_vs_time, show_oi_vs_time (jvarga)
 """
 
-
 import sys
 import wx
 import math
@@ -57,19 +56,20 @@ import os
 import glob
 import robust
 
+
 ###############################################################################
 
 def open_oi(oi_file):
     try:
         hdu = fits.open(oi_file)
     except IOError:
-        print ("Unable to read fits file: "+oi_file)
+        print ("Unable to read fits file: " + oi_file)
         return {}
 
     hdr = hdu[0].header
 
-    wl  = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
-    dic = {'WLEN':wl}
+    wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
+    dic = {'WLEN': wl}
 
     target_name = hdu['OI_TARGET'].data['TARGET'][0]
     if not target_name:
@@ -79,7 +79,7 @@ def open_oi(oi_file):
             print ("Target name not found.")
             target_name = ""
     dic['TARGET'] = target_name
-    target_category= hdu['OI_TARGET'].data['CATEGORY'][0] # "CAL" or "SCI"
+    target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
     if not target_category:
         print ("Target category not found.")
         target_category = "CAL"
@@ -133,147 +133,151 @@ def open_oi(oi_file):
         print ("Key in table OI_ARRAY not found")
     try:
         dic['VIS'] = {}
-        dic['VIS']['CFLUX']    = hdu['OI_VIS'].data['VISAMP']
+        dic['VIS']['CFLUX'] = hdu['OI_VIS'].data['VISAMP']
         dic['VIS']['CFLUXERR'] = hdu['OI_VIS'].data['VISAMPERR']
-        dic['VIS']['DPHI']     = hdu['OI_VIS'].data['VISPHI']
-        dic['VIS']['DPHIERR']  = hdu['OI_VIS'].data['VISPHIERR']
-        dic['VIS']['U']        = hdu['OI_VIS'].data['UCOORD']
-        dic['VIS']['V']        = hdu['OI_VIS'].data['VCOORD']
-        dic['VIS']['TIME']     = hdu['OI_VIS'].data['MJD']
+        dic['VIS']['DPHI'] = hdu['OI_VIS'].data['VISPHI']
+        dic['VIS']['DPHIERR'] = hdu['OI_VIS'].data['VISPHIERR']
+        dic['VIS']['U'] = hdu['OI_VIS'].data['UCOORD']
+        dic['VIS']['V'] = hdu['OI_VIS'].data['VCOORD']
+        dic['VIS']['TIME'] = hdu['OI_VIS'].data['MJD']
         dic['VIS']['STA_INDEX'] = hdu['OI_VIS'].data['STA_INDEX']
     except:
         print("WARNING: No OI_VIS table!")
 
     try:
         dic['VIS2'] = {}
-        dic['VIS2']['VIS2']    = hdu['OI_VIS2'].data['VIS2DATA']
+        dic['VIS2']['VIS2'] = hdu['OI_VIS2'].data['VIS2DATA']
         dic['VIS2']['VIS2ERR'] = hdu['OI_VIS2'].data['VIS2ERR']
-        dic['VIS2']['U']       = hdu['OI_VIS2'].data['UCOORD']
-        dic['VIS2']['V']       = hdu['OI_VIS2'].data['VCOORD']
-        dic['VIS2']['TIME']    = hdu['OI_VIS2'].data['MJD']
+        dic['VIS2']['U'] = hdu['OI_VIS2'].data['UCOORD']
+        dic['VIS2']['V'] = hdu['OI_VIS2'].data['VCOORD']
+        dic['VIS2']['TIME'] = hdu['OI_VIS2'].data['MJD']
         dic['VIS2']['STA_INDEX'] = hdu['OI_VIS2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_VIS2 table!")
 
     try:
         dic['TF2'] = {}
-        dic['TF2']['TF2']    = hdu['OI_TF2'].data['TF2']
+        dic['TF2']['TF2'] = hdu['OI_TF2'].data['TF2']
         dic['TF2']['TF2ERR'] = hdu['OI_TF2'].data['TF2ERR']
-        #dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
-        #dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
-        dic['TF2']['TIME']     = hdu['OI_TF2'].data['MJD']
-        dic['TF2']['STA_INDEX'] =hdu['OI_TF2'].data['STA_INDEX']
+        # dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
+        # dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
+        dic['TF2']['TIME'] = hdu['OI_TF2'].data['MJD']
+        dic['TF2']['STA_INDEX'] = hdu['OI_TF2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_TF2 table!")
 
     try:
         dic['T3'] = {}
-        dic['T3']['T3AMP']    = hdu['OI_T3'].data['T3AMP']
+        dic['T3']['T3AMP'] = hdu['OI_T3'].data['T3AMP']
         dic['T3']['T3AMPERR'] = hdu['OI_T3'].data['T3AMPERR']
-        dic['T3']['CLOS']     = hdu['OI_T3'].data['T3PHI']
-        dic['T3']['CLOSERR']  = hdu['OI_T3'].data['T3PHIERR']
-        dic['T3']['U1']       = hdu['OI_T3'].data['U1COORD']
-        dic['T3']['V1']       = hdu['OI_T3'].data['V1COORD']
-        dic['T3']['U2']       = hdu['OI_T3'].data['U2COORD']
-        dic['T3']['V2']       = hdu['OI_T3'].data['V2COORD']
-        dic['T3']['TIME']     = hdu['OI_T3'].data['MJD']
+        dic['T3']['CLOS'] = hdu['OI_T3'].data['T3PHI']
+        dic['T3']['CLOSERR'] = hdu['OI_T3'].data['T3PHIERR']
+        dic['T3']['U1'] = hdu['OI_T3'].data['U1COORD']
+        dic['T3']['V1'] = hdu['OI_T3'].data['V1COORD']
+        dic['T3']['U2'] = hdu['OI_T3'].data['U2COORD']
+        dic['T3']['V2'] = hdu['OI_T3'].data['V2COORD']
+        dic['T3']['TIME'] = hdu['OI_T3'].data['MJD']
         dic['T3']['STA_INDEX'] = hdu['OI_T3'].data['STA_INDEX']
     except:
         print("WARNING: No OI_T3 table!")
 
     try:
         dic['FLUX'] = {}
-        dic['FLUX']['FLUX']    = hdu['OI_FLUX'].data['FLUXDATA']
+        dic['FLUX']['FLUX'] = hdu['OI_FLUX'].data['FLUXDATA']
         dic['FLUX']['FLUXERR'] = hdu['OI_FLUX'].data['FLUXERR']
-        dic['FLUX']['TIME']    = hdu['OI_FLUX'].data['MJD']
+        dic['FLUX']['TIME'] = hdu['OI_FLUX'].data['MJD']
         dic['FLUX']['STA_INDEX'] = hdu['OI_FLUX'].data['STA_INDEX']
     except:
         print("WARNING: No OI_FLUX table!")
 
     return dic
 
+
 ###############################################################################
 
 def show_oi_vs_freq(dic, log=False):
-    wl    = dic['WLEN'];
-    vis2  = dic['VIS2']['VIS2'];
+    wl = dic['WLEN'];
+    vis2 = dic['VIS2']['VIS2'];
     vis2e = dic['VIS2']['VIS2ERR'];
-    u     = dic['VIS2']['U'];
-    v     = dic['VIS2']['V'];
-    cp    = dic['T3']['CLOS'];
-    cpe   = dic['T3']['CLOSERR'];
-    u1    = dic['T3']['U1'];
-    v1    = dic['T3']['V1'];
-    u2    = dic['T3']['U2'];
-    v2    = dic['T3']['V2'];
+    u = dic['VIS2']['U'];
+    v = dic['VIS2']['V'];
+    cp = dic['T3']['CLOS'];
+    cpe = dic['T3']['CLOSERR'];
+    u1 = dic['T3']['U1'];
+    v1 = dic['T3']['V1'];
+    u2 = dic['T3']['U2'];
+    v2 = dic['T3']['V2'];
 
-    plt.figure(figsize = (9, 6))
+    plt.figure(figsize=(9, 6))
     G = gridspec.GridSpec(2, 1)
 
-    axes_v2 = plt.subplot(G[0,:])
-    
+    axes_v2 = plt.subplot(G[0, :])
+
     # Plot all data first
-    for i,j in enumerate(u):
-        r = np.sqrt(u[i]**2 + v[i]**2);
-        freq = r/wl;
+    for i, j in enumerate(u):
+        r = np.sqrt(u[i] ** 2 + v[i] ** 2);
+        freq = r / wl;
         if log:
-            axes_v2.semilogy(freq, vis2[i,:],color='lightgray')
-            plt.ylim([1e-4,1.1])
+            axes_v2.semilogy(freq, vis2[i, :], color='lightgray')
+            plt.ylim([1e-4, 1.1])
         else:
-            axes_v2.plot(freq, vis2[i,:],color='lightgray')
-            
+            axes_v2.plot(freq, vis2[i, :], color='lightgray')
+
     # Plot valid data
-    for i,j in enumerate(u):
-        r = np.sqrt(u[i]**2 + v[i]**2);
-        freq = r/wl;
-        test = np.logical_and(vis2[i,:] >= 0, vis2e[i,:] / vis2[i,:] < 1)
+    for i, j in enumerate(u):
+        r = np.sqrt(u[i] ** 2 + v[i] ** 2);
+        freq = r / wl;
+        test = np.logical_and(vis2[i, :] >= 0, vis2e[i, :] / vis2[i, :] < 1)
         if log:
-            axes_v2.semilogy(freq[test], vis2[i,test])
-            plt.ylim([1e-4,1.1])
+            axes_v2.semilogy(freq[test], vis2[i, test])
+            plt.ylim([1e-4, 1.1])
         else:
-            axes_v2.plot(freq[test], vis2[i,test])
-            
-    plt.ylim([-0.1,1.1])
+            axes_v2.plot(freq[test], vis2[i, test])
+
+    plt.ylim([-0.1, 1.1])
     plt.ylabel('V2')
-    #plt.xlabel('Spatial Frequency (B/$\lambda$)')
+    # plt.xlabel('Spatial Frequency (B/$\lambda$)')
     axes_v2.set_title('Squared visibilities vs frequencies')
 
     # Plot all data first
-    axes_cp = plt.subplot(G[1,:])
-    for i,j in enumerate(u1):
-        r1 = np.sqrt(u1[i]**2 + v1[i]**2);
-        r2 = np.sqrt(u2[i]**2 + v2[i]**2);
-        r3 = np.sqrt((u1[i]+u2[i])**2 + (v1[i]+v2[i])**2);
-        freq = np.maximum(np.maximum(r1,r2),r3)/wl;
-        axes_cp.plot(freq, cp[i,:],color='lightgray')
-        
+    axes_cp = plt.subplot(G[1, :])
+    for i, j in enumerate(u1):
+        r1 = np.sqrt(u1[i] ** 2 + v1[i] ** 2);
+        r2 = np.sqrt(u2[i] ** 2 + v2[i] ** 2);
+        r3 = np.sqrt((u1[i] + u2[i]) ** 2 + (v1[i] + v2[i]) ** 2);
+        freq = np.maximum(np.maximum(r1, r2), r3) / wl;
+        axes_cp.plot(freq, cp[i, :], color='lightgray')
+
     # Plot valid data only
-    for i,j in enumerate(u1):
-        r1 = np.sqrt(u1[i]**2 + v1[i]**2);
-        r2 = np.sqrt(u2[i]**2 + v2[i]**2);
-        r3 = np.sqrt((u1[i]+u2[i])**2 + (v1[i]+v2[i])**2);
-        freq = np.maximum(np.maximum(r1,r2),r3)/wl;
-        test = np.absolute(cpe[i,:]) < 180/math.pi/3
-        axes_cp.plot(freq[test], cp[i,test])
-        
-    plt.ylim([-200,200])
+    for i, j in enumerate(u1):
+        r1 = np.sqrt(u1[i] ** 2 + v1[i] ** 2);
+        r2 = np.sqrt(u2[i] ** 2 + v2[i] ** 2);
+        r3 = np.sqrt((u1[i] + u2[i]) ** 2 + (v1[i] + v2[i]) ** 2);
+        freq = np.maximum(np.maximum(r1, r2), r3) / wl;
+        test = np.absolute(cpe[i, :]) < 180 / math.pi / 3
+        axes_cp.plot(freq[test], cp[i, test])
+
+    plt.ylim([-200, 200])
     axes_cp.set_title('Closure phase vs frequencies')
     plt.ylabel('Closure phase')
     plt.xlabel('Spatial Frequency (B/$\lambda$)')
 
     plt.show()
 
+
 ###############################################################################
 
-def show_oi_vs_wlen(dic,datatype="VIS2"):
+def show_oi_vs_wlen(dic, datatype="VIS2"):
     wl = dic['WLEN'];
-    data  = dic[datatype][datatype];
-    datae = dic[datatype][datatype+"ERR"];
+    data = dic[datatype][datatype];
+    datae = dic[datatype][datatype + "ERR"];
 
-    for i,j in enumerate(data):
-        #plt.errorbar(wl*1e6, data[i,:],yerr=datae[i,:])
+    for i, j in enumerate(data):
+        # plt.errorbar(wl*1e6, data[i,:],yerr=datae[i,:])
         plt.plot(wl * 1e6, data[i, :])
     plt.show()
+
+
 ###############################################################################
 # This function shows the selected oifits data (flux, visibility, closure phase etc.)
 # as a function of time. It reads data from multiple oifits files in a given
@@ -283,8 +287,8 @@ def show_oi_vs_wlen(dic,datatype="VIS2"):
 # filtered_list_of_dicts = filter_oi_list(oifits_dir,dates=["2018-03-14"],bands=['LM'],spectral_resolutions=['MED'],DIT_range=[0,0.2],targets=['l pup'])
 # show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2", datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
 #
-def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
-    plot_colors = ['red','blue','green','gold','magenta','cyan','orange','pink','purple','darkgreen']
+def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2"):
+    plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
     # wl = []
     # data = [] #{datatype: []}
     # datae = [] #{datatype+"ERR": []}
@@ -292,66 +296,68 @@ def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
     datax = []
     datay = []
     datayerr = []
-    j=0
+    j = 0
     n_rows = -1
     irregular_data_flag = 0
     for dic in list_of_dicts:
         try:
-            #wl.append(dic['WLEN'])
-            #data.append(dic[key][datatype])
-            #datae.append(dic[key][datatype+"ERR"])
-            #datat.append(dic[key]["TIME"])
-            wl    = np.array(dic['WLEN'])
-            
-            data  = np.array(dic[key][datatype])
-            datae = np.array(dic[key][datatype+"ERR"])
+            # wl.append(dic['WLEN'])
+            # data.append(dic[key][datatype])
+            # datae.append(dic[key][datatype+"ERR"])
+            # datat.append(dic[key]["TIME"])
+            wl = np.array(dic['WLEN'])
+
+            data = np.array(dic[key][datatype])
+            datae = np.array(dic[key][datatype + "ERR"])
             datat = np.array(dic[key]["TIME"])
             if data.shape[0] > 6:
                 irregular_data_flag = 1
-            #print data.shape[0],irregular_data_flag
-            wlenRange_idx = np.logical_and(wl > wlenRange[0]/1.0e6,wl < wlenRange[1]/1.0e6)
+            # print data.shape[0],irregular_data_flag
+            wlenRange_idx = np.logical_and(wl > wlenRange[0] / 1.0e6, wl < wlenRange[1] / 1.0e6)
             if irregular_data_flag == 0:
                 datax.append(datat)
-                datay.append(robust.mean(data[:,wlenRange_idx],axis=1))
-                datayerr.append(robust.mean(datae[:,wlenRange_idx],axis=1))
+                datay.append(robust.mean(data[:, wlenRange_idx], axis=1))
+                datayerr.append(robust.mean(datae[:, wlenRange_idx], axis=1))
             else:
                 datax.append(datat[0:6])
-                datay.append(robust.mean(data[0:6,wlenRange_idx],axis=1))
-                datayerr.append(robust.mean(datae[0:6,wlenRange_idx],axis=1))
+                datay.append(robust.mean(data[0:6, wlenRange_idx], axis=1))
+                datayerr.append(robust.mean(datae[0:6, wlenRange_idx], axis=1))
         except:
             pass
     datax = np.array(datax)
     datay = np.array(datay)
     datayerr = np.array(datayerr)
-    #print datay.shape[0]
+    # print datay.shape[0]
     if datay.shape[0] > 0:
         n_rows = datay.shape[1]
-        fig, axs = plt.subplots(n_rows/2, 2, figsize=(15, 10))
+        fig, axs = plt.subplots(n_rows / 2, 2, figsize=(15, 10))
         axs = axs.ravel()
         for i in range(n_rows):
-            axs[i].errorbar(datax[:,i], datay[:,i],yerr=datayerr[:,i],fmt='o',color=plot_colors[i],elinewidth=1.5)
+            axs[i].errorbar(datax[:, i], datay[:, i], yerr=datayerr[:, i], fmt='o', color=plot_colors[i],
+                            elinewidth=1.5)
             if "VIS" in datatype:
                 axs[i].set_ylim([-0.1, 1.1])
             axs[i].set_ylabel(datatype)
             axs[i].set_xlabel('MJD')
-        plt.suptitle(datatype+' vs time')
+        plt.suptitle(datatype + ' vs time')
         plt.tight_layout()
         plt.show()
     else:
         print "No data to plot."
 
+
 ###############################################################################
 # showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)
-def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False,output_path=""):
-    #check if list is not empty:
+def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=False, output_path=""):
+    # check if list is not empty:
     if list_of_dicts:
-        #colors: BCD: out-out, in-in, in-out, out-in
-        BCD_configs = np.array([[0,0],[1,1],[1,0],[0,1]])
-        BCD_labels = np.array(['OUT-OUT','IN-IN','IN-OUT','OUT-IN'])
-        BCD_markers = np.array(['o','s','d','p'])
+        # colors: BCD: out-out, in-in, in-out, out-in
+        BCD_configs = np.array([[0, 0], [1, 1], [1, 0], [0, 1]])
+        BCD_labels = np.array(['OUT-OUT', 'IN-IN', 'IN-OUT', 'OUT-IN'])
+        BCD_markers = np.array(['o', 's', 'd', 'p'])
         V2_cal_colors = np.array(['darkseagreen', 'yellowgreen', 'olivedrab', 'darkkhaki'])
-        V2_colors = np.array(['red','orange','salmon','pink'])
-        TF2_colors = np.array(['blue','dodgerblue','royalblue','indigo'])
+        V2_colors = np.array(['red', 'orange', 'salmon', 'pink'])
+        TF2_colors = np.array(['blue', 'dodgerblue', 'royalblue', 'indigo'])
 
         target_names_cal = []
         V2_BCD_arr_cal = []
@@ -415,13 +421,13 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                             BCD2 = 0
                         V2_arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
                         V2err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
-                        V2_BCD_arr_cal.append([BCD1,BCD2])
+                        V2_BCD_arr_cal.append([BCD1, BCD2])
                         V2_MJD_arr_cal.append(datax[i])
                         target_names_cal.append(dic['TARGET'])
                         sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
                         V2_sta_index_cal.append(sta_index)
                 except:
-                    print (dic['TARGET'],dic['DATEOBS'], "No CAL VIS2 data found.")
+                    print (dic['TARGET'], dic['DATEOBS'], "No CAL VIS2 data found.")
                 try:
                     datay = np.array(dic['T3']['CLOS'])
                     datayerr = np.array(dic['T3']['CLOSERR'])
@@ -448,7 +454,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                         sta_index = np.sort(dic['T3']['STA_INDEX'][i])
                         CP_sta_index_cal.append(sta_index)
                 except:
-                    print (dic['TARGET'],dic['DATEOBS'], "No CAL CP data found.")
+                    print (dic['TARGET'], dic['DATEOBS'], "No CAL CP data found.")
                 try:
                     datay = np.array(dic['TF2']['TF2'])
                     datayerr = np.array(dic['TF2']['TF2ERR'])
@@ -477,7 +483,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                         sta_index = np.sort(dic['TF2']['STA_INDEX'][i])
                         TF2_sta_index.append(sta_index)
                 except:
-                    print (dic['TARGET'],dic['DATEOBS'],"No CAL TF2 data found.")
+                    print (dic['TARGET'], dic['DATEOBS'], "No CAL TF2 data found.")
             if 'sci' in category:
                 try:
                     datay = np.array(dic['VIS2']['VIS2'])
@@ -506,7 +512,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                         sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
                         V2_sta_index.append(sta_index)
                 except:
-                    print (dic['TARGET'],dic['DATEOBS'],"No SCI VIS2 data found.")
+                    print (dic['TARGET'], dic['DATEOBS'], "No SCI VIS2 data found.")
                 try:
                     datay = np.array(dic['T3']['CLOS'])
                     datayerr = np.array(dic['T3']['CLOSERR'])
@@ -533,7 +539,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                         CP_BCD_arr.append([BCD1, BCD2])
                         CP_MJD_arr.append(datax[i])
                 except:
-                    print (dic['TARGET'],dic['DATEOBS'],"No SCI CP data found.")
+                    print (dic['TARGET'], dic['DATEOBS'], "No SCI CP data found.")
 
         sta_names = dic['STA_NAME']
 
@@ -577,34 +583,36 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
         # print sta_indices.shape
 
         if len(V2_MJD_arr_cal) > 0 and len(V2_MJD_arr) > 0:
-            MJD_range = [np.nanmin([np.nanmin(V2_MJD_arr_cal),np.nanmin(V2_MJD_arr)]),np.nanmax([np.nanmax(V2_MJD_arr_cal),np.nanmax(V2_MJD_arr)])]
+            MJD_range = [np.nanmin([np.nanmin(V2_MJD_arr_cal), np.nanmin(V2_MJD_arr)]),
+                         np.nanmax([np.nanmax(V2_MJD_arr_cal), np.nanmax(V2_MJD_arr)])]
         elif len(V2_MJD_arr) > 0:
-            MJD_range = [np.nanmin(V2_MJD_arr),np.nanmax(V2_MJD_arr)]
+            MJD_range = [np.nanmin(V2_MJD_arr), np.nanmax(V2_MJD_arr)]
         elif len(V2_MJD_arr_cal) > 0:
             MJD_range = [np.nanmin(V2_MJD_arr_cal), np.nanmax(V2_MJD_arr_cal)]
         else:
-            MJD_range = [0.0,1.0]
-        text_width_MJD = (MJD_range[1]-MJD_range[0])/20.0
-        fig1, axs1 = plt.subplots(3, 2, figsize=(15, 16),sharex=True, sharey=True)
+            MJD_range = [0.0, 1.0]
+        text_width_MJD = (MJD_range[1] - MJD_range[0]) / 20.0
+        fig1, axs1 = plt.subplots(3, 2, figsize=(15, 16), sharex=True, sharey=True)
         axs1 = axs1.ravel()
         text_y = 1.15
         for i in range(n_max_config):
-            #print i
+            # print i
             if len(V2_sta_index_cal) > 0:
-                idxst = np.all(V2_sta_index_cal == sta_indices[i],axis=1)
+                idxst = np.all(V2_sta_index_cal == sta_indices[i], axis=1)
                 if len(V2_arr_cal[idxst]) > 0:
                     if showvis == True:
                         label = 'V cal '
                     else:
                         label = 'V2 cal '
                     for j in range(len(BCD_configs)):
-                        BCDidx = np.all(V2_BCD_arr_cal == BCD_configs[j],axis=1)
-                        cidxst = np.logical_and(idxst,BCDidx)
+                        BCDidx = np.all(V2_BCD_arr_cal == BCD_configs[j], axis=1)
+                        cidxst = np.logical_and(idxst, BCDidx)
                         if len(V2_arr_cal[cidxst]) > 0:
                             if showvis == True:
                                 axs1[i].errorbar(V2_MJD_arr_cal[cidxst], np.sqrt(V2_arr_cal[cidxst]),
-                                             yerr=0.5*V2err_arr_cal[cidxst]/np.sqrt(V2_arr_cal[cidxst]),
-                                    fmt=BCD_markers[j], color=V2_cal_colors[j],elinewidth=1.5,label=label+BCD_labels[j])
+                                                 yerr=0.5 * V2err_arr_cal[cidxst] / np.sqrt(V2_arr_cal[cidxst]),
+                                                 fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
+                                                 label=label + BCD_labels[j])
                             else:
                                 axs1[i].errorbar(V2_MJD_arr_cal[cidxst], V2_arr_cal[cidxst],
                                                  yerr=V2err_arr_cal[cidxst],
@@ -618,8 +626,9 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                             if V2_MJD_arr_cal[idxst][j] > (prev_text_MJD + text_width_MJD):
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_cal[idxst][j]):
-                                axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y, target_names_cal[idxst][j].replace('_',' '), rotation=90,
-                                         va='bottom')
+                                axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y,
+                                             target_names_cal[idxst][j].replace('_', ' '), rotation=90,
+                                             va='bottom')
                                 text_tag_flag = 0
                                 prev_text_MJD = V2_MJD_arr_cal[idxst][j]
                                 prev_target_name = target_names_cal[idxst][j]
@@ -628,7 +637,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                     label = 'TF '
                 else:
                     label = 'TF2 '
-                idxst = np.all(TF2_sta_index == sta_indices[i],axis=1)
+                idxst = np.all(TF2_sta_index == sta_indices[i], axis=1)
                 if len(TF2_arr[idxst]) > 0:
                     for j in range(len(BCD_configs)):
                         BCDidx = np.all(TF2_BCD_arr == BCD_configs[j], axis=1)
@@ -636,9 +645,9 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                         if len(TF2_arr[cidxst]) > 0:
                             if showvis == True:
                                 axs1[i].errorbar(TF2_MJD_arr[cidxst], np.sqrt(TF2_arr[cidxst]),
-                                             yerr=0.5*TF2err_arr[cidxst]/np.sqrt(TF2_arr[cidxst]),
-                                             fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
-                                             label=label+ BCD_labels[j])
+                                                 yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(TF2_arr[cidxst]),
+                                                 fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
+                                                 label=label + BCD_labels[j])
                             else:
                                 axs1[i].errorbar(TF2_MJD_arr[cidxst], TF2_arr[cidxst], yerr=TF2err_arr[cidxst],
                                                  fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
@@ -651,13 +660,14 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                 idxst = np.all(V2_sta_index == sta_indices[i], axis=1)
                 if len(V2_arr[idxst]) > 0:
                     for j in range(len(BCD_configs)):
-                        BCDidx = np.all(V2_BCD_arr == BCD_configs[j],axis=1)
-                        cidxst = np.logical_and(idxst,BCDidx)
+                        BCDidx = np.all(V2_BCD_arr == BCD_configs[j], axis=1)
+                        cidxst = np.logical_and(idxst, BCDidx)
                         if len(V2_arr[cidxst]) > 0:
                             if showvis == True:
                                 axs1[i].errorbar(V2_MJD_arr[cidxst], np.sqrt(V2_arr[cidxst]),
-                                    yerr=0.5*V2err_arr[cidxst]/np.sqrt(V2_arr[cidxst]),
-                                    fmt=BCD_markers[j], color=V2_colors[j],elinewidth=1.5,label=label+BCD_labels[j])
+                                                 yerr=0.5 * V2err_arr[cidxst] / np.sqrt(V2_arr[cidxst]),
+                                                 fmt=BCD_markers[j], color=V2_colors[j], elinewidth=1.5,
+                                                 label=label + BCD_labels[j])
                             else:
                                 axs1[i].errorbar(V2_MJD_arr[cidxst], V2_arr[cidxst], yerr=V2err_arr[cidxst],
                                                  fmt=BCD_markers[j], color=V2_colors[j], elinewidth=1.5,
@@ -676,12 +686,12 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                                 prev_text_MJD = V2_MJD_arr[idxst][j]
                                 prev_target_name = target_names[idxst][j]
 
-            axlabel = sta_names[sta_indices[i,0] == dic['STA_INDEX']][0] + ' - ' + \
-                      sta_names[sta_indices[i,1] == dic['STA_INDEX']][0]
+            axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-            axs1[i].text(0.05, 0.95, axlabel,horizontalalignment='left',verticalalignment='top',
+            axs1[i].text(0.05, 0.95, axlabel, horizontalalignment='left', verticalalignment='top',
                          transform=axs1[i].transAxes, bbox=props)
-            if i==0:
+            if i == 0:
                 leg = axs1[i].legend(loc='upper right')
                 leg.get_frame().set_alpha(0.5)
             axs1[i].set_ylim([-0.1, 1.1])
@@ -695,16 +705,16 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
             plt.suptitle('$V\mathrm{\ vs.\ time}$')
         else:
             plt.suptitle('$V^2\mathrm{\ vs.\ time}$')
-        fig1.subplots_adjust(hspace=0,wspace=0)
+        fig1.subplots_adjust(hspace=0, wspace=0)
         for i in range(4):
-            plt.setp(axs1[i].get_xticklabels() , visible=False)
+            plt.setp(axs1[i].get_xticklabels(), visible=False)
             x_axis = axs1[i].axes.get_xaxis()
             x_axis.get_label().set_visible(False)
-        for i in range(1,6,2):
-            plt.setp(axs1[i].get_yticklabels() , visible=False)
+        for i in range(1, 6, 2):
+            plt.setp(axs1[i].get_yticklabels(), visible=False)
             y_axis = axs1[i].axes.get_yaxis()
             y_axis.get_label().set_visible(False)
-        #plt.tight_layout()
+        # plt.tight_layout()
         if saveplots == True:
             if showvis == True:
                 label = '_VIS_TF'
@@ -715,8 +725,8 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
             plt.close(fig1)
 
         CP_sta_indices = np.unique(CP_sta_index_cal, axis=0)
-        #print CP_sta_indices
-        n_max_config = np.nanmax([4,CP_sta_indices.shape[0]])
+        # print CP_sta_indices
+        n_max_config = np.nanmax([4, CP_sta_indices.shape[0]])
 
         fig2, axs = plt.subplots(2, 2, figsize=(14, 12), sharex=True, sharey=True)
         axs = axs.ravel()
@@ -724,15 +734,15 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
         for i in range(n_max_config):
             axs[i + 0].plot(MJD_range, [0.0, 0.0], '-', color='gray', lw=1.5)
             if len(CP_sta_index_cal) > 0:
-                idxst = np.all(CP_sta_index_cal == CP_sta_indices[i],axis=1)
+                idxst = np.all(CP_sta_index_cal == CP_sta_indices[i], axis=1)
                 if len(CP_arr_cal[idxst]) > 0:
                     for j in range(len(BCD_configs)):
                         BCDidx = np.all(CP_BCD_arr_cal == BCD_configs[j], axis=1)
                         cidxst = np.logical_and(idxst, BCDidx)
                         if len(CP_arr_cal[cidxst]) > 0:
                             axs[i + 0].errorbar(CP_MJD_arr_cal[cidxst], CP_arr_cal[cidxst], yerr=CPerr_arr_cal[cidxst],
-                                             fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
-                                             label='CP cal ' + BCD_labels[j])
+                                                fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
+                                                label='CP cal ' + BCD_labels[j])
                     if i in range(2):
                         text_tag_flag = 1
                         prev_text_MJD = 0.0
@@ -742,21 +752,22 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_CP_cal[idxst][j]):
                                 ymin, ymax = axs[i + 0].get_ylim()
-                                axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax*1.05, target_names_CP_cal[idxst][j].replace('_',' '), rotation=90,
-                                         va='bottom')
+                                axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax * 1.05,
+                                                target_names_CP_cal[idxst][j].replace('_', ' '), rotation=90,
+                                                va='bottom')
                                 text_tag_flag = 0
                                 prev_text_MJD = CP_MJD_arr_cal[idxst][j]
                                 prev_target_name = target_names_CP_cal[idxst][j]
             if len(CP_sta_index) > 0:
-                idxst = np.all(CP_sta_index == CP_sta_indices[i],axis=1)
+                idxst = np.all(CP_sta_index == CP_sta_indices[i], axis=1)
                 if len(CP_arr[idxst]) > 0:
                     for j in range(len(BCD_configs)):
                         BCDidx = np.all(CP_BCD_arr == BCD_configs[j], axis=1)
                         cidxst = np.logical_and(idxst, BCDidx)
                         if len(CP_arr[cidxst]) > 0:
                             axs[i + 0].errorbar(CP_MJD_arr[cidxst], CP_arr[cidxst], yerr=CPerr_arr[cidxst],
-                                             fmt=BCD_markers[j], color=V2_colors[j], elinewidth=1.5,
-                                             label='CP sci ' + BCD_labels[j])
+                                                fmt=BCD_markers[j], color=V2_colors[j], elinewidth=1.5,
+                                                label='CP sci ' + BCD_labels[j])
                     if i in range(2):
                         text_tag_flag = 1
                         prev_text_MJD = 0.0
@@ -766,9 +777,10 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_CP[idxst][j]):
                                 ymin, ymax = axs[i + 0].get_ylim()
-                                axs[i + 0].text(CP_MJD_arr[idxst][j],ymax*1.05, target_names_CP[idxst][j].replace('_', ' '),
-                                                 rotation=90,
-                                                 va='bottom')
+                                axs[i + 0].text(CP_MJD_arr[idxst][j], ymax * 1.05,
+                                                target_names_CP[idxst][j].replace('_', ' '),
+                                                rotation=90,
+                                                va='bottom')
                                 text_tag_flag = 0
                                 prev_text_MJD = CP_MJD_arr[idxst][j]
                                 prev_target_name = target_names_CP[idxst][j]
@@ -776,9 +788,9 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
                       sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
                       sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-            axs[i + 0].text(0.05, 0.95, axlabel,horizontalalignment='left',verticalalignment='top',
-                         transform=axs[i + 0].transAxes, bbox=props)
-            if i==0:
+            axs[i + 0].text(0.05, 0.95, axlabel, horizontalalignment='left', verticalalignment='top',
+                            transform=axs[i + 0].transAxes, bbox=props)
+            if i == 0:
                 leg = axs[i + 0].legend(loc='upper right')
                 leg.get_frame().set_alpha(0.5)
             axs[i + 0].set_ylabel('$CP\,\left(^\circ\\right)$')
@@ -786,20 +798,21 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False
         plt.suptitle('$CP\mathrm{\ vs.\ time}$')
         fig2.subplots_adjust(hspace=0, wspace=0)
         for i in range(2):
-            plt.setp(axs[i+0].get_xticklabels() , visible=False)
-            x_axis = axs[i+0].axes.get_xaxis()
+            plt.setp(axs[i + 0].get_xticklabels(), visible=False)
+            x_axis = axs[i + 0].axes.get_xaxis()
             x_axis.get_label().set_visible(False)
-        for i in range(1,4,2):
-            plt.setp(axs[i+0].get_yticklabels() , visible=False)
-            y_axis = axs[i+0].axes.get_yaxis()
+        for i in range(1, 4, 2):
+            plt.setp(axs[i + 0].get_yticklabels(), visible=False)
+            y_axis = axs[i + 0].axes.get_yaxis()
             y_axis.get_label().set_visible(False)
-        #plt.tight_layout()
+        # plt.tight_layout()
         if saveplots == True:
             fig2.savefig(output_path + '_CP' + '.png', dpi=150)
             fig2.savefig(output_path + '_CP' + '.eps', format='eps', dpi=300)
             plt.close(fig2)
         else:
             plt.show()
+
 
 ###############################################################################
 def open_oi_dir(input_dir):
@@ -810,10 +823,11 @@ def open_oi_dir(input_dir):
     for file in oifits_file_list:
         dic = open_oi(file)
         if dic:
-            print (dic['TARGET'], dic['DATEOBS'], dic['BAND'], dic['DISP'], dic['DIT'],dic['CATEGORY'])
+            print (dic['TARGET'], dic['DATEOBS'], dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
             list_of_dicts.append(dic)
 
     return list_of_dicts
+
 
 ###############################################################################
 # dates = example format: ["2018-03-16"]
@@ -821,7 +835,7 @@ def open_oi_dir(input_dir):
 # spectral_resolutions: 'LOW','MED','HIGH'
 # DIT_range: [min,max] (s)
 # targets = []
-def filter_oi_list(list_of_dicts, dates=[],bands=[],spectral_resolutions=[],DIT_range=[],targets=[]):
+def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], targets=[]):
     filtered_list_of_dicts = []
     if bands:
         # print  'old:',bands
@@ -847,18 +861,19 @@ def filter_oi_list(list_of_dicts, dates=[],bands=[],spectral_resolutions=[],DIT_
                 if dic['DISP'] not in spectral_resolutions:
                     continue
             if DIT_range:
-                if not(dic['DIT'] >= DIT_range[0] and dic['DIT'] <= DIT_range[1]):
+                if not (dic['DIT'] >= DIT_range[0] and dic['DIT'] <= DIT_range[1]):
                     continue
             target = dic['TARGET']
             if targets:
-                targets = [x.lower().replace("_"," ") for x in targets]
-                target = target.lower().replace("_"," ")
+                targets = [x.lower().replace("_", " ") for x in targets]
+                target = target.lower().replace("_", " ")
                 if target not in targets:
                     continue
             print ("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
             filtered_list_of_dicts.append(dic)
 
     return filtered_list_of_dicts
+
 
 ###############################################################################
 # Example code for TF and VIS plots.
@@ -891,7 +906,7 @@ def filter_oi_list(list_of_dicts, dates=[],bands=[],spectral_resolutions=[],DIT_
 
 class oi_data_select_frame(wx.Frame):
     # Data type selector GUI - work in progress ...
-    def __init__(self,  *args, **kw):
+    def __init__(self, *args, **kw):
         super(oi_data_select_frame, self).__init__(*args, **kw)
         self.InitUI()
 
@@ -908,11 +923,11 @@ class oi_data_select_frame(wx.Frame):
         sboxSizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
 
         hbox = wx.BoxSizer(wx.VERTICAL)
-        b1=wx.Button(panel, 0, label='VISAMP, VISPHI')
-        b2=wx.Button(panel, 1, label='VIS2, T3PHI')
-        b3=wx.Button(panel, 2, label='T3AMP')
-        b4=wx.Button(panel, 3, label='TF2')
-        b5=wx.Button(panel, 4, label='FLUX')
+        b1 = wx.Button(panel, 0, label='VISAMP, VISPHI')
+        b2 = wx.Button(panel, 1, label='VIS2, T3PHI')
+        b3 = wx.Button(panel, 2, label='T3AMP')
+        b4 = wx.Button(panel, 3, label='TF2')
+        b5 = wx.Button(panel, 4, label='FLUX')
 
         hbox.Add(b1, 0, wx.ALL | wx.LEFT, 3)
         hbox.Add(b2, 0, wx.ALL | wx.LEFT, 3)
@@ -928,13 +943,13 @@ class oi_data_select_frame(wx.Frame):
         nm = wx.StaticBox(panel, -1, 'Band')
         nmSizer = wx.StaticBoxSizer(nm, wx.VERTICAL)
         nmbox = wx.BoxSizer(wx.VERTICAL)
-        nmbox.Add(wx.CheckBox(panel,0, label='LM'), 0, wx.ALL | wx.LEFT, 3)
+        nmbox.Add(wx.CheckBox(panel, 0, label='LM'), 0, wx.ALL | wx.LEFT, 3)
         nmbox.Add(wx.CheckBox(panel, 1, label='N'), 0, wx.ALL | wx.LEFT, 3)
         nmSizer.Add(nmbox, 0, wx.ALL | wx.UP, 3)
 
         nm2 = wx.StaticBox(panel, -1, 'Spectral resolution')
         nmSizer2 = wx.StaticBoxSizer(nm2, wx.VERTICAL)
-        nmbox2= wx.BoxSizer(wx.VERTICAL)
+        nmbox2 = wx.BoxSizer(wx.VERTICAL)
         nmbox2.Add(wx.CheckBox(panel, 2, label='LOW'), 0, wx.ALL | wx.LEFT, 3)
         nmbox2.Add(wx.CheckBox(panel, 3, label='MED'), 0, wx.ALL | wx.LEFT, 3)
         nmbox2.Add(wx.CheckBox(panel, 4, label='HIGH'), 0, wx.ALL | wx.LEFT, 3)
@@ -942,7 +957,7 @@ class oi_data_select_frame(wx.Frame):
         nmSizer2.Add(nmbox2, 0, wx.ALL | wx.UP, 3)
         self.Bind(wx.EVT_CHECKBOX, self.onChecked)
 
-        #dateobs
+        # dateobs
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         l1 = wx.StaticText(panel, -1, "Text Field")
         hbox1.Add(l1, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
@@ -950,15 +965,15 @@ class oi_data_select_frame(wx.Frame):
         hbox1.Add(self.t1, 1, wx.EXPAND | wx.ALIGN_LEFT | wx.ALL, 5)
         self.t1.Bind(wx.EVT_TEXT, self.OnKeyTyped)
 
-        #DIT
+        # DIT
 
-        #Target
+        # Target
 
         vbox.Add(sboxSizer, 0, wx.ALL | wx.LEFT, 3)
         vbox.Add(nmSizer, 0, wx.ALL | wx.LEFT, 3)
         vbox.Add(nmSizer2, 0, wx.ALL | wx.LEFT, 3)
         vbox2.Add(hbox1, wx.ALL | wx.LEFT, 3)
-        vbox_ultimate.Add(vbox,0, wx.ALL | wx.UP, 3)
+        vbox_ultimate.Add(vbox, 0, wx.ALL | wx.UP, 3)
         vbox_ultimate.Add(vbox2, 0, wx.ALL | wx.CENTER, 3)
         panel.SetSizer(vbox)
         self.Centre()
@@ -990,11 +1005,12 @@ class oi_data_select_frame(wx.Frame):
         elif eID == 4:
             self.statusbar.SetStatusText('Show FLUX.')
             print ('Show FLUX.')
-        #e.Skip()
+            # e.Skip()
 
-#ex = wx.App()
-#oi_data_select_frame(None)
-#ex.MainLoop()
+
+# ex = wx.App()
+# oi_data_select_frame(None)
+# ex.MainLoop()
 
 
 if __name__ == '__main__':
@@ -1003,48 +1019,47 @@ if __name__ == '__main__':
     typePlot = "VIS2"
     for elt in listArg:
         if ('--help' in elt):
-            print( "Usage: mat_show_rawdata.py [--dir=start directory]")
+            print("Usage: mat_show_rawdata.py [--dir=start directory]")
             sys.exit(0)
         elif ('--typePlot' in elt):
             typePlot = elt.split("=")[1]
-        #elif len(listArg) == 2:
-       #     name_file = sys.argv[1]
-       #     print(name_file)
+            # elif len(listArg) == 2:
+            #     name_file = sys.argv[1]
+            #     print(name_file)
 
-    if typePlot=="VIS2":
+    if typePlot == "VIS2":
         table = "VIS2"
-    elif typePlot=="CLOS":
-        table="T3"
-    elif typePlot=="TF2":
-        typePlot="TF2"
-        table="TF2"
-    elif typePlot=="FLUX":
-        table="FLUX"
-    elif typePlot=="DPHI":
-        table="VIS"
-        
+    elif typePlot == "CLOS":
+        table = "T3"
+    elif typePlot == "TF2":
+        typePlot = "TF2"
+        table = "TF2"
+    elif typePlot == "FLUX":
+        table = "FLUX"
+    elif typePlot == "DPHI":
+        table = "VIS"
 
     app = wx.App()
     if not name_file:
         print("No input name given, running file selector...")
-        openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
+        openFileDialog = mat_FileDialog(None, 'Open a file', "lmk,")
         if openFileDialog.ShowModal() == wx.ID_OK:
             name_file = openFileDialog.GetPaths()[0]
-            print( name_file)
+            print(name_file)
         openFileDialog.Destroy()
     app.MainLoop()
     app.Destroy()
 
     dic = {};
     if os.path.isfile(name_file):
-        print("Reading file "+name_file+"...")
+        print("Reading file " + name_file + "...")
         dic = open_oi(name_file)
-        print("Plotting data "+name_file+"...")
+        print("Plotting data " + name_file + "...")
         show_oi_vs_freq(dic)
-        print("Plotting data "+name_file+"...")
+        print("Plotting data " + name_file + "...")
         plt.figure()
-        show_oi_vs_wlen(dic['FLUX'] ,dic['WLEN'],datatype='FLUX')
-        print("Plotting data "+name_file+"...")
+        show_oi_vs_wlen(dic['FLUX'], dic['WLEN'], datatype='FLUX')
+        print("Plotting data " + name_file + "...")
         plt.figure()
         wlen = dic['WLEN']
         print(wlen)
@@ -1052,6 +1067,5 @@ if __name__ == '__main__':
         name_dir = name_file
         list_of_dicts = open_oi_dir(name_dir)
         filtered_list_of_dicts = filter_oi_list(list_of_dicts)
-        show_vis2_tf2_vs_time(filtered_list_of_dicts,[3.5,3.95])
-        #show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key=table, datatype=typePlot)
-        
+        show_vis2_tf2_vs_time(filtered_list_of_dicts, [3.5, 3.95])
+        # show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key=table, datatype=typePlot)
