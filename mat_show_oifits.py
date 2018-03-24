@@ -55,6 +55,7 @@ from mat_fileDialog import identifyFile
 from astropy.io import fits as fits
 import os
 import glob
+import robust
 
 ###############################################################################
 
@@ -264,13 +265,15 @@ def show_oi_vs_freq(dic, log=False):
 
 ###############################################################################
 
-def show_oi_vs_wlen(dic,wlen,datatype="VIS2"):
-    data  = dic[datatype];
-    datae = dic[datatype+"ERR"];
+def show_oi_vs_wlen(dic,datatype="VIS2"):
+    wl = dic['WLEN'];
+    data  = dic[datatype][datatype];
+    datae = dic[datatype][datatype+"ERR"];
 
     for i,j in enumerate(data):
-        plt.plot(wlen*1e6, data[i,:])
-
+        #plt.errorbar(wl*1e6, data[i,:],yerr=datae[i,:])
+        plt.plot(wl * 1e6, data[i, :])
+    plt.show()
 ###############################################################################
 # This function shows the selected oifits data (flux, visibility, closure phase etc.)
 # as a function of time. It reads data from multiple oifits files in a given
@@ -309,12 +312,12 @@ def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
             wlenRange_idx = np.logical_and(wl > wlenRange[0]/1.0e6,wl < wlenRange[1]/1.0e6)
             if irregular_data_flag == 0:
                 datax.append(datat)
-                datay.append(np.nanmean(data[:,wlenRange_idx],axis=1))
-                datayerr.append(np.nanmean(datae[:,wlenRange_idx],axis=1))
+                datay.append(robust.mean(data[:,wlenRange_idx],axis=1))
+                datayerr.append(robust.mean(datae[:,wlenRange_idx],axis=1))
             else:
                 datax.append(datat[0:6])
-                datay.append(np.nanmean(data[0:6,wlenRange_idx],axis=1))
-                datayerr.append(np.nanmean(datae[0:6,wlenRange_idx],axis=1))
+                datay.append(robust.mean(data[0:6,wlenRange_idx],axis=1))
+                datayerr.append(robust.mean(datae[0:6,wlenRange_idx],axis=1))
         except:
             pass
     datax = np.array(datax)
@@ -338,303 +341,465 @@ def show_oi_vs_time(list_of_dicts, wlenRange,key="VIS2",datatype="VIS2"):
         print "No data to plot."
 
 ###############################################################################
-def show_vis2_tf2_vs_time(list_of_dicts, wlenRange):
-    plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
-    target_names_cal = []
-    V2_MJD_arr_cal = []
-    V2_arr_cal = []
-    V2err_arr_cal = []
-    V2_sta_index_cal = []
+# showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)
+def show_vis2_tf2_vs_time(list_of_dicts, wlenRange,showvis=False,saveplots=False,output_path=""):
+    #check if list is not empty:
+    if list_of_dicts:
+        #colors: BCD: out-out, in-in, in-out, out-in
+        BCD_configs = np.array([[0,0],[1,1],[1,0],[0,1]])
+        BCD_labels = np.array(['OUT-OUT','IN-IN','IN-OUT','OUT-IN'])
+        BCD_markers = np.array(['o','s','d','p'])
+        V2_cal_colors = np.array(['darkseagreen', 'yellowgreen', 'olivedrab', 'darkkhaki'])
+        V2_colors = np.array(['red','orange','salmon','pink'])
+        TF2_colors = np.array(['blue','dodgerblue','royalblue','indigo'])
 
-    target_names_CP_cal = []
-    CP_MJD_arr_cal = []
-    CP_arr_cal = []
-    CPerr_arr_cal = []
-    CP_sta_index_cal = []
+        target_names_cal = []
+        V2_BCD_arr_cal = []
+        V2_MJD_arr_cal = []
+        V2_arr_cal = []
+        V2err_arr_cal = []
+        V2_sta_index_cal = []
 
-    target_names_TF2 = []
-    TF2_MJD_arr = []
-    TF2_arr = []
-    TF2err_arr = []
-    TF2_sta_index = []
+        target_names_CP_cal = []
+        CP_BCD_arr_cal = []
+        CP_MJD_arr_cal = []
+        CP_arr_cal = []
+        CPerr_arr_cal = []
+        CP_sta_index_cal = []
 
-    target_names = []
-    V2_MJD_arr = []
-    V2_arr = []
-    V2err_arr = []
-    V2_sta_index = []
+        target_names_TF2 = []
+        TF2_BCD_arr = []
+        TF2_MJD_arr = []
+        TF2_arr = []
+        TF2err_arr = []
+        TF2_sta_index = []
 
-    target_names_CP = []
-    CP_MJD_arr = []
-    CP_arr = []
-    CPerr_arr = []
-    CP_sta_index = []
+        target_names = []
+        V2_BCD_arr = []
+        V2_MJD_arr = []
+        V2_arr = []
+        V2err_arr = []
+        V2_sta_index = []
 
-    for dic in list_of_dicts:
-        wl = np.array(dic['WLEN'])
-        wlenRange_idx = np.logical_and(wl > wlenRange[0] / 1.0e6, wl < wlenRange[1] / 1.0e6)
-        category = dic['CATEGORY'].lower()
-        if 'cal' in category:
-            try:
-                datay = np.array(dic['VIS2']['VIS2'])
-                datayerr = np.array(dic['VIS2']['VIS2ERR'])
-                datax = np.array(dic['VIS2']["TIME"])
-                n_rows = datay.shape[0]
-                # print datay.shape
-                for i in range(n_rows):
-                    target_names_cal.append(dic['TARGET'])
-                    sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
-                    V2_sta_index_cal.append(sta_index)
-                    # print np.nanmean(datay[i, wlenRange_idx])
-                    V2_MJD_arr_cal.append(datax[i])
-                    V2_arr_cal.append(np.nanmean(datay[i, wlenRange_idx]))
-                    V2err_arr_cal.append(np.nanmean(datayerr[i, wlenRange_idx]))
-            except:
-                print (dic['TARGET'],dic['DATEOBS'], "No CAL VIS2 data found.")
-            try:
-                datay = np.array(dic['T3']['CLOS'])
-                datayerr = np.array(dic['T3']['CLOSERR'])
-                datax = np.array(dic['T3']["TIME"])
-                n_rows = datay.shape[0]
-                for i in range(n_rows):
-                    target_names_CP_cal.append(dic['TARGET'])
-                    sta_index = np.sort(dic['T3']['STA_INDEX'][i])
-                    CP_sta_index_cal.append(sta_index)
-                    CP_MJD_arr_cal.append(datax[i])
-                    CP_arr_cal.append(np.nanmean(datay[i, wlenRange_idx]))
-                    CPerr_arr_cal.append(np.nanmean(datayerr[i, wlenRange_idx]))
-            except:
-                print (dic['TARGET'],dic['DATEOBS'], "No CAL CP data found.")
-            try:
-                datay = np.array(dic['TF2']['TF2'])
-                datayerr = np.array(dic['TF2']['TF2ERR'])
-                datax = np.array(dic['TF2']["TIME"])
-                n_rows = datay.shape[0]
-                # print datay.shape
-                for i in range(n_rows):
-                    target_names_TF2.append(dic['TARGET'])
-                    sta_index = np.sort(dic['TF2']['STA_INDEX'][i])
-                    TF2_sta_index.append(sta_index)
-                    # print np.nanmean(datay[i, wlenRange_idx])
-                    TF2_MJD_arr.append(datax[i])
-                    TF2_arr.append(np.nanmean(datay[i, wlenRange_idx]))
-                    TF2err_arr.append(np.nanmean(datayerr[i, wlenRange_idx]))
-            except:
-                print (dic['TARGET'],dic['DATEOBS'],"No CAL TF2 data found.")
-        if 'sci' in category:
-            try:
-                datay = np.array(dic['VIS2']['VIS2'])
-                datayerr = np.array(dic['VIS2']['VIS2ERR'])
-                datax = np.array(dic['VIS2']["TIME"])
-                n_rows = datay.shape[0]
-                # print datay.shape
-                for i in range(n_rows):
-                    target_names.append(dic['TARGET'])
-                    sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
-                    V2_sta_index.append(sta_index)
-                    # print np.nanmean(datay[i, wlenRange_idx])
-                    V2_MJD_arr.append(datax[i])
-                    V2_arr.append(np.nanmean(datay[i, wlenRange_idx]))
-                    V2err_arr.append(np.nanmean(datayerr[i, wlenRange_idx]))
-            except:
-                print (dic['TARGET'],dic['DATEOBS'],"No SCI VIS2 data found.")
-            try:
-                datay = np.array(dic['T3']['CLOS'])
-                datayerr = np.array(dic['T3']['CLOSERR'])
-                datax = np.array(dic['T3']["TIME"])
-                n_rows = datay.shape[0]
-                for i in range(n_rows):
-                    target_names_CP.append(dic['TARGET'])
-                    sta_index = np.sort(dic['T3']['STA_INDEX'][i])
-                    CP_sta_index.append(sta_index)
-                    CP_MJD_arr.append(datax[i])
-                    CP_arr.append(np.nanmean(datay[i, wlenRange_idx]))
-                    CPerr_arr.append(np.nanmean(datayerr[i, wlenRange_idx]))
-            except:
-                print (dic['TARGET'],dic['DATEOBS'],"No SCI CP data found.")
+        target_names_CP = []
+        CP_BCD_arr = []
+        CP_MJD_arr = []
+        CP_arr = []
+        CPerr_arr = []
+        CP_sta_index = []
 
-    sta_names = dic['STA_NAME']
+        for dic in list_of_dicts:
+            wl = np.array(dic['WLEN'])
+            wlenRange_idx = np.logical_and(wl > wlenRange[0] / 1.0e6, wl < wlenRange[1] / 1.0e6)
+            category = dic['CATEGORY'].lower()
+            if 'cal' in category:
+                try:
+                    datay = np.array(dic['VIS2']['VIS2'])
+                    datayerr = np.array(dic['VIS2']['VIS2ERR'])
+                    datax = np.array(dic['VIS2']["TIME"])
+                    n_rows = datay.shape[0]
+                    # print datay.shape
+                    for i in range(n_rows):
+                        # print robust.mean(datay[i, wlenRange_idx])
+                        if dic['BCD1NAME'] == 'IN':
+                            BCD1 = 1
+                        elif dic['BCD1NAME'] == 'OUT':
+                            BCD1 = 0
+                        else:
+                            BCD1 = 0
+                        if dic['BCD2NAME'] == 'IN':
+                            BCD2 = 1
+                        elif dic['BCD2NAME'] == 'OUT':
+                            BCD2 = 0
+                        else:
+                            BCD2 = 0
+                        V2_arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
+                        V2err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        V2_BCD_arr_cal.append([BCD1,BCD2])
+                        V2_MJD_arr_cal.append(datax[i])
+                        target_names_cal.append(dic['TARGET'])
+                        sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
+                        V2_sta_index_cal.append(sta_index)
+                except:
+                    print (dic['TARGET'],dic['DATEOBS'], "No CAL VIS2 data found.")
+                try:
+                    datay = np.array(dic['T3']['CLOS'])
+                    datayerr = np.array(dic['T3']['CLOSERR'])
+                    datax = np.array(dic['T3']["TIME"])
+                    n_rows = datay.shape[0]
+                    for i in range(n_rows):
+                        if dic['BCD1NAME'] == 'IN':
+                            BCD1 = 1
+                        elif dic['BCD1NAME'] == 'OUT':
+                            BCD1 = 0
+                        else:
+                            BCD1 = 0
+                        if dic['BCD2NAME'] == 'IN':
+                            BCD2 = 1
+                        elif dic['BCD2NAME'] == 'OUT':
+                            BCD2 = 0
+                        else:
+                            BCD2 = 0
+                        CP_arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
+                        CPerr_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        CP_BCD_arr_cal.append([BCD1, BCD2])
+                        CP_MJD_arr_cal.append(datax[i])
+                        target_names_CP_cal.append(dic['TARGET'])
+                        sta_index = np.sort(dic['T3']['STA_INDEX'][i])
+                        CP_sta_index_cal.append(sta_index)
+                except:
+                    print (dic['TARGET'],dic['DATEOBS'], "No CAL CP data found.")
+                try:
+                    datay = np.array(dic['TF2']['TF2'])
+                    datayerr = np.array(dic['TF2']['TF2ERR'])
+                    datax = np.array(dic['TF2']["TIME"])
+                    n_rows = datay.shape[0]
+                    # print datay.shape
+                    for i in range(n_rows):
+                        # print robust.mean(datay[i, wlenRange_idx])
+                        if dic['BCD1NAME'] == 'IN':
+                            BCD1 = 1
+                        elif dic['BCD1NAME'] == 'OUT':
+                            BCD1 = 0
+                        else:
+                            BCD1 = 0
+                        if dic['BCD2NAME'] == 'IN':
+                            BCD2 = 1
+                        elif dic['BCD2NAME'] == 'OUT':
+                            BCD2 = 0
+                        else:
+                            BCD2 = 0
+                        TF2_arr.append(robust.mean(datay[i, wlenRange_idx]))
+                        TF2err_arr.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        TF2_BCD_arr.append([BCD1, BCD2])
+                        TF2_MJD_arr.append(datax[i])
+                        target_names_TF2.append(dic['TARGET'])
+                        sta_index = np.sort(dic['TF2']['STA_INDEX'][i])
+                        TF2_sta_index.append(sta_index)
+                except:
+                    print (dic['TARGET'],dic['DATEOBS'],"No CAL TF2 data found.")
+            if 'sci' in category:
+                try:
+                    datay = np.array(dic['VIS2']['VIS2'])
+                    datayerr = np.array(dic['VIS2']['VIS2ERR'])
+                    datax = np.array(dic['VIS2']["TIME"])
+                    n_rows = datay.shape[0]
+                    # print datay.shape
+                    for i in range(n_rows):
+                        if dic['BCD1NAME'] == 'IN':
+                            BCD1 = 1
+                        elif dic['BCD1NAME'] == 'OUT':
+                            BCD1 = 0
+                        else:
+                            BCD1 = 0
+                        if dic['BCD2NAME'] == 'IN':
+                            BCD2 = 1
+                        elif dic['BCD2NAME'] == 'OUT':
+                            BCD2 = 0
+                        else:
+                            BCD2 = 0
+                        V2_arr.append(robust.mean(datay[i, wlenRange_idx]))
+                        V2err_arr.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        V2_BCD_arr.append([BCD1, BCD2])
+                        V2_MJD_arr.append(datax[i])
+                        target_names.append(dic['TARGET'])
+                        sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
+                        V2_sta_index.append(sta_index)
+                except:
+                    print (dic['TARGET'],dic['DATEOBS'],"No SCI VIS2 data found.")
+                try:
+                    datay = np.array(dic['T3']['CLOS'])
+                    datayerr = np.array(dic['T3']['CLOSERR'])
+                    datax = np.array(dic['T3']["TIME"])
+                    n_rows = datay.shape[0]
+                    for i in range(n_rows):
+                        if dic['BCD1NAME'] == 'IN':
+                            BCD1 = 1
+                        elif dic['BCD1NAME'] == 'OUT':
+                            BCD1 = 0
+                        else:
+                            BCD1 = 0
+                        if dic['BCD2NAME'] == 'IN':
+                            BCD2 = 1
+                        elif dic['BCD2NAME'] == 'OUT':
+                            BCD2 = 0
+                        else:
+                            BCD2 = 0
+                        CP_arr.append(robust.mean(datay[i, wlenRange_idx]))
+                        CPerr_arr.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        target_names_CP.append(dic['TARGET'])
+                        sta_index = np.sort(dic['T3']['STA_INDEX'][i])
+                        CP_sta_index.append(sta_index)
+                        CP_BCD_arr.append([BCD1, BCD2])
+                        CP_MJD_arr.append(datax[i])
+                except:
+                    print (dic['TARGET'],dic['DATEOBS'],"No SCI CP data found.")
 
-    target_names_cal = np.array(target_names_cal)
-    V2_MJD_arr_cal = np.array(V2_MJD_arr_cal)
-    V2_arr_cal = np.array(V2_arr_cal)
-    V2err_arr_cal = np.array(V2err_arr_cal)
-    V2_sta_index_cal = np.array(V2_sta_index_cal)
+        sta_names = dic['STA_NAME']
 
-    target_names_CP_cal = np.array(target_names_CP_cal)
-    CP_MJD_arr_cal = np.array(CP_MJD_arr_cal)
-    CP_arr_cal = np.array(CP_arr_cal)
-    CPerr_arr_cal = np.array(CPerr_arr_cal)
-    CP_sta_index_cal = np.array(CP_sta_index_cal)
+        target_names_cal = np.array(target_names_cal)
+        V2_BCD_arr_cal = np.array(V2_BCD_arr_cal)
+        V2_MJD_arr_cal = np.array(V2_MJD_arr_cal)
+        V2_arr_cal = np.array(V2_arr_cal)
+        V2err_arr_cal = np.array(V2err_arr_cal)
+        V2_sta_index_cal = np.array(V2_sta_index_cal)
 
-    target_names_TF2 = np.array(target_names_TF2)
-    TF2_MJD_arr = np.array(TF2_MJD_arr)
-    TF2_arr = np.array(TF2_arr)
-    TF2err_arr = np.array(TF2err_arr)
-    TF2_sta_index = np.array(TF2_sta_index)
+        target_names_CP_cal = np.array(target_names_CP_cal)
+        CP_BCD_arr_cal = np.array(CP_BCD_arr_cal)
+        CP_MJD_arr_cal = np.array(CP_MJD_arr_cal)
+        CP_arr_cal = np.array(CP_arr_cal)
+        CPerr_arr_cal = np.array(CPerr_arr_cal)
+        CP_sta_index_cal = np.array(CP_sta_index_cal)
 
-    target_names = np.array(target_names)
-    V2_MJD_arr = np.array(V2_MJD_arr)
-    V2_arr = np.array(V2_arr)
-    V2err_arr = np.array(V2err_arr)
-    V2_sta_index = np.array(V2_sta_index)
+        target_names_TF2 = np.array(target_names_TF2)
+        TF2_BCD_arr = np.array(TF2_BCD_arr)
+        TF2_MJD_arr = np.array(TF2_MJD_arr)
+        TF2_arr = np.array(TF2_arr)
+        TF2err_arr = np.array(TF2err_arr)
+        TF2_sta_index = np.array(TF2_sta_index)
 
-    target_names_CP = np.array(target_names_CP)
-    CP_MJD_arr = np.array(CP_MJD_arr)
-    CP_arr = np.array(CP_arr)
-    CPerr_arr = np.array(CPerr_arr)
-    CP_sta_index = np.array(CP_sta_index)
+        target_names = np.array(target_names)
+        V2_BCD_arr = np.array(V2_BCD_arr)
+        V2_MJD_arr = np.array(V2_MJD_arr)
+        V2_arr = np.array(V2_arr)
+        V2err_arr = np.array(V2err_arr)
+        V2_sta_index = np.array(V2_sta_index)
 
-    sta_indices = np.unique(V2_sta_index_cal, axis=0)
-    n_max_config = np.nanmax([6, sta_indices.shape[0]])
-    # print sta_indices.shape
+        target_names_CP = np.array(target_names_CP)
+        CP_BCD_arr = np.array(CP_BCD_arr)
+        CP_MJD_arr = np.array(CP_MJD_arr)
+        CP_arr = np.array(CP_arr)
+        CPerr_arr = np.array(CPerr_arr)
+        CP_sta_index = np.array(CP_sta_index)
 
-    if len(V2_MJD_arr_cal) > 0 and len(V2_MJD_arr) > 0:
-        MJD_range = [np.nanmin([np.nanmin(V2_MJD_arr_cal),np.nanmin(V2_MJD_arr)]),np.nanmax([np.nanmax(V2_MJD_arr_cal),np.nanmax(V2_MJD_arr)])]
-    elif len(V2_MJD_arr) > 0:
-        MJD_range = [np.nanmin(V2_MJD_arr),np.nanmax(V2_MJD_arr)]
-    elif len(V2_MJD_arr_cal) > 0:
-        MJD_range = [np.nanmin(V2_MJD_arr_cal), np.nanmax(V2_MJD_arr_cal)]
-    else:
-        MJD_range = [0.0,1.0]
-    text_width_MJD = 0.008
-    fig1, axs1 = plt.subplots(3, 2, figsize=(15, 13),sharex=True, sharey=True)
-    axs1 = axs1.ravel()
-    text_y = 1.15
-    for i in range(n_max_config):
-        #print i
-        if len(V2_sta_index_cal) > 0:
-            idxst = np.all(V2_sta_index_cal == sta_indices[i],axis=1)
-            if len(V2_arr_cal[idxst]) > 0:
-                axs1[i].errorbar(V2_MJD_arr_cal[idxst], V2_arr_cal[idxst], yerr=V2err_arr_cal[idxst], fmt='o', color='gray',
-                             elinewidth=1.5,label='V2 cal')
-                if i in range(2):
-                    text_tag_flag = 1
-                    prev_text_MJD = 0.0
-                    prev_target_name = ""
-                    for j in range(np.sum(idxst)):
-                        if V2_MJD_arr_cal[idxst][j] > (prev_text_MJD + text_width_MJD):
-                            text_tag_flag = 1
-                        if text_tag_flag == 1 or (prev_target_name != target_names_cal[idxst][j]):
-                            axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y, target_names_cal[idxst][j].replace('_',' '), rotation=90,
-                                     va='bottom')
-                            text_tag_flag = 0
-                            prev_text_MJD = V2_MJD_arr_cal[idxst][j]
-                            prev_target_name = target_names_cal[idxst][j]
-        if len(TF2_sta_index) > 0:
-            idxst = np.all(TF2_sta_index == sta_indices[i],axis=1)
-            if len(TF2_arr[idxst]) > 0:
-                axs1[i].errorbar(TF2_MJD_arr[idxst], TF2_arr[idxst], yerr=TF2err_arr[idxst], fmt='o', color='blue',
-                                 elinewidth=1.5, label='TF2')
+        sta_indices = np.unique(V2_sta_index_cal, axis=0)
+        n_max_config = np.nanmax([6, sta_indices.shape[0]])
+        # print sta_indices.shape
 
-        if len(V2_sta_index) > 0:
-            idxst = np.all(V2_sta_index == sta_indices[i], axis=1)
-            if len(V2_arr[idxst]) > 0:
-                axs1[i].errorbar(V2_MJD_arr[idxst], V2_arr[idxst], yerr=V2err_arr[idxst], fmt='o', color='red',
-                                elinewidth=1.5,label='V2 sci')
-                if i in range(2):
-                    text_tag_flag = 1
-                    prev_text_MJD = 0.0
-                    prev_target_name = ""
-                    for j in range(np.sum(idxst)):
-                        if V2_MJD_arr[idxst][j] > (prev_text_MJD + text_width_MJD):
-                            text_tag_flag = 1
-                        if text_tag_flag == 1 or (prev_target_name != target_names[idxst][j]):
-                            axs1[i].text(V2_MJD_arr[idxst][j], text_y, target_names[idxst][j].replace('_', ' '),
-                                         rotation=90, va='bottom', color='darkred')
-                            text_tag_flag = 0
-                            prev_text_MJD = V2_MJD_arr[idxst][j]
-                            prev_target_name = target_names[idxst][j]
+        if len(V2_MJD_arr_cal) > 0 and len(V2_MJD_arr) > 0:
+            MJD_range = [np.nanmin([np.nanmin(V2_MJD_arr_cal),np.nanmin(V2_MJD_arr)]),np.nanmax([np.nanmax(V2_MJD_arr_cal),np.nanmax(V2_MJD_arr)])]
+        elif len(V2_MJD_arr) > 0:
+            MJD_range = [np.nanmin(V2_MJD_arr),np.nanmax(V2_MJD_arr)]
+        elif len(V2_MJD_arr_cal) > 0:
+            MJD_range = [np.nanmin(V2_MJD_arr_cal), np.nanmax(V2_MJD_arr_cal)]
+        else:
+            MJD_range = [0.0,1.0]
+        text_width_MJD = (MJD_range[1]-MJD_range[0])/20.0
+        fig1, axs1 = plt.subplots(3, 2, figsize=(15, 16),sharex=True, sharey=True)
+        axs1 = axs1.ravel()
+        text_y = 1.15
+        for i in range(n_max_config):
+            #print i
+            if len(V2_sta_index_cal) > 0:
+                idxst = np.all(V2_sta_index_cal == sta_indices[i],axis=1)
+                if len(V2_arr_cal[idxst]) > 0:
+                    if showvis == True:
+                        label = 'V cal '
+                    else:
+                        label = 'V2 cal '
+                    for j in range(len(BCD_configs)):
+                        BCDidx = np.all(V2_BCD_arr_cal == BCD_configs[j],axis=1)
+                        cidxst = np.logical_and(idxst,BCDidx)
+                        if len(V2_arr_cal[cidxst]) > 0:
+                            if showvis == True:
+                                axs1[i].errorbar(V2_MJD_arr_cal[cidxst], np.sqrt(V2_arr_cal[cidxst]),
+                                             yerr=0.5*V2err_arr_cal[cidxst]/np.sqrt(V2_arr_cal[cidxst]),
+                                    fmt=BCD_markers[j], color=V2_cal_colors[j],elinewidth=1.5,label=label+BCD_labels[j])
+                            else:
+                                axs1[i].errorbar(V2_MJD_arr_cal[cidxst], V2_arr_cal[cidxst],
+                                                 yerr=V2err_arr_cal[cidxst],
+                                                 fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
+                                                 label=label + BCD_labels[j])
+                    if i in range(2):
+                        text_tag_flag = 1
+                        prev_text_MJD = 0.0
+                        prev_target_name = ""
+                        for j in range(np.sum(idxst)):
+                            if V2_MJD_arr_cal[idxst][j] > (prev_text_MJD + text_width_MJD):
+                                text_tag_flag = 1
+                            if text_tag_flag == 1 or (prev_target_name != target_names_cal[idxst][j]):
+                                axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y, target_names_cal[idxst][j].replace('_',' '), rotation=90,
+                                         va='bottom')
+                                text_tag_flag = 0
+                                prev_text_MJD = V2_MJD_arr_cal[idxst][j]
+                                prev_target_name = target_names_cal[idxst][j]
+            if len(TF2_sta_index) > 0:
+                if showvis == True:
+                    label = 'TF '
+                else:
+                    label = 'TF2 '
+                idxst = np.all(TF2_sta_index == sta_indices[i],axis=1)
+                if len(TF2_arr[idxst]) > 0:
+                    for j in range(len(BCD_configs)):
+                        BCDidx = np.all(TF2_BCD_arr == BCD_configs[j], axis=1)
+                        cidxst = np.logical_and(idxst, BCDidx)
+                        if len(TF2_arr[cidxst]) > 0:
+                            if showvis == True:
+                                axs1[i].errorbar(TF2_MJD_arr[cidxst], np.sqrt(TF2_arr[cidxst]),
+                                             yerr=0.5*TF2err_arr[cidxst]/np.sqrt(TF2_arr[cidxst]),
+                                             fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
+                                             label=label+ BCD_labels[j])
+                            else:
+                                axs1[i].errorbar(TF2_MJD_arr[cidxst], TF2_arr[cidxst], yerr=TF2err_arr[cidxst],
+                                                 fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
+                                                 label=label + BCD_labels[j])
+            if len(V2_sta_index) > 0:
+                if showvis == True:
+                    label = 'V sci '
+                else:
+                    label = 'V2 sci '
+                idxst = np.all(V2_sta_index == sta_indices[i], axis=1)
+                if len(V2_arr[idxst]) > 0:
+                    for j in range(len(BCD_configs)):
+                        BCDidx = np.all(V2_BCD_arr == BCD_configs[j],axis=1)
+                        cidxst = np.logical_and(idxst,BCDidx)
+                        if len(V2_arr[cidxst]) > 0:
+                            if showvis == True:
+                                axs1[i].errorbar(V2_MJD_arr[cidxst], np.sqrt(V2_arr[cidxst]),
+                                    yerr=0.5*V2err_arr[cidxst]/np.sqrt(V2_arr[cidxst]),
+                                    fmt=BCD_markers[j], color=V2_colors[j],elinewidth=1.5,label=label+BCD_labels[j])
+                            else:
+                                axs1[i].errorbar(V2_MJD_arr[cidxst], V2_arr[cidxst], yerr=V2err_arr[cidxst],
+                                                 fmt=BCD_markers[j], color=V2_colors[j], elinewidth=1.5,
+                                                 label=label + BCD_labels[j])
+                    if i in range(2):
+                        text_tag_flag = 1
+                        prev_text_MJD = 0.0
+                        prev_target_name = ""
+                        for j in range(np.sum(idxst)):
+                            if V2_MJD_arr[idxst][j] > (prev_text_MJD + text_width_MJD):
+                                text_tag_flag = 1
+                            if text_tag_flag == 1 or (prev_target_name != target_names[idxst][j]):
+                                axs1[i].text(V2_MJD_arr[idxst][j], text_y, target_names[idxst][j].replace('_', ' '),
+                                             rotation=90, va='bottom', color='darkred')
+                                text_tag_flag = 0
+                                prev_text_MJD = V2_MJD_arr[idxst][j]
+                                prev_target_name = target_names[idxst][j]
 
-        axlabel = sta_names[sta_indices[i,0] == dic['STA_INDEX']][0] + ' - ' + \
-                  sta_names[sta_indices[i,1] == dic['STA_INDEX']][0]
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        axs1[i].text(0.05, 0.95, axlabel,horizontalalignment='left',verticalalignment='top',
-                     transform=axs1[i].transAxes, bbox=props)
-        leg = axs1[i].legend(loc='upper right')
-        leg.get_frame().set_alpha(0.5)
-        axs1[i].set_ylim([-0.1, 1.1])
-        axs1[i].set_ylabel('$V^2$')
-        axs1[i].set_xlabel('$\mathrm{MJD}$')
-    plt.suptitle('$V^2\mathrm{\ vs.\ time}$')
-    fig1.subplots_adjust(hspace=0,wspace=0)
-    for i in range(4):
-        plt.setp(axs1[i].get_xticklabels() , visible=False)
-        x_axis = axs1[i].axes.get_xaxis()
-        x_axis.get_label().set_visible(False)
-    for i in range(1,6,2):
-        plt.setp(axs1[i].get_yticklabels() , visible=False)
-        y_axis = axs1[i].axes.get_yaxis()
-        y_axis.get_label().set_visible(False)
-    #plt.tight_layout()
+            axlabel = sta_names[sta_indices[i,0] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[sta_indices[i,1] == dic['STA_INDEX']][0]
+            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+            axs1[i].text(0.05, 0.95, axlabel,horizontalalignment='left',verticalalignment='top',
+                         transform=axs1[i].transAxes, bbox=props)
+            if i==0:
+                leg = axs1[i].legend(loc='upper right')
+                leg.get_frame().set_alpha(0.5)
+            axs1[i].set_ylim([-0.1, 1.1])
+            if showvis == True:
+                ylabel = '$V$'
+            else:
+                ylabel = '$V^2$'
+            axs1[i].set_ylabel(ylabel)
+            axs1[i].set_xlabel('$\mathrm{MJD}$')
+        if showvis == True:
+            plt.suptitle('$V\mathrm{\ vs.\ time}$')
+        else:
+            plt.suptitle('$V^2\mathrm{\ vs.\ time}$')
+        fig1.subplots_adjust(hspace=0,wspace=0)
+        for i in range(4):
+            plt.setp(axs1[i].get_xticklabels() , visible=False)
+            x_axis = axs1[i].axes.get_xaxis()
+            x_axis.get_label().set_visible(False)
+        for i in range(1,6,2):
+            plt.setp(axs1[i].get_yticklabels() , visible=False)
+            y_axis = axs1[i].axes.get_yaxis()
+            y_axis.get_label().set_visible(False)
+        #plt.tight_layout()
+        if saveplots == True:
+            if showvis == True:
+                label = '_VIS_TF'
+            else:
+                label = '_VIS2_TF2'
+            fig1.savefig(output_path + label + '.png', dpi=150)
+            fig1.savefig(output_path + label + '.eps', format='eps', dpi=300)
+            plt.close(fig1)
 
-    CP_sta_indices = np.unique(CP_sta_index_cal, axis=0)
-    #print CP_sta_indices
-    n_max_config = np.nanmax([4,CP_sta_indices.shape[0]])
+        CP_sta_indices = np.unique(CP_sta_index_cal, axis=0)
+        #print CP_sta_indices
+        n_max_config = np.nanmax([4,CP_sta_indices.shape[0]])
 
-    fig2, axs = plt.subplots(2, 2, figsize=(10, 10), sharex=True, sharey=True)
-    axs = axs.ravel()
-    text_y = 60
-    for i in range(n_max_config):
-        if len(CP_sta_index_cal) > 0:
-            idxst = np.all(CP_sta_index_cal == CP_sta_indices[i],axis=1)
-            if len(CP_arr_cal[idxst]) > 0:
-                axs[i + 0].errorbar(CP_MJD_arr_cal[idxst], CP_arr_cal[idxst], yerr=CPerr_arr_cal[idxst], fmt='o',
-                                    color='gray',elinewidth=1.5, label='CP cal')
-                if i in range(2):
-                    text_tag_flag = 1
-                    prev_text_MJD = 0.0
-                    prev_target_name = ""
-                    for j in range(np.sum(idxst)):
-                        if CP_MJD_arr_cal[idxst][j] > (prev_text_MJD + text_width_MJD):
-                            text_tag_flag = 1
-                        if text_tag_flag == 1 or (prev_target_name != target_names_CP_cal[idxst][j]):
-                            axs[i + 0].text(CP_MJD_arr_cal[idxst][j], text_y, target_names_CP_cal[idxst][j].replace('_',' '), rotation=90,
-                                     va='bottom')
-                            text_tag_flag = 0
-                            prev_text_MJD = CP_MJD_arr_cal[idxst][j]
-                            prev_target_name = target_names_CP_cal[idxst][j]
-        if len(CP_sta_index) > 0:
-            idxst = np.all(CP_sta_index == CP_sta_indices[i],axis=1)
-            if len(CP_arr[idxst]) > 0:
-                axs[i + 0].errorbar(CP_MJD_arr[idxst], CP_arr[idxst], yerr=CPerr_arr[idxst], fmt='o',
-                                    color='darkred',elinewidth=1.5, label='CP sci')
-                if i in range(2):
-                    text_tag_flag = 1
-                    prev_text_MJD = 0.0
-                    prev_target_name = ""
-                    for j in range(np.sum(idxst)):
-                        if CP_MJD_arr[idxst][j] > (prev_text_MJD + text_width_MJD):
-                            text_tag_flag = 1
-                        if text_tag_flag == 1 or (prev_target_name != target_names_CP[idxst][j]):
-                            axs[i + 0].text(CP_MJD_arr[idxst][j], text_y, target_names_CP[idxst][j].replace('_', ' '),
-                                             rotation=90,
-                                             va='bottom')
-                            text_tag_flag = 0
-                            prev_text_MJD = CP_MJD_arr[idxst][j]
-                            prev_target_name = target_names_CP[idxst][j]
-        axlabel = sta_names[CP_sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
-                  sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
-                  sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
-        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        axs[i + 0].text(0.05, 0.95, axlabel,horizontalalignment='left',verticalalignment='top',
-                     transform=axs[i + 0].transAxes, bbox=props)
-        leg = axs[i + 0].legend(loc='upper right')
-        leg.get_frame().set_alpha(0.5)
-        axs[i + 0].set_ylabel('$CP\,\left(^\circ\\right)$')
-        axs[i + 0].set_xlabel('$\mathrm{MJD}$')
-    plt.suptitle('$CP\mathrm{\ vs.\ time}$')
-    fig2.subplots_adjust(hspace=0, wspace=0)
-    for i in range(2):
-        plt.setp(axs[i+0].get_xticklabels() , visible=False)
-        x_axis = axs[i+0].axes.get_xaxis()
-        x_axis.get_label().set_visible(False)
-    for i in range(1,4,2):
-        plt.setp(axs[i+0].get_yticklabels() , visible=False)
-        y_axis = axs[i+0].axes.get_yaxis()
-        y_axis.get_label().set_visible(False)
-    #plt.tight_layout()
-    plt.show()
+        fig2, axs = plt.subplots(2, 2, figsize=(14, 12), sharex=True, sharey=True)
+        axs = axs.ravel()
+        text_y = 60
+        for i in range(n_max_config):
+            axs[i + 0].plot(MJD_range, [0.0, 0.0], '-', color='gray', lw=1.5)
+            if len(CP_sta_index_cal) > 0:
+                idxst = np.all(CP_sta_index_cal == CP_sta_indices[i],axis=1)
+                if len(CP_arr_cal[idxst]) > 0:
+                    for j in range(len(BCD_configs)):
+                        BCDidx = np.all(CP_BCD_arr_cal == BCD_configs[j], axis=1)
+                        cidxst = np.logical_and(idxst, BCDidx)
+                        if len(CP_arr_cal[cidxst]) > 0:
+                            axs[i + 0].errorbar(CP_MJD_arr_cal[cidxst], CP_arr_cal[cidxst], yerr=CPerr_arr_cal[cidxst],
+                                             fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
+                                             label='CP cal ' + BCD_labels[j])
+                    if i in range(2):
+                        text_tag_flag = 1
+                        prev_text_MJD = 0.0
+                        prev_target_name = ""
+                        for j in range(np.sum(idxst)):
+                            if CP_MJD_arr_cal[idxst][j] > (prev_text_MJD + text_width_MJD):
+                                text_tag_flag = 1
+                            if text_tag_flag == 1 or (prev_target_name != target_names_CP_cal[idxst][j]):
+                                ymin, ymax = axs[i + 0].get_ylim()
+                                axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax*1.05, target_names_CP_cal[idxst][j].replace('_',' '), rotation=90,
+                                         va='bottom')
+                                text_tag_flag = 0
+                                prev_text_MJD = CP_MJD_arr_cal[idxst][j]
+                                prev_target_name = target_names_CP_cal[idxst][j]
+            if len(CP_sta_index) > 0:
+                idxst = np.all(CP_sta_index == CP_sta_indices[i],axis=1)
+                if len(CP_arr[idxst]) > 0:
+                    for j in range(len(BCD_configs)):
+                        BCDidx = np.all(CP_BCD_arr == BCD_configs[j], axis=1)
+                        cidxst = np.logical_and(idxst, BCDidx)
+                        if len(CP_arr[cidxst]) > 0:
+                            axs[i + 0].errorbar(CP_MJD_arr[cidxst], CP_arr[cidxst], yerr=CPerr_arr[cidxst],
+                                             fmt=BCD_markers[j], color=V2_colors[j], elinewidth=1.5,
+                                             label='CP sci ' + BCD_labels[j])
+                    if i in range(2):
+                        text_tag_flag = 1
+                        prev_text_MJD = 0.0
+                        prev_target_name = ""
+                        for j in range(np.sum(idxst)):
+                            if CP_MJD_arr[idxst][j] > (prev_text_MJD + text_width_MJD):
+                                text_tag_flag = 1
+                            if text_tag_flag == 1 or (prev_target_name != target_names_CP[idxst][j]):
+                                ymin, ymax = axs[i + 0].get_ylim()
+                                axs[i + 0].text(CP_MJD_arr[idxst][j],ymax*1.05, target_names_CP[idxst][j].replace('_', ' '),
+                                                 rotation=90,
+                                                 va='bottom')
+                                text_tag_flag = 0
+                                prev_text_MJD = CP_MJD_arr[idxst][j]
+                                prev_target_name = target_names_CP[idxst][j]
+            axlabel = sta_names[CP_sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
+            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+            axs[i + 0].text(0.05, 0.95, axlabel,horizontalalignment='left',verticalalignment='top',
+                         transform=axs[i + 0].transAxes, bbox=props)
+            if i==0:
+                leg = axs[i + 0].legend(loc='upper right')
+                leg.get_frame().set_alpha(0.5)
+            axs[i + 0].set_ylabel('$CP\,\left(^\circ\\right)$')
+            axs[i + 0].set_xlabel('$\mathrm{MJD}$')
+        plt.suptitle('$CP\mathrm{\ vs.\ time}$')
+        fig2.subplots_adjust(hspace=0, wspace=0)
+        for i in range(2):
+            plt.setp(axs[i+0].get_xticklabels() , visible=False)
+            x_axis = axs[i+0].axes.get_xaxis()
+            x_axis.get_label().set_visible(False)
+        for i in range(1,4,2):
+            plt.setp(axs[i+0].get_yticklabels() , visible=False)
+            y_axis = axs[i+0].axes.get_yaxis()
+            y_axis.get_label().set_visible(False)
+        #plt.tight_layout()
+        if saveplots == True:
+            fig2.savefig(output_path + '_CP' + '.png', dpi=150)
+            fig2.savefig(output_path + '_CP' + '.eps', format='eps', dpi=300)
+            plt.close(fig2)
+        else:
+            plt.show()
 
 ###############################################################################
 def open_oi_dir(input_dir):
@@ -652,12 +817,23 @@ def open_oi_dir(input_dir):
 
 ###############################################################################
 # dates = example format: ["2018-03-16"]
-# bands = 'LM', 'N'
+# bands = 'L','M','LM', 'N'
 # spectral_resolutions: 'LOW','MED','HIGH'
 # DIT_range: [min,max] (s)
 # targets = []
 def filter_oi_list(list_of_dicts, dates=[],bands=[],spectral_resolutions=[],DIT_range=[],targets=[]):
     filtered_list_of_dicts = []
+    if bands:
+        # print  'old:',bands
+        bands_new = []
+        for i in range(len(bands)):
+            if bands[i] == 'M':
+                bands_new.append('LM')
+            elif bands[i] == 'L':
+                bands_new.append('LM')
+            else:
+                bands_new.append(bands[i])
+                # print 'new: ', bands_new
     for dic in list_of_dicts:
         if dic:
             date = dic['DATEOBS'][0:10]
@@ -665,7 +841,7 @@ def filter_oi_list(list_of_dicts, dates=[],bands=[],spectral_resolutions=[],DIT_
                 if date not in dates:
                     continue
             if bands:
-                if dic['BAND'] not in bands:
+                if dic['BAND'] not in bands_new:
                     continue
             if spectral_resolutions:
                 if dic['DISP'] not in spectral_resolutions:
@@ -685,12 +861,32 @@ def filter_oi_list(list_of_dicts, dates=[],bands=[],spectral_resolutions=[],DIT_
     return filtered_list_of_dicts
 
 ###############################################################################
-# name_dir = r"D:\jvarga\Dokumentumok\MATISSE\data\OIFITS\2018-03-14"
-# list_of_dicts = open_oi_dir(name_dir)
-# filtered_list_of_dicts = filter_oi_list(list_of_dicts,dates=["2018-03-14"],bands=['LM'],spectral_resolutions=['MED'],DIT_range=[0.18,0.21],targets=[])
-# #show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2", datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
-# print "Selected",len(filtered_list_of_dicts),"objects"
-# show_vis2_tf2_vs_time(filtered_list_of_dicts,wlenRange=[3.5,3.95 ]) # wlenRange=[3.5, 3.95]);
+# Example code for TF and VIS plots.
+# name_dir = r"D:\jvarga\Dokumentumok\MATISSE\data\OIFITS/"
+# outputdir = r"D:/jvarga/Dokumentumok/MATISSE/data/OIFITS/"
+# dates=["2018-03-14","2018-03-15","2018-03-16","2018-03-11","2018-03-13"]
+# bands=['L','M', 'N']
+# sp_res = ['MED','LOW','HIGH']
+# wlenRange = [[3.6,4.0],[4.6,4.8],[10.0,11.0]]
+# DITs = np.array([0.2,0.02,0.05,0.1])
+# dt = 0.001
+# DITranges = np.transpose(np.array([DITs-dt,DITs+dt])).tolist()
+# i=0
+# j=0
+# k=0
+# l=0
+# for i in range(len(dates)):
+#     list_of_dicts = open_oi_dir(name_dir + dates[i])
+#     for j in range(len(bands)):
+#         for k in range(len(sp_res)):
+#             for l in range(len(DITranges)):
+#                 filtered_list_of_dicts = filter_oi_list(list_of_dicts,dates=[dates[i]],bands=[bands[j]],spectral_resolutions=[sp_res[k]],DIT_range=DITranges[l],targets=[])
+#                 #show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2", datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
+#                 print "Selected",len(filtered_list_of_dicts),"objects"
+#                 fname = dates[i] + "_" + bands[j] + "_" + sp_res[k] + "_DIT" + ("%.2f"%(DITs[l])).replace('.','_')
+#                 #show_oi_vs_wlen(filtered_list_of_dicts[3],datatype="VIS2")
+#                 show_vis2_tf2_vs_time(filtered_list_of_dicts,wlenRange=wlenRange[j],showvis=False,saveplots=True,output_path=outputdir+fname) # wlenRange=[3.5, 3.95]);
+#
 # raise SystemExit
 
 class oi_data_select_frame(wx.Frame):
