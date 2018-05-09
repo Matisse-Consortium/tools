@@ -70,7 +70,7 @@ if (repResult==""):
         print "Info : Results Directory not specified. We use current directory"
 print '%-40s' % ("Results Directory:",),repResult
 if (nbCore==0):
-    nbCore=3
+    nbCore=8
     print "Info : Number of Cores not specified. We use 8 cores"
 print '%-40s' % ("Number of Cores:",),nbCore    
 print "-----------------------------------------------------------------------------------------"
@@ -79,7 +79,7 @@ print "-------------------------------------------------------------------------
 #repRaw='/home/pbe/RawAutomatic'#'/data-matisse/TransFunc_LowFlux/OTHER'#'/home/pbe/RawAutomatic'
 #repResult='/home/pbe/ResultsAutomatic'
 #repArchive='/home/pbe/ArchiveAutomatic'#'/data-matisse/TransFunc_LowFlux/COSMETIC'#'/home/pbe/ArchiveAutomatic'    
-listRaw = [os.path.join(repRaw, f) for f in os.listdir(repRaw) if os.path.isfile(os.path.join(repRaw, f)) and f[-5:] == '.fits' and f[0:8]=="MATISSE_"]
+listRaw = [os.path.join(repRaw, f) for f in os.listdir(repRaw) if os.path.isfile(os.path.join(repRaw, f)) and f[-5:] == '.fits' and (f[0:8]=="MATISSE_" or f[0:6]=="MATIS.")]
 if (repArchive != ""):
     listArchive = [os.path.join(repArchive, f) for f in os.listdir(repArchive) if os.path.isfile(os.path.join(repArchive, f)) and f[-5:] == '.fits']
 else:
@@ -151,30 +151,30 @@ while True:
     for elt in listRedBlocks:
         hdu=fits.open(elt["input"][0][0])
         keyTplStartCurrent=hdu[0].header['HIERARCH ESO TPL START']+'.'+hdu[0].header['HIERARCH ESO DET CHIP NAME']
-        action          = matisseAction(hdu[0].header,elt["input"][0][1])
-        recipes,param   = matisseRecipes(action)
+        action=matisseAction(hdu[0].header,elt["input"][0][1])
+        recipes,param=matisseRecipes(action,hdu[0].header['HIERARCH ESO DET CHIP NAME'])
         hdu.close()
-        elt["action"]   = action
-        elt["recipes"]  = recipes
-        elt["param"]    = param
-        elt["tplstart"] = keyTplStartCurrent.replace(':','_')
+        elt["action"]=action
+        elt["recipes"]=recipes
+        elt["param"]=param
+        elt["tplstart"]=keyTplStartCurrent
 
 # Fill the list of calib in the Reduction Blocks List from repArchive
     for elt in listRedBlocks:
         hdu=fits.open(elt["input"][0][0])
         calib,status=matisseCalib(hdu[0].header,elt["action"],listArchive,elt['calib'])
         hdu.close()
-        elt["calib"]  = calib
-        elt["status"] = status
+        elt["calib"]=calib
+        elt["status"]=status
             
 # Fill the list of calib in the Reduction Blocks List from repResult Iter i-1
     if (iterNumber > 1):
         for elt in listRedBlocks:
-            hdu          = fits.open(elt["input"][0][0])
-            calib,status = matisseCalib(hdu[0].header,elt["action"],listIter,elt['calib'])
+            hdu=fits.open(elt["input"][0][0])
+            calib,status=matisseCalib(hdu[0].header,elt["action"],listIter,elt['calib'])
             hdu.close()
-            elt["calib"]  = calib
-            elt["status"] = status
+            elt["calib"]=calib
+            elt["status"]=status
             
 # Create the SOF files
     repIter=repResult+"/Iter"+str(iterNumber)
@@ -192,8 +192,8 @@ while True:
     for elt in listRedBlocks:
         if (elt["status"]==1):
             cptStatusOne+=1
-            sofname   = repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"       
-            outputDir = repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".rb"
+            sofname=repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"       
+            outputDir=repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".rb"
             os.mkdir(outputDir)
             fp=open(sofname,'w')
             for frame,tag in elt['input']:
@@ -202,6 +202,7 @@ while True:
                 fp.write(frame+" "+tag+"\n")
             fp.close()
             cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname
+
             if (iterNumber > 1):
                 sofnamePrev=repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
                 if (os.path.exists(sofnamePrev)):

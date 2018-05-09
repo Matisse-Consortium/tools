@@ -24,6 +24,16 @@
   economic rights,  and the successive licensors  have only  limited
   liability. 
 
+<<<<<<< .mine
+  $Author$
+  $Date$
+  $Revision$
+||||||| .r169
+  $Author$
+  $Date$
+  $Revision$
+  $Name:  $
+=======
   In this respect, the user's attention is drawn to the risks associated
   with loading,  using,  modifying and/or developing or reproducing the
   software by the user in light of its specific status of free software,
@@ -37,6 +47,7 @@
 
   The fact that you are presently reading this means that you have had
   knowledge of the CeCILL license and that you accept its terms.
+>>>>>>> .r227
 """
 # Changelog:
 # - 2018-03-15, added buffering capability (jvarga): while entering a directory, it saves the matisseFileList
