@@ -71,8 +71,13 @@ def open_oi(oi_file):
 
     hdr = hdu[0].header
 
+    
     wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN': wl}
+
+    dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START']+hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
+    dic['TAU0'] = (hdr['HIERARCH ESO ISS AMBI TAU0 START']+hdr['HIERARCH ESO ISS AMBI TAU0 END'])/2.
+
 
     target_name = hdu['OI_TARGET'].data['TARGET'][0]
     if not target_name:
@@ -161,12 +166,12 @@ def open_oi(oi_file):
 
     try:
         dic['TF2'] = {}
-        dic['TF2']['TF2'] = hdu['OI_TF2'].data['TF2']
-        dic['TF2']['TF2ERR'] = hdu['OI_TF2'].data['TF2ERR']
+        dic['TF2']['TF2'] = hdu['TF2'].data['TF2']
+        dic['TF2']['TF2ERR'] = hdu['TF2'].data['TF2ERR']
         # dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
         # dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
-        dic['TF2']['TIME'] = hdu['OI_TF2'].data['MJD']
-        dic['TF2']['STA_INDEX'] = hdu['OI_TF2'].data['STA_INDEX']
+        dic['TF2']['TIME'] = hdu['TF2'].data['MJD']
+        dic['TF2']['STA_INDEX'] = hdu['TF2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_TF2 table!")
 
