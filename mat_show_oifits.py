@@ -40,10 +40,13 @@
   knowledge of the CeCILL license and that you accept its terms.
 
   Changelog:
-  2018-03-23: new functions: oi_data_select_frame, filter_oi_list, open_oi_dir, show_vis2_tf2_vs_time, show_oi_vs_time (jvarga)
+  2018-03-23: new functions: oi_data_select_frame, filter_oi_list, open_oi_dir,
+              show_vis2_tf2_vs_time, show_oi_vs_time (jvarga)
   2018-03-26: new GUI interface ready: oi_data_select_frame (jvarga)
-  2018-04-04: updated GUI and extended functionality: input file/folder textbox, filter for target name,
-              more bands (JHK) available (for e.g. AMBER data), plot with or without errorbars, plot V or V2 (jvarga)
+  2018-04-04: updated GUI and extended functionality: input file/folder
+              textbox, filter for target name, more bands (JHK) available
+              (for e.g. AMBER data), plot with or without errorbars, plot V or
+              V2 (jvarga)
 
 """
 
@@ -76,7 +79,7 @@ def open_oi(oi_file):
     dic = {'WLEN': wl}
 
     dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START']+hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
-    dic['TAU0'] = (hdr['HIERARCH ESO ISS AMBI TAU0 START']+hdr['HIERARCH ESO ISS AMBI TAU0 END'])/2.
+    dic['TAU0']   = (hdr['HIERARCH ESO ISS AMBI TAU0 START']+hdr['HIERARCH ESO ISS AMBI TAU0 END'])/2.
 
 
     target_name = hdu['OI_TARGET'].data['TARGET'][0]
@@ -205,17 +208,17 @@ def open_oi(oi_file):
 ###############################################################################
 
 def show_oi_vs_freq(dic, log=False,showvis=False):
-    wl = dic['WLEN'];
-    vis2 = dic['VIS2']['VIS2'];
+    wl    = dic['WLEN'];
+    vis2  = dic['VIS2']['VIS2'];
     vis2e = dic['VIS2']['VIS2ERR'];
-    u = dic['VIS2']['U'];
-    v = dic['VIS2']['V'];
-    cp = dic['T3']['CLOS'];
-    cpe = dic['T3']['CLOSERR'];
-    u1 = dic['T3']['U1'];
-    v1 = dic['T3']['V1'];
-    u2 = dic['T3']['U2'];
-    v2 = dic['T3']['V2'];
+    u     = dic['VIS2']['U'];
+    v     = dic['VIS2']['V'];
+    cp    = dic['T3']['CLOS'];
+    cpe   = dic['T3']['CLOSERR'];
+    u1    = dic['T3']['U1'];
+    v1    = dic['T3']['V1'];
+    u2    = dic['T3']['U2'];
+    v2    = dic['T3']['V2'];
 
     plt.figure(figsize=(9, 6))
     G = gridspec.GridSpec(2, 1)
@@ -294,47 +297,110 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
 
 ###############################################################################
 
-def show_oi_vs_wlen(dic,key='VIS2', datatype="VIS2",showvis=False,plot_errorbars=True):
-    plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
-    wl = dic['WLEN'];
-    data = dic[key][datatype];
+def show_oi_vs_wlen(dic,key='VIS2', datatype="VIS2",showvis=False,plot_errorbars=True, correct_polynom=False, timeVertOffset=0,stdevRange=False,normRange=False,stdevTime=False):
+   # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
+    
+    sta_index_cal = []
+        
+    # Get data from the input dictionary
+    wl    = dic['WLEN'];
+    nbWlen = len(wl)
+    data  = dic[key][datatype];
     datae = dic[key][datatype + "ERR"];
+    time  = dic[key]["TIME"];
+    
+    if correct_polynom:
+        if normRange:
+            l = normRange[0]
+            h = normRange[1]
+        else:
+            l=3
+            h=-3
+        for i,j in enumerate(data):
+            fit = np.polyfit(wl[l:h],data[i,l:h],correct_polynom)
+            if key == 'VIS2' or key == 'TF2' or key == 'FLUX' or datatype == 'CFLUX':
+                data[i,:] = data[i,:] / np.polyval(fit,wl)
+            else:
+                data[i,:] = data[i,:] - np.polyval(fit,wl)
+    
+    if key == 'FLUX':
+        sta_index = dic[key]['STA_INDEX']
+        sta_index_cal.append([sta_index])
+    else:
+        sta_index = np.sort(dic[key]['STA_INDEX'])
+        sta_index_cal.append(sta_index)
+                            
+    # Get the unique station indices from the data
+    sta_indices = np.unique(sta_index_cal, axis=0)
+    if key == 'VIS' or key == 'VIS2' or key == 'TF2':
+        n_max_config = np.nanmax([6, sta_indices.shape[0]])
+        n_plot_rows = 3
+    elif key == 'FLUX':
+        n_max_config = 1#np.nanmax([4, sta_indices.shape[0]])
+        n_plot_rows = 2
+    elif key == 'T3':
+        n_max_config = np.nanmax([4, sta_indices.shape[0]])
+        n_plot_rows = 2
+            
+    print(n_max_config)
+        
+    fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
+    axs1 = axs1.ravel()
+        
     #print datae
     #print datae.shape
-    for i, j in enumerate(data):
+    for i in range(int(len(data)/n_max_config)):
+            
         label = datatype
-        if plot_errorbars == True:
-            if showvis == True:
+        #
+        
+        for j in range(n_max_config):
+            idx = int(j*n_max_config+i);
+            
+            # Take square root of observable
+            if showvis == True: 
+                data[idx, :] = np.sqrt(data[idx, :])
+                datae[idx, :] = 0.5 * datae[idx, :] / np.sqrt(data[idx, :])
                 if key == 'VIS2' or key == 'TF2':
                     if key == 'VIS2':
                         label = 'VIS'
                     elif key == 'TF2':
                         label = 'TF'
-                    plt.errorbar(wl * 1e6, np.sqrt(data[i, :]),
-                                     yerr=0.5 * datae[i, :] / np.sqrt(data[i, :]),
-                                 ecolor = 'grey', alpha = 0.25, capsize = 0.5,elinewidth = 1)
-                    plt.plot(wl * 1e6, np.sqrt(data[i, :]),label=label)
-            else:
-                plt.errorbar(wl * 1e6, data[i, :], yerr=datae[i, :], ecolor='grey', alpha=0.25, capsize=0.5,
-                             elinewidth=1)
-                plt.plot(wl * 1e6, data[i, :],label=label)
-        else:
-            if showvis == True:
-                if key == 'VIS2' or key == 'TF2':
-                    if key == 'VIS2':
-                        label = 'VIS'
-                    elif key == 'TF2':
-                        label = 'TF'
-                #plt.errorbar(wl * 1e6, np.sqrt(data[i, :]), ecolor='grey', alpha=0.25, capsize=0.5, elinewidth=1)
-                plt.plot(wl * 1e6, np.sqrt(data[i, :]),label=label)
-            else:
-                #plt.errorbar(wl * 1e6, data[i, :], ecolor='grey', alpha=0.25, capsize=0.5, elinewidth=1)
-                plt.plot(wl * 1e6, data[i, :],label=label)
-    if datatype == 'VIS2' or datatype == 'TF2':
-        plt.ylim([-0.1,1.1])
+                
+            axs1[i].plot(wl * 1e6, data[idx, :]+timeVertOffset*j)
+            axs1[i].set_ylabel(label)
+            axs1[i].set_xlabel(r"$\lambda\ (\mu\mathrm{m}$)")
+            if stdevRange:
+                if datatype == 'CFLUX':
+                    off = 1.05;
+                else:
+                    off = 0.5;
+                axs1[i].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. in continuum"+str(round(np.std(data[idx, stdevRange[0]:stdevRange[1]]),3)))
+            #print("st. dev.",np.std(data[idx, normrange[0]:normrange[1]]))
+                
+            if plot_errorbars == True:
+                axs1[i].errorbar(wl * 1e6, data[idx, :],
+                    yerr=datae[idx, :],
+                    ecolor = 'grey', alpha = 0.25, capsize = 0.5,elinewidth = 1)
+            
+        
+        if stdevTime == True:
+            dat = np.reshape(data,[int(len(data)/n_max_config),n_max_config,nbWlen])
+            std = np.std(dat,2)
+            if stdevRange:
+                axs1[i].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. vs. time"+str(round(np.mean(np.std(dat[:,i, stdevRange[0]:stdevRange[1]],axis=0),3))))
+                         
+    if datatype == 'VIS2' or datatype == 'TF2' or datatype == 'CFLUX':
+        plt.ylim([-0.1,1.1+timeVertOffset*(n_max_config-1)*1.1])
     else:
         try:
-            plt.ylim([np.nanmin(data),np.nanmax(data)])
+            mn = np.nanmin(data);
+            if mn > 0:
+                mn = mn*0.9;
+            else:
+                mn = mn*1.1
+            plt.ylim([mn,np.nanmax(data+timeVertOffset*(n_max_config-1))*1.1])
+            #plt.ylim([-30,60])
         except:
             pass
     if showvis == True:
@@ -342,9 +408,7 @@ def show_oi_vs_wlen(dic,key='VIS2', datatype="VIS2",showvis=False,plot_errorbars
             datatype = 'VIS'
         elif datatype == 'TF2':
             datatype = 'TF'
-    plt.title(datatype+' vs. wavelength')
-    plt.xlabel(r"$\lambda\ \mu\mathrm{m}$")
-    plt.ylabel(datatype)
+    fig1.suptitle(datatype+' vs. wavelength')
     plt.show()
 
 
@@ -378,10 +442,10 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
             category = dic['CATEGORY'].lower()
             if 'cal' in category:
                 try:
-                    datay = np.array(dic[key][datatype])
+                    datay    = np.array(dic[key][datatype])
                     datayerr = np.array(dic[key][datatype+'ERR'])
-                    datax = np.array(dic[key]["TIME"])
-                    n_rows = datay.shape[0]
+                    datax    = np.array(dic[key]["TIME"])
+                    n_rows   = datay.shape[0]
                     # print datay.shape
                     for i in range(n_rows):
                         arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
@@ -399,10 +463,10 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
                     print (dic['TARGET'], dic['DATEOBS'], "No CAL data found.")
             elif 'sci' in category:
                 try:
-                    datay = np.array(dic[key][datatype])
+                    datay    = np.array(dic[key][datatype])
                     datayerr = np.array(dic[key][datatype+'ERR'])
-                    datax = np.array(dic[key]["TIME"])
-                    n_rows = datay.shape[0]
+                    datax    = np.array(dic[key]["TIME"])
+                    n_rows   = datay.shape[0]
                     # print datay.shape
                     for i in range(n_rows):
                         arr_sci.append(robust.mean(datay[i, wlenRange_idx]))
@@ -420,16 +484,16 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
             sta_names = dic['STA_NAME']
 
         target_names_cal = np.array(target_names_cal)
-        MJD_arr_cal = np.array(MJD_arr_cal)
-        arr_cal = np.array(arr_cal)
-        err_arr_cal = np.array(err_arr_cal)
-        sta_index_cal = np.array(sta_index_cal)
+        MJD_arr_cal      = np.array(MJD_arr_cal)
+        arr_cal          = np.array(arr_cal)
+        err_arr_cal      = np.array(err_arr_cal)
+        sta_index_cal    = np.array(sta_index_cal)
 
         target_names_sci = np.array(target_names_sci)
-        MJD_arr_sci = np.array(MJD_arr_sci)
-        arr_sci = np.array(arr_sci)
-        err_arr_sci = np.array(err_arr_sci)
-        sta_index_sci = np.array(sta_index_sci)
+        MJD_arr_sci      = np.array(MJD_arr_sci)
+        arr_sci          = np.array(arr_sci)
+        err_arr_sci      = np.array(err_arr_sci)
+        sta_index_sci    = np.array(sta_index_sci)
 
         sta_indices = np.unique(sta_index_cal, axis=0)
         if key == 'VIS' or key == 'VIS2' or key == 'TF2':
