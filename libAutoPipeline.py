@@ -55,6 +55,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
     keyInsFilId       = header['HIERARCH ESO INS FIL ID']
     keyInsPonId       = header['HIERARCH ESO INS PON ID']
     keyInsFinId       = header['HIERARCH ESO INS FIN ID']
+    keyDetMtrh2       = header['HIERARCH ESO DET WIN MTRH2']
+    keyDetMtrs2       = header['HIERARCH ESO DET WIN MTRS2']
     
     
     res=calibPrevious
@@ -177,7 +179,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   keyDetReadCurnameCalib == keyDetReadCurname and
                   keyDetSeq1DitCalib     == keyDetSeq1Dit) or
                  (keyDetChipNameCalib    == "HAWAII-2RG" and
-                  keyDetChipName         == "HAWAII-2RG" ) )):
+                  keyDetChipName         == "HAWAII-2RG" and
+                  keyDetReadCurnameCalib == keyDetReadCurname) )):
 
 
 #                  and
@@ -252,6 +255,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyInsFilIdCalib       = hdu[0].header['HIERARCH ESO INS FIL ID']
                 keyInsPonIdCalib       = hdu[0].header['HIERARCH ESO INS PON ID']
                 keyInsFinIdCalib       = hdu[0].header['HIERARCH ESO INS FIN ID']
+                keyDetMtrh2Calib       = hdu[0].header['HIERARCH ESO DET WIN MTRH2']
+                keyDetMtrs2Calib       = hdu[0].header['HIERARCH ESO DET WIN MTRS2']
             hdu.close()
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
                 idx=-1
@@ -271,11 +276,12 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     res.append([elt,tagCalib])
                     nbCalib+=1
             if (tagCalib=="OBS_FLATFIELD" and 
-                (keyDetChipNameCalib == keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
-# Commenter la ligne suivante
-                 (keyDetSeq1DitCalib == keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period) and 
-                 ((keyInsPilId       == keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                  (keyInsPinId       == keyInsPinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
+                 (keyDetSeq1DitCalib==keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period) and 
+                 ((keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-FAST-SPEED") or
+                  (keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-SLOW-SPEED" and
+                   keyDetMtrh2==keyDetMtrh2Calib and keyDetMtrs2==keyDetMtrs2Calib) or
+                  (keyInsPinId==keyInsPinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -341,8 +347,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1           
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-#                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+#                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0
@@ -612,16 +618,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     return [res,0]
 
-def matisseRecipes(action):
+def matisseRecipes(action,det):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
         return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
     if (action=="ACTION_MAT_CAL_DET_FAST_SPEED"):
         return ["mat_cal_det","--gain=2.60 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
     if (action=="ACTION_MAT_CAL_DET_LOW_GAIN"):
-        return ["mat_cal_det","--gain=190.0 --darklimit=100.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.02"]
+        return ["mat_cal_det","--gain=190.0 --darklimit=100.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.02 -nt=true"]
     if (action=="ACTION_MAT_CAL_DET_HIGH_GAIN"):
-        return ["mat_cal_det","--gain=20.0 --darklimit=200.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
+        return ["mat_cal_det","--gain=20.0 --darklimit=200.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01 -nt=true"]
     if (action=="ACTION_MAT_EST_FLAT"):
         return ["mat_est_flat","--obsflat_type=det"]
     if (action=="ACTION_MAT_EST_SHIFT"):
@@ -630,8 +636,12 @@ def matisseRecipes(action):
         return ["mat_est_kappa",""]
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
-    if (action=="ACTION_MAT_RAW_ESTIMATES"):
-        return ["mat_raw_estimates",""]
+    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS"):
+        return ["mat_raw_estimates","--useOpdMod=TRUE"]
+#        return ["mat_raw_estimates","--useOpdMod=TRUE --replaceTel=1"]
+#        return ["mat_raw_estimates","--useOpdMod=FALSE --coherentIntegTime=0.1"]
+    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
+        return ["mat_raw_estimates","--useOpdMod=FALSE --corrFlux=TRUE"]   
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
@@ -741,7 +751,7 @@ def matisseType(header):
         res="TARGET_RAW"
     elif (catg == "TEST" and typ == "STD" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "OBJECT,FLUX" and tech == "INTERFEROMETRY") or (catg == "CALIB" and typ == "STD" and tech == "INTERFEROMETRY") : 
         res="CALIB_RAW"
-    elif (catg == "TEST"  or catg=="CALIB") and typ == "SKY" and tech == "INTERFEROMETRY" : 
+    elif (catg == "TEST" or catg=="CALIB" or catg=="SCIENCE") and typ == "SKY" and tech == "INTERFEROMETRY" : 
         res="SKY_RAW"
     else:
         res=catg
