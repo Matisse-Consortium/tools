@@ -29,9 +29,9 @@ def change_oifitsFile_name(oifits):
                 targ = hdu['OBJECT']
                     
             newName = os.path.join(direc,
-                                   hdu['DATE-OBS'].replace(':','_') +
-                                   '_' + targ +
-                                   '_' + hdu['HIERARCH ESO DET CHIP TYPE'] + '.fits');
+                                hdu['DATE-OBS'].replace(':','_') +
+                                '_' + targ.replace(" ","") +
+                                '_' + hdu['HIERARCH ESO DET CHIP TYPE'] + '.fits');
                                    
             print("renaming "+oifits+" into " +newName)
             #copyfile(src, dst)
