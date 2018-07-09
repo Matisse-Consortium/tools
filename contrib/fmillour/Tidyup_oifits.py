@@ -14,6 +14,22 @@ from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
 
 
+# Function to remove all spaces from a given string
+def removeSpaces(string):
+ 
+    # To keep track of non-space character count
+    count = 0
+ 
+    list = []
+ 
+    # Traverse the given string. If current character
+    # is not space, then place it at index 'count++'
+    for i in xrange(len(string)):
+        if string[i] != ' ':
+            list.append(string[i])
+ 
+    return toString(list)
+
 def change_oifitsFile_name(oifits):
     direc = os.path.dirname(oifits)
     
@@ -80,18 +96,19 @@ if __name__ == '__main__':
         for root,subfolders,files in os.walk(name_file):
             for file in files:
                 print(file)
-                try:
-                    hdu    = fits.getheader(os.path.join(root,file))
-                    if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
-                        print('Found an oifits file. Copying it...')
-                        print(file)
-                        fil = os.path.basename(file)
-                        
-                        copyfile(os.path.join(root,file),
-                                 os.path.join(newdir,fil))
-                        change_oifitsFile_name(os.path.join(newdir,file))
-                except:
-                    print("Not a fits file!")
+                if ( (file.startswith('CALIB_RAW_INT') or file.startswith('TARGET_RAW_INT')) and (file.endswith('fits')) ):
+                    try:
+                        hdu    = fits.getheader(os.path.join(root,file))
+                        if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
+                            print('Found an oifits file. Copying it...')
+                            print(file)
+                            fil = os.path.basename(file)
+                            
+                            copyfile(os.path.join(root,file),
+                                     os.path.join(newdir,fil))
+                            change_oifitsFile_name(os.path.join(newdir,file))
+                    except:
+                        print("Not a fits file!")
         
 
 
