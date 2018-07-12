@@ -37,7 +37,6 @@
   knowledge of the CeCILL license and that you accept its terms.
 """
 
-
 import numpy as np
 from astropy.io import fits
 from astropy.io.fits import getheader
@@ -103,9 +102,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             value = getheader(elt,0);
             cacheHdr.update(elt,value)
         allhdr.append(cacheHdr.cache[elt]['value'])
-        
-        
-        
     print("done.")
 
     print("Looking for detector basic actions...")
@@ -152,14 +148,14 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     print("Looking for flat fielding actions...")
     if (action == "ACTION_MAT_EST_FLAT"):
-        nbCalib=0
+        nbCalib = 0
         for elt in res:
             if (elt[1] == "BADPIX"    or 
                 elt[1] == "FLATFIELD" or 
                 elt[1] == "NONLINEARITY"):
                 nbCalib+=1
         for hdr,elt in zip(allhdr,listCalibFile):
-            tagCalib=matisseType(hdr)
+            tagCalib = matisseType(hdr)
             if (tagCalib == "BADPIX"       or
                 tagCalib == "NONLINEARITY" or
                 tagCalib == "FLATFIELD"):
@@ -171,14 +167,14 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             if (tagCalib == "BADPIX" and
                 (keyDetReadCurnameCalib == keyDetReadCurname and
                  keyDetChipNameCalib    == keyDetChipName)):
-                idx=-1
-                cpt=0
+                idx = -1
+                cpt =  0
                 for elt2 in res:
                     if (elt2[1]==tagCalib):
-                        idx=cpt
-                    cpt+=1
+                        idx = cpt
+                    cpt += 1
                 if (idx > -1):
-                    hdu=fits.open(res[idx][0])
+                    hdu = fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
                     hdu.close()
                     if (keyTplStartCalib >= keyTplStartPrevious):
@@ -658,7 +654,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     return [res,0]
 
-def matisseRecipes(action,det):
+def matisseRecipes(action,det,opts):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
         return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
@@ -677,13 +673,13 @@ def matisseRecipes(action,det):
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS"):
-        return ["mat_raw_estimates","--useOpdMod=TRUE"]
+        return ["mat_raw_estimates",opts]
 #        return ["mat_raw_estimates","--useOpdMod=TRUE --replaceTel=1"]
 #        return ["mat_raw_estimates","--useOpdMod=FALSE --coherentIntegTime=0.1"]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
         #return ["mat_raw_estimates","--useOpdMod=FALSE --corrFlux=TRUE"]  
         #return ["mat_raw_estimates","--useOpdMod=FALSE"]   
-        return ["mat_raw_estimates",""]   
+        return ["mat_raw_estimates",opts]   
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
@@ -757,7 +753,9 @@ def matisseType(header):
         res="DARK"
     elif (catg=="CALIB" and typ=="FLAT,DETCAL" and tech=="IMAGE") or (catg == "CALIB" and typ == "FLAT" and tech=="IMAGE,DETCHAR"):
         res="FLAT"
-    elif (catg=="CALIB" and (typ=="DARK" or typ=="FLAT,OFF") and tech=="SPECTRUM") :
+    #elif (catg=="CALIB" and (typ=="DARK" or typ=="FLAT,OFF") and tech=="SPECTRUM") :
+    # Fix for when flat template is not run properly
+    elif ((catg=="CALIB" or catg =="TEST") and (typ=="DARK" or typ=="FLAT,OFF") and tech=="SPECTRUM") :
         res="OBSDARK"
     elif (catg=="CALIB" and (typ=="FLAT" or typ=="FLAT,BLACKBODY") and tech=="SPECTRUM") :
         res="OBSFLAT"

@@ -1,4 +1,43 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+  $Id$
+
+  This file is part of the Matisse pipeline GUI series
+  Copyright (C) 2017- Observatoire de la Côte d'Azur
+  
+  Created in 2016
+  @author: pbe
+
+  Automatic MATISSE pipeline !
+
+  This software is governed by the CeCILL  license under French law and
+  abiding by the rules of distribution of free software.  You can  use, 
+  modify and/ or redistribute the software under the terms of the CeCILL
+  license as circulated by CEA, CNRS and INRIA at the following URL
+  "http://www.cecill.info". 
+
+  As a counterpart to the access to the source code and  rights to copy,
+  modify and redistribute granted by the license, users are provided only
+  with a limited warranty  and the software's author,  the holder of the
+  economic rights,  and the successive licensors  have only  limited
+  liability. 
+
+  In this respect, the user's attention is drawn to the risks associated
+  with loading,  using,  modifying and/or developing or reproducing the
+  software by the user in light of its specific status of free software,
+  that may mean  that it is complicated to manipulate,  and  that  also
+  therefore means  that it is reserved for developers  and  experienced
+  professionals having in-depth computer knowledge. Users are therefore
+  encouraged to load and test the software's suitability as regards their
+  requirements in conditions enabling the security of their systems and/or 
+  data to be ensured and,  more generally, to use and operate it in the 
+  same conditions as regards security.
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL license and that you accept its terms.
+"""
+
 import numpy as np
 from astropy.io import fits
 from astropy.io.fits import getheader
@@ -12,8 +51,7 @@ import filecmp
 from libAutoPipeline import matisseType,matisseAction,matisseRecipes,matisseCalib
 from multiprocessing.pool import Pool
 from functools import partial
-import pdb
-
+#import pdb
 
 # Run esorex recipes
 def runEsorex(cmd):
@@ -23,7 +61,7 @@ def runEsorex(cmd):
     print "    Recipes",item[2],"running..."
     val  = item[1].split("=")
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
-
+    print("Done.")
 
 # Initialize variables
 repRaw      = ""
@@ -36,10 +74,11 @@ listArg     = sys.argv
 
 for elt in listArg:
     if ('--help' in elt):
-        print "Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath] [--nbCore=NumberOfCores] [--tplID=template ID] [--tplSTART=template start] [--overwrite]"
+        print "Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath] [--nbCore=NumberOfCores] [--tplID=template ID] [--tplSTART=template start] [--overwrite] [--skipL] [--skipN]"
         sys.exit(0)
 
 # Parse arguments of the command line
+raw_est_opts = "";
 for elt in listArg:
     if ('--dirRaw' in elt):
         item=elt.split('=')
@@ -59,6 +98,13 @@ for elt in listArg:
     elif ('--tplSTART' in elt):
         item        = elt.split('=')
         tplstartsel = item[1]
+        
+    elif ('--replaceTel' in elt):
+        raw_est_opts += elt + " "
+    elif ('--corrFlux' in elt):
+        raw_est_opts += elt + " "
+    elif ('--useOpdMod' in elt):
+        raw_est_opts += elt + " "
     ##########################################################################
     if ('--overwrite' in elt):
         overwrite=1
@@ -109,36 +155,49 @@ else:
 
 # Sort listRaw using template ID and template start
 print("Sorting files according to constraints...")
-listRawSorted = []
 allhdr        = []
 for filename in listRaw:
     allhdr.append(getheader(filename,0))
-    
-#    hdu=fits.open(filename)
-    
+        
+listRawSorted = []
+allhdrSorted  = []
 for hdr,filename in zip(allhdr,listRaw):
     if ('HIERARCH ESO TPL START' in hdr and 'HIERARCH ESO DET CHIP NAME' in hdr) :
         tplid    = hdr['HIERARCH ESO TPL ID']
         tplstart = hdr['HIERARCH ESO TPL START']
         chip     = hdr['HIERARCH ESO DET CHIP NAME']
+
+        # Skip L band data
+        if skipL == 1 and chip == 'HAWAII-2RG':
+            continue;
+        
+        # Skip N band data
+        if skipN == 1 and chip == 'AQUARIUS':
+            continue;
+        
         # Go through all 4 cases. First case: tplid and tplstart given by user
         if (tplidsel != "" and tplstartsel != ""):
             if (tplid == tplidsel and tplstart == tplstartsel):
                 listRawSorted.append(filename)
+                allhdrSorted.append(hdr)
         # Second case: tpl ID given but not tpl start
         if (tplidsel != "" and tplstartsel == ""):
             if (tplid == tplidsel):
                 listRawSorted.append(filename)
+                allhdrSorted.append(hdr)
         # Third case: tpl start given but not tpl ID
         if (tplidsel == "" and tplstartsel != ""):
             if (tplstart == tplstartsel):
                 listRawSorted.append(filename)
+                allhdrSorted.append(hdr)
         # Fourth case: nothing given by user
         if (tplidsel == "" and tplstartsel == ""):
                listRawSorted.append(filename)
+               allhdrSorted.append(hdr)
                
 # Replace original list with the sorted one
-listRaw=listRawSorted
+listRaw = listRawSorted
+allhdr  = allhdrSorted
 
     
 # Determination of the number of Reduction Blocks
@@ -147,7 +206,11 @@ listIterNumber = []
 print("Determining the number of reduction blocks...")
 
 for hdr,filename in zip(allhdr,listRaw):
-    tplstart = hdr['HIERARCH ESO TPL START']
+    try:
+        tplstart = hdr['HIERARCH ESO TPL START']
+    except:
+        print("WARNING, "+filename+" is not a valid MATISSE fits file!")
+        continue;
     chipname = hdr['HIERARCH ESO DET CHIP NAME']
    # Reduction blocks are defined by template start and detector name
     temp = tplstart+"."+chipname
@@ -185,7 +248,11 @@ while True:
     print("listing files in the reduction blocks...")
     for hdr,filename in zip(allhdr,listRaw):
     #for filename in listRaw:
-        stri = hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
+        try:
+            stri = hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
+        except:
+            print("WARNING, "+filename+" is not a valid MATISSE fits file!")
+            continue;
         tag  = matisseType(hdr)
         listRedBlocks[keyTplStart.index(stri)]["input"].append([filename,tag,hdr])
 
@@ -195,7 +262,11 @@ while True:
         hdr = elt["input"][0][2]
         keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
         action        = matisseAction(hdr,elt["input"][0][1])
-        recipes,param = matisseRecipes(action,hdr['HIERARCH ESO DET CHIP NAME'])
+        if action=="ACTION_MAT_RAW_ESTIMATES":
+            opts = raw_est_opts
+        else:
+            opts = ""
+        recipes,param = matisseRecipes(action,hdr['HIERARCH ESO DET CHIP NAME'],opts)
         elt["action"]   = action
         elt["recipes"]  = recipes
         elt["param"]    = param
@@ -221,9 +292,10 @@ while True:
 # Create the SOF files
     print("creating the sof files and directories...")
     repIter = repResult+"/Iter"+str(iterNumber)
-    if (os.path.isdir(repIter) == True):
-        shutil.rmtree(repIter)
-        os.mkdir(repIter)
+    if os.path.isdir(repIter) == True:
+        if overwrite == 1:
+            shutil.rmtree(repIter)
+            os.mkdir(repIter)
     else:
         os.mkdir(repIter)
 
@@ -237,16 +309,11 @@ while True:
             cptStatusOne += 1
 
             filelist  = os.listdir(repIter)
-            sof       = elt["recipes"]+"."+elt["tplstart"]+".sof"
-            sofname   = os.path.join(repIter,sof)
-            
-            testsof = any(fil in filelist for fil in sof)
-
-            print(sofname)
-            print(testsof)
-                
+            rbname    = elt["recipes"]+"."+elt["tplstart"]
+            sofname   = os.path.join(repIter,rbname+".sof")
+    
             if os.path.exists(sofname):
-                print("sof file already exists...")
+                print("sof file "+sofname+" already exists...")
                 if overwrite:
                     print("WARNING: Overwriting existing file")
                     
@@ -257,8 +324,8 @@ while True:
                         fp.write(frame+" "+tag+"\n")
                     fp.close()
                 else:
-                    print("WARNING: sof file "+sofname+" exists. Skipping... (consider using --overwrite)")
-                    continue;
+                    print("WARNING: sof file exists. Skipping... (consider using --overwrite)")
+                    #continue;
             else:
                 print("sof file "+sofname+" does not exist. Creating it...")
                 fp = open(sofname,'w')
@@ -268,9 +335,16 @@ while True:
                     fp.write(frame+" "+tag+"\n")
                 fp.close()
             
-            outputDir = repIter+"/"+elt["recipes"]+"."+elt["tplstart"]+".rb"
+            outputDir = os.path.join(repIter,rbname+".rb")
             
             if os.path.exists(outputDir):
+                print("outputDir "+outputDir+" already exists...")
+                # Remove any previous logfile
+                print("Remove any previous logfile...")
+                try:
+                    os.remove(os.path.join(outputDir,".logfile"))
+                except:
+                    print("Nothing to remove...")
                 if os.listdir(outputDir) == []:
                     print("outputDir is empty, continuing...")
                 else:
@@ -278,10 +352,10 @@ while True:
                     if overwrite:
                         print("WARNING: Overwriting existing files")
                     else:
-                        print("WARNING: outputDir "+outputDir+" exists. Skipping... (consider using --overwrite)")
+                        print("WARNING: outputDir exists. Skipping... (consider using --overwrite)\n")
                         continue;
             else:
-                print("outputDir "+outputDir+" does not exist. Creating it...")
+                print("outputDir "+outputDir+" does not exist. Creating it...\n")
                 os.mkdir(outputDir)
             
             cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname
