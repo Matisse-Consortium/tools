@@ -665,6 +665,21 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
 ###############################################################################
 # showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)
 def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=False, output_path="",plot_errorbars=True):
+    starFlux={'Teta Pyx':27, 'psi Vir':44,'tet Cen':48, \
+          'del Vir':160,'eps Sco':52,'del Oph':110, \
+          'FZ Lib':17,'del Sco':15,'HD171094':34, \
+          'e Aql':27,'29 Cap':31,'alf Ant':19, \
+          'HD99333':20,'C01 Cen':22,'alpha Arae':10, \
+          'HD138505':18,'HD142527':12,'HD161560':0.4, \
+          'HD171094':34,'AV Mic':18,'HD181041':6,  \
+          'HD138492':8,'HD147929':8,'HD148255':3, \
+          'G Sco':26,'HD156936':3,'HD161849':8, \
+          'HD165413':5,'HD186765':9,'Mu Hya':30, \
+          'CH Vir':20,'HD 126111':6,'LY TrA':7, \
+          'ET Vir':29,'H Sco':30,'HD177507':17, \
+          'V345 Tel':9,'RW Lup':18,'HD 150798':144, \
+          'BM Sco':85,'RX Tel':82,'HD328913':100, \
+          'Eps Oph':16,'HD182669':2.5,'Nu Hya':30}
     # check if list is not empty:
     if list_of_dicts:
         # colors: BCD: out-out, in-in, in-out, out-in
@@ -673,7 +688,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
         BCD_markers = np.array(['o', 's', 'd', 'p'])
         V2_cal_colors = np.array(['darkseagreen', 'yellowgreen', 'olivedrab', 'darkkhaki'])
         V2_colors = np.array(['red', 'orange', 'salmon', 'pink'])
-        TF2_colors = np.array(['blue', 'dodgerblue', 'royalblue', 'indigo'])
+        TF2_colors = np.array(['palegoldenrod', 'khaki', 'navajowhite', 'moccasin'])
 
         target_names_cal = []
         V2_BCD_arr_cal = []
@@ -906,7 +921,6 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
         else:
             print ("Data arrays empty. Quitting.")
             return
-
         n_max_config = np.nanmax([6, sta_indices.shape[0]])
         # print sta_indices.shape
 
@@ -922,9 +936,8 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
         text_width_MJD = (MJD_range[1] - MJD_range[0]) / 20.0
         fig1, axs1 = plt.subplots(3, 2, figsize=(15, 16), sharex=True, sharey=True)
         axs1 = axs1.ravel()
-        text_y = 1.15
+        text_y = 1.55
         for i in range(n_max_config):
-            # print i
             if len(V2_sta_index_cal) > 0:
                 idxst = np.all(V2_sta_index_cal == sta_indices[i], axis=1)
                 if len(V2_arr_cal[idxst]) > 0:
@@ -938,8 +951,8 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                         if len(V2_arr_cal[cidxst]) > 0:
                             if plot_errorbars == True:
                                 if showvis == True:
-                                    axs1[i].errorbar(V2_MJD_arr_cal[cidxst], np.sqrt(V2_arr_cal[cidxst]),
-                                                     yerr=0.5 * V2err_arr_cal[cidxst] / np.sqrt(V2_arr_cal[cidxst]),
+                                    axs1[i].errorbar(V2_MJD_arr_cal[cidxst], np.sqrt(np.abs(V2_arr_cal[cidxst])),
+                                                     yerr=0.5 * V2err_arr_cal[cidxst] / np.sqrt(np.abs(V2_arr_cal[cidxst])),
                                                      fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
                                 else:
@@ -949,7 +962,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                                      label=label + BCD_labels[j])
                             else:
                                 if showvis == True:
-                                    axs1[i].errorbar(V2_MJD_arr_cal[cidxst], np.sqrt(V2_arr_cal[cidxst]),
+                                    axs1[i].errorbar(V2_MJD_arr_cal[cidxst], np.sqrt(np.abs(V2_arr_cal[cidxst])),
                                                      fmt=BCD_markers[j], color=V2_cal_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
                                 else:
@@ -965,8 +978,10 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_cal[idxst][j]):
                                 axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y,
-                                             target_names_cal[idxst][j].replace('_', ' '), rotation=90,
-                                             va='bottom')
+                                             target_names_cal[idxst][j].replace('_', ' ')+
+                                             " ("+np.str(starFlux[target_names_cal[idxst][j]])+"Jy)", rotation=90, \
+                                             va='bottom',fontsize=10)
+ 
                                 text_tag_flag = 0
                                 prev_text_MJD = V2_MJD_arr_cal[idxst][j]
                                 prev_target_name = target_names_cal[idxst][j]
@@ -983,8 +998,8 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                         if len(TF2_arr[cidxst]) > 0:
                             if plot_errorbars == True:
                                 if showvis == True:
-                                    axs1[i].errorbar(TF2_MJD_arr[cidxst], np.sqrt(TF2_arr[cidxst]),
-                                                     yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(TF2_arr[cidxst]),
+                                    axs1[i].errorbar(TF2_MJD_arr[cidxst], np.sqrt(np.abs(TF2_arr[cidxst])),
+                                                     yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(np.abs(TF2_arr[cidxst])),
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
                                 else:
@@ -993,7 +1008,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                                      label=label + BCD_labels[j])
                             else:
                                 if showvis == True:
-                                    axs1[i].errorbar(TF2_MJD_arr[cidxst], np.sqrt(TF2_arr[cidxst]),
+                                    axs1[i].errorbar(TF2_MJD_arr[cidxst], np.sqrt(np.abs(TF2_arr[cidxst])),
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
                                 else:
@@ -1052,7 +1067,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
             if i == 0:
                 leg = axs1[i].legend(loc='upper right')
                 leg.get_frame().set_alpha(0.5)
-            axs1[i].set_ylim([-0.1, 1.1])
+            axs1[i].set_ylim([-0.1, 1.5])
             if showvis == True:
                 ylabel = '$V$'
             else:
@@ -1119,8 +1134,10 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             if text_tag_flag == 1 or (prev_target_name != target_names_CP_cal[idxst][j]):
                                 ymin, ymax = axs[i + 0].get_ylim()
                                 axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax * 1.05,
-                                                target_names_CP_cal[idxst][j].replace('_', ' '), rotation=90,
-                                                va='bottom')
+                                                target_names_CP_cal[idxst][j].replace('_', ' ')+
+                                                " ("+np.str(starFlux[target_names_CP_cal[idxst][j]])+"Jy)", rotation=90,
+                                                va='bottom',fontsize=8)
+                                    
                                 text_tag_flag = 0
                                 prev_text_MJD = CP_MJD_arr_cal[idxst][j]
                                 prev_target_name = target_names_CP_cal[idxst][j]
@@ -1247,6 +1264,52 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
 
     return filtered_list_of_dicts
 
+###############################################################################
+# dates = example format: ["2018-03-16"]
+# bands = 'L','M','LM', 'N'
+# spectral_resolutions: 'LOW','MED','HIGH'
+# DIT_range: [min,max] (s)
+# targets = []
+def filter_oi_list_night(list_of_dicts, dates='2000-01-01', bands=[], spectral_resolutions=[], DIT_range=[], targets=[]):
+    t=Time(dates)
+    mjd0=t.mjd
+    filtered_list_of_dicts = []
+    if bands:
+        # print  'old:',bands
+        bands_new = []
+        for i in range(len(bands)):
+            if bands[i] == 'M':
+                bands_new.append('LM')
+            elif bands[i] == 'L':
+                bands_new.append('LM')
+            else:
+                bands_new.append(bands[i])
+                # print 'new: ', bands_new
+    for dic in list_of_dicts:
+        if dic:
+            date = dic['DATEOBS']
+            tm=Time(date)
+            if (np.abs(tm.mjd-mjd0) > 0.5):
+                continue
+            if bands:
+                if dic['BAND'] not in bands_new:
+                    continue
+            if spectral_resolutions:
+                if dic['DISP'] not in spectral_resolutions:
+                    continue
+            if DIT_range:
+                if not (dic['DIT'] >= DIT_range[0] and dic['DIT'] <= DIT_range[1]):
+                    continue
+            target = dic['TARGET']
+            if targets:
+                targets = [x.lower().replace("_", " ") for x in targets]
+                target = target.lower().replace("_", " ")
+                if target not in targets:
+                    continue
+            print ("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
+            filtered_list_of_dicts.append(dic)
+
+    return filtered_list_of_dicts
 ###############################################################################
 # Example code for TF and VIS plots.
 # name_dir = r"D:\jvarga\Dokumentumok\MATISSE\data\OIFITS/"
