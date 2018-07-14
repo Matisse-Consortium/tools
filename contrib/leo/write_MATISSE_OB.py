@@ -3,11 +3,20 @@
 ## PURPOSE
 ##    write a MATISSE "LOLO" OB for a calibrator from the MSDFCC
 ##
+## REQUIRED PREPARATION
+##    modify the variable named msdfcc to the actual location of the MSDFCC on your system
+##
 ## USE
-##    python3 calibOB.py star_name
+##    python3 calibOB.py obj_name
 ##
 ## PARAMETERS
-##    star_name   Any name by which Simbad knows this star
+##    obj_name   Any name by which Simbad knows this object
+##
+## OUTPUT
+##    - a Python pickle file with the most relevant information from the MSDFCC 
+##         for OB generation. This will only be created the first time that the 
+##         script is called
+##    - a .obx file for the given object
 ##
 ## HISTORY
 ##    2018-07-13   leo     created
@@ -19,29 +28,50 @@ from astropy import coordinates
 from astropy import units as u
 import numpy as np
 
+
+def get_cal_catalogue():
+	f_msdfcc = "/Users/leo/DivMat/python/contrib/leo/msdfcc-v5.fits"
+	hdu = fits.open(f_msdfcc)
+	msdfcc = hdu[1].data
+	##
+	## extract relevant information from MSDFCC and format coordinates
+	## since the latter takes a few minutes, we cache (pickle) this information
+	f_pickle = msdfcc.split("/")[-1].split(".fits")[0]+".pickle"
+	if not os.path.isfile(f_pickle):
+		print("Cached pickle file not found; generating it. This will take a few minutes...")
+		ra = msdfcc["RAJ2000"]
+		dec = msdfcc["DEJ2000"]
+		MAD_Lflux = msdfcc["MAD_Lflux"]
+		median_Lflux = msdfcc["median_Lflux"]
+		MAD_Nflux = msdfcc["MAD_Nflux"]
+		median_Nflux = msdfcc["median_Nflux"]
+		UDDL_est = msdfcc["UDDL_est"]
+		IRflag = msdfcc["IRflag"]
+		CalFlag = msdfcc["CalFlag"]
+		V = msdfcc["V"]
+		H = msdfcc["H"]
+		K = msdfcc["K"]
+		##
+		## build MSDFCC light / select only good calibrators
+		
+		c = ra + " " + dec
+		coords = coordinates.SkyCoord(c, unit=(u.hourangle,u.deg))
+		
+		msdfcc_light = 
+		
+		with open(f_pickle,"wb") as f:
+			pickle.dump(msdfcc_light,f)
+	else:
+		with open(f_pickle,"rb") as f:
+			msdfcc_light = pickle.load(f)
+
+
 objectname = sys.argv[1]
 OB_name = objectname+".obx"
 
 print("Generating " + OB_name)
 
-msdfcc = "msdfcc-v5.fits"
-hdu = fits.open(msdfcc)
-cat = hdu[1].data
-##
-## generate list of coordinates from MSDFCC
-## this will take a few minutes the first time this script is run and it will then be cached for this version of the MSDFCC
-coord_cache_file = msdfcc.split(".fits")[0]+".pickle"
-if not os.path.isfile(coord_cache_file):
-	print("Cached coordinate file not found; generating it. This will take a few minutes...")
-	ra = cat["RAJ2000"]
-	dec = cat["DEJ2000"]
-	c = ra + " " + dec
-	coords = coordinates.SkyCoord(c, unit=(u.hourangle,u.deg))
-	with open(coord_cache_file,"wb") as f:
-		pickle.dump(coords,f)
-else:
-	with open(coord_cache_file,"rb") as f:
-		coords = pickle.load(f)
+
 ##
 ## resolve object name with simbad
 query = Simbad.query_object(objectname)
