@@ -69,7 +69,7 @@ def open_oi(oi_file):
     try:
         hdu = fits.open(oi_file)
     except IOError:
-        print ("Unable to read fits file: " + oi_file)
+        print(("Unable to read fits file: " + oi_file))
         return {}
 
     hdr = hdu[0].header
@@ -460,7 +460,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
                             sta_index_cal.append(sta_index)
                         # print dic[key]['STA_INDEX'][i]
                 except:
-                    print (dic['TARGET'], dic['DATEOBS'], "No CAL data found.")
+                    print((dic['TARGET'], dic['DATEOBS'], "No CAL data found."))
             elif 'sci' in category:
                 try:
                     datay    = np.array(dic[key][datatype])
@@ -480,7 +480,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
                             sta_index = np.sort(dic[key]['STA_INDEX'][i])
                             sta_index_sci.append(sta_index)
                 except:
-                    print (dic['TARGET'], dic['DATEOBS'], "No SCI data found.")
+                    print((dic['TARGET'], dic['DATEOBS'], "No SCI data found."))
             sta_names = dic['STA_NAME']
 
         target_names_cal = np.array(target_names_cal)
@@ -759,7 +759,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
                             V2_sta_index_cal.append(sta_index)
                     except:
-                        print (dic['TARGET'], dic['DATEOBS'], "No CAL VIS2 data found.")
+                        print((dic['TARGET'], dic['DATEOBS'], "No CAL VIS2 data found."))
                     try:
                         datay = np.array(dic['T3']['CLOS'])
                         datayerr = np.array(dic['T3']['CLOSERR'])
@@ -786,7 +786,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['T3']['STA_INDEX'][i])
                             CP_sta_index_cal.append(sta_index)
                     except:
-                        print (dic['TARGET'], dic['DATEOBS'], "No CAL CP data found.")
+                        print((dic['TARGET'], dic['DATEOBS'], "No CAL CP data found."))
                     try:
                         datay = np.array(dic['TF2']['TF2'])
                         datayerr = np.array(dic['TF2']['TF2ERR'])
@@ -815,7 +815,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['TF2']['STA_INDEX'][i])
                             TF2_sta_index.append(sta_index)
                     except:
-                        print (dic['TARGET'], dic['DATEOBS'], "No CAL TF2 data found.")
+                        print((dic['TARGET'], dic['DATEOBS'], "No CAL TF2 data found."))
                 if 'sci' in category:
                     try:
                         datay = np.array(dic['VIS2']['VIS2'])
@@ -846,7 +846,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
                             V2_sta_index.append(sta_index)
                     except:
-                        print (dic['TARGET'], dic['DATEOBS'], "No SCI VIS2 data found.")
+                        print((dic['TARGET'], dic['DATEOBS'], "No SCI VIS2 data found."))
                     try:
                         datay = np.array(dic['T3']['CLOS'])
                         datayerr = np.array(dic['T3']['CLOSERR'])
@@ -873,7 +873,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             CP_BCD_arr.append([BCD1, BCD2])
                             CP_MJD_arr.append(datax[i])
                     except:
-                        print (dic['TARGET'], dic['DATEOBS'], "No SCI CP data found.")
+                        print((dic['TARGET'], dic['DATEOBS'], "No SCI CP data found."))
             else:
                 print("Wavelength out of range.")
 
@@ -1213,7 +1213,7 @@ def open_oi_dir(input_dir):
         if "LAMP" not in file:
             dic = open_oi(file)
             if dic:
-                print (dic['TARGET'], dic['DATEOBS'], dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
+                print((dic['TARGET'], dic['DATEOBS'], dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY']))
                 list_of_dicts.append(dic)
 
     return list_of_dicts
@@ -1259,7 +1259,7 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
                 target = target.lower().replace("_", " ")
                 if target not in targets:
                     continue
-            print ("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
+            print(("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY']))
             filtered_list_of_dicts.append(dic)
 
     return filtered_list_of_dicts
@@ -1306,7 +1306,7 @@ def filter_oi_list_night(list_of_dicts, dates='2000-01-01', bands=[], spectral_r
                 target = target.lower().replace("_", " ")
                 if target not in targets:
                     continue
-            print ("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
+            print(("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY']))
             filtered_list_of_dicts.append(dic)
 
     return filtered_list_of_dicts
@@ -1700,7 +1700,7 @@ class oi_data_select_frame(wx.Frame):
                 openFileDialog = mat_FileDialog(None, 'Open a file', "lmk,")
                 if openFileDialog.ShowModal() == wx.ID_OK:
                     self.name_file = openFileDialog.GetPaths()[0]
-                    print(self.name_file)
+                    print((self.name_file))
                 else:
                     self.name_file = ""
                 openFileDialog.Destroy()
@@ -1715,7 +1715,7 @@ class oi_data_select_frame(wx.Frame):
     def OI_load_data(self,path):
         if os.path.isfile(path):
             self.dic = {}
-            print("Reading file " + path + "...")
+            print(("Reading file " + path + "..."))
             self.dic = open_oi(path)
             self.list_of_dicts = [self.dic]
             # update the values in the form

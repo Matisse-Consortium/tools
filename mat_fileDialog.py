@@ -682,31 +682,31 @@ class mat_FileDialog(wx.Dialog):
         return [self.dir+'/'+pathi for pathi in self.path]
 
     def showHeader(self,event):
-        print ("show header {0}".format(self.GetPaths()))
+        print(("show header {0}".format(self.GetPaths())))
         for filei in self.path:
              if filei.endswith('.fits'):
-                 print (self.dir+'/'+filei)
+                 print((self.dir+'/'+filei))
                  fitsHeaderViewer(self.dirTree.GetPath()+'/'+filei)
 
     def showRawData(self,event):
-        print ("show RAW_DATA {0}".format(self.GetPaths()))
+        print(("show RAW_DATA {0}".format(self.GetPaths())))
         import mat_show_rawdata as shra
         for filei in self.path:
             if filei.endswith('.fits'):
                 name_file = self.dirTree.GetPath()+'/'+filei
-                print("Reading file "+name_file+"...")
+                print(("Reading file "+name_file+"..."))
                 dic = shra.open_mat(name_file)
-                print("Plotting data "+name_file+"...")
+                print(("Plotting data "+name_file+"..."))
                 shra.show_mat(dic)
 
     def showOiFits(self,event):
-        print ("show OIFITS {0}".format(self.GetPaths()))
+        print(("show OIFITS {0}".format(self.GetPaths())))
         for filei in self.path:
             if filei.endswith('.fits'):
                 subprocess.Popen(["python mat_show_oifits.py",self.dirTree.GetPath()+'/'+filei])
 
     def openWithFv(self,event):
-        print ("Open with fv {0}".format(self.GetPaths()))
+        print(("Open with fv {0}".format(self.GetPaths())))
         for filei in self.path:
             if filei.endswith('.fits'):
                 subprocess.Popen([fvpath,self.dirTree.GetPath()+'/'+filei])
@@ -738,7 +738,7 @@ if __name__ == '__main__':
     app = wx.App()
     openFileDialog = mat_FileDialog(None, 'Open a file',repBase)
     if openFileDialog.ShowModal() == wx.ID_OK:
-        print (openFileDialog.GetPaths())
+        print((openFileDialog.GetPaths()))
     openFileDialog.Destroy()
     app.MainLoop()
     app.Destroy()

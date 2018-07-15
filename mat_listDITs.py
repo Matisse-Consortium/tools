@@ -13,17 +13,17 @@ RES_N = []
 obsTypes = ["TARGET_RAW", "CALIB_RAW", "SKY_RAW"]
 
 for root, dir, files in os.walk("."):
-        print root
-        print ""
+        print(root)
+        print("")
         for file in fnmatch.filter(files, "*.fits*"):
-            print(file),
+            print((file), end=' ')
         
             header  = fits.open(os.path.join(root,file))[0].header
             type = matisseType(header)
             
             for typ in obsTypes:
                 if type == typ:
-                    print(typ),
+                    print((typ), end=' ')
                     try:
                         dit  = header['HIERARCH ESO DET SEQ1 DIT']
                         chip = header["HIERARCH ESO DET CHIP NAME"]
@@ -51,6 +51,6 @@ for root, dir, files in os.walk("."):
             print(' ')
 
 res, idx = np.unique(RES_LM, return_index=True)
-print("DITs LM",res)
+print(("DITs LM",res))
 res, idx = np.unique(RES_N, return_index=True)
-print("DITs N", res)
+print(("DITs N", res))

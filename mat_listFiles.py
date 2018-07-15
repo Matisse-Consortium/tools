@@ -20,14 +20,14 @@ else:
 
 files=os.listdir(name_dir)
 
-print('File name'),
+print(('File name'), end=' ')
 print(keys)
 
 for file in files:
     if fnmatch.fnmatch(file,"*.fits*"):
-       print(file),
+       print((file), end=' ')
        hdu  = fits.open(os.path.join(name_dir,file))
        for ky in keys:
           vals = hdu[0].header[ky]
-          print(vals),
+          print((vals), end=' ')
        print('')

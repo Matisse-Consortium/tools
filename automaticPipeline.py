@@ -58,7 +58,7 @@ def runEsorex(cmd):
     item = cmd.split()
     out  = item[-1]+".log"
     err  = item[-1]+".err"
-    print "    Recipes",item[2],"running..."
+    print("    Recipes",item[2],"running...")
     val  = item[1].split("=")
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
     print("Done.")
@@ -74,7 +74,7 @@ listArg     = sys.argv
 
 for elt in listArg:
     if ('--help' in elt):
-        print "Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath] [--nbCore=NumberOfCores] [--tplID=template ID] [--tplSTART=template start] [--overwrite] [--skipL] [--skipN]"
+        print("Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath] [--nbCore=NumberOfCores] [--tplID=template ID] [--tplSTART=template start] [--overwrite] [--skipL] [--skipN]")
         sys.exit(0)
 
 # Parse arguments of the command line
@@ -124,26 +124,26 @@ for elt in listArg:
         skipN=0
 
 # Print meaningful error messages if something is wrong in the command line
-print " "
-print "------------------------------------------------------------------------"
+print(" ")
+print("------------------------------------------------------------------------")
 if (repRaw == ""):
-    print "ERROR : You have to specifiy a Raw Data Directory with --dirRaw=DirectoryPath"
+    print("ERROR : You have to specifiy a Raw Data Directory with --dirRaw=DirectoryPath")
     sys.exit(0)
 else:
-    print '%-40s' % ("Raw Data Directory:",),repRaw
+    print('%-40s' % ("Raw Data Directory:",),repRaw)
 if (repArchive==""):
     repArchive="/data/CalibMap"
-    print "Info: Calibration Directory not specified. We used the default directory"
-print '%-40s' % ("Calibration Directory:",),repArchive
+    print("Info: Calibration Directory not specified. We used the default directory")
+print('%-40s' % ("Calibration Directory:",),repArchive)
 if (repResult==""):
         repResult=os.getcwd()
-        print "Info : Results Directory not specified. We use current directory"
-print '%-40s' % ("Results Directory:",),repResult
+        print("Info : Results Directory not specified. We use current directory")
+print('%-40s' % ("Results Directory:",),repResult)
 if (nbCore==0):
     nbCore=8
-    print "Info : Number of Cores not specified. We use "+str(nbCore)+" cores"
-print '%-40s' % ("Number of Cores:",),nbCore    
-print "------------------------------------------------------------------------"
+    print("Info : Number of Cores not specified. We use "+str(nbCore)+" cores")
+print('%-40s' % ("Number of Cores:",),nbCore)    
+print("------------------------------------------------------------------------")
  
 
 listRaw = glob.glob(repRaw+"/MATIS*.fits")
@@ -209,7 +209,7 @@ for hdr,filename in zip(allhdr,listRaw):
     try:
         tplstart = hdr['HIERARCH ESO TPL START']
     except:
-        print("WARNING, "+filename+" is not a valid MATISSE fits file!")
+        print(("WARNING, "+filename+" is not a valid MATISSE fits file!"))
         continue;
     chipname = hdr['HIERARCH ESO DET CHIP NAME']
    # Reduction blocks are defined by template start and detector name
@@ -219,14 +219,14 @@ for hdr,filename in zip(allhdr,listRaw):
 keyTplStart=list(set(keyTplStart))                       
 for elt in keyTplStart:
     listIterNumber.append(0)
-print("Found "+str(len(keyTplStart))+" reduction blocks.")
+print(("Found "+str(len(keyTplStart))+" reduction blocks."))
 
 iterNumber = 0
 while True:
     iterNumber += 1
-    print ""
-    print "Iteration ",iterNumber
-    print "-----------------------"
+    print("")
+    print("Iteration ",iterNumber)
+    print("-----------------------")
     if (iterNumber > 1):
         listIter=[]
         print("listing stuff...")
@@ -251,7 +251,7 @@ while True:
         try:
             stri = hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
         except:
-            print("WARNING, "+filename+" is not a valid MATISSE fits file!")
+            print(("WARNING, "+filename+" is not a valid MATISSE fits file!"))
             continue;
         tag  = matisseType(hdr)
         listRedBlocks[keyTplStart.index(stri)]["input"].append([filename,tag,hdr])
@@ -313,7 +313,7 @@ while True:
             sofname   = os.path.join(repIter,rbname+".sof")
     
             if os.path.exists(sofname):
-                print("sof file "+sofname+" already exists...")
+                print(("sof file "+sofname+" already exists..."))
                 if overwrite:
                     print("WARNING: Overwriting existing file")
                     
@@ -327,7 +327,7 @@ while True:
                     print("WARNING: sof file exists. Skipping... (consider using --overwrite)")
                     #continue;
             else:
-                print("sof file "+sofname+" does not exist. Creating it...")
+                print(("sof file "+sofname+" does not exist. Creating it..."))
                 fp = open(sofname,'w')
                 for frame,tag,hdr in elt['input']:
                     fp.write(frame+" "+tag+"\n")
@@ -338,7 +338,7 @@ while True:
             outputDir = os.path.join(repIter,rbname+".rb")
             
             if os.path.exists(outputDir):
-                print("outputDir "+outputDir+" already exists...")
+                print(("outputDir "+outputDir+" already exists..."))
                 # Remove any previous logfile
                 print("Remove any previous logfile...")
                 try:
@@ -355,7 +355,7 @@ while True:
                         print("WARNING: outputDir exists. Skipping... (consider using --overwrite)\n")
                         continue;
             else:
-                print("outputDir "+outputDir+" does not exist. Creating it...\n")
+                print(("outputDir "+outputDir+" does not exist. Creating it...\n"))
                 os.mkdir(outputDir)
             
             cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname
@@ -386,15 +386,15 @@ while True:
         else:
             cptStatusZero+=1
         cpt+=1
-    print '%-40s' % ("Reduction Blocks to process:",),cptToProcess
+    print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
                 
     if (listCmdEsorex == []):
-        print " "
-        print "No more iteration to do"
-        print "-----------------------"
-        print " "
-        print "Processing summary:"
-        print " "
+        print(" ")
+        print("No more iteration to do")
+        print("-----------------------")
+        print(" ")
+        print("Processing summary:")
+        print(" ")
         for elt in listRedBlocks:
             if (elt["status"] == 1):
                 msg="Processing done at iteration "+str(elt["iter"])
@@ -404,7 +404,7 @@ while True:
                 else:
                     msg = "Reduction Block not processed - Missing calibration"
             tplstart,detector = elt["tplstart"].split('.')
-            print '%-24s' % (tplstart,),'%-14s' % (detector,),'%-30s' % (elt["action"],),msg
+            print('%-24s' % (tplstart,),'%-14s' % (detector,),'%-30s' % (elt["action"],),msg)
 
         break
     else:
@@ -412,7 +412,7 @@ while True:
         pool = Pool(processes=nbCore)
 # Map our function to a data set - number 1 through 20
         pool.map(runEsorex, listCmdEsorex)
-    print '%-40s' % ("Reduction Blocks processed:",),cptStatusOne
-    print '%-40s' % ("Reduction Blocks not processed:",),cptStatusZero
+    print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
+    print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
 
     

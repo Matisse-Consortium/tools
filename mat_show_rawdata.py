@@ -103,7 +103,7 @@ def readDb_matisse(name_file):
     f = open(_dBfile_matisse, 'rb')
     db = cPickle.load(f, encoding="utf8")
     f.close()
-    if name_file in db.keys():
+    if name_file in list(db.keys()):
         return db[name_file]
     else:
         #print db.keys()
@@ -112,10 +112,10 @@ def readDb_matisse(name_file):
 def writeDb_matisse(name_file, data):
     global _dBfile_matisse
     if not os.path.exists(_dBfile_matisse):
-        print (' > getData: creating', _dBfile_matisse)
+        print((' > getData: creating', _dBfile_matisse))
         db = {name_file:data}
     else:
-        print (' > getData: updating', _dBfile_matisse)
+        print((' > getData: updating', _dBfile_matisse))
         f  = open(_dBfile_matisse, 'rb')
         db = cPickle.load(f, encoding="utf8")
         f.close()
@@ -252,7 +252,7 @@ def show_spec(dic):
     tartyp = dic['TARTYP']
     
     for i,it in enumerate(interf):
-        print(np.shape(it)) 
+        print((np.shape(it))) 
         spec = np.median(it,axis=(0,2))
         plt.figure()
         plt.plot(spec)
@@ -281,9 +281,9 @@ if __name__ == '__main__':
     app.MainLoop()
     app.Destroy()
     
-    print("Reading file "+name_file+"...")
+    print(("Reading file "+name_file+"..."))
     dic = open_mat(name_file)
-    print("Plotting data "+name_file+"...")
+    print(("Plotting data "+name_file+"..."))
     show_mat(dic)
     show_spec(dic)
 
