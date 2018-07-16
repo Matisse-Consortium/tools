@@ -3,8 +3,10 @@
 ## PURPOSE
 ##    write a MATISSE "LOLO" OB for a calibrator from the MSDFCC
 ##
-## REQUIRED PREPARATION
-##    modify the variable named msdfcc to the actual location of the MSDFCC on your system
+## REQUIRED INPUT
+##    - either use the pickled version of the MSDFCC (on the svn; fastest)
+##    - or generate this yourself from the full MSDFCC FITS file (takes some 
+##         time and you need to adjust f_msdfcc below)
 ##
 ## USE
 ##    python3 calibOB.py obj_name
