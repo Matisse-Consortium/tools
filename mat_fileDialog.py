@@ -711,11 +711,11 @@ class mat_FileDialog(wx.Dialog):
         for filei in self.path:
             if filei.endswith('.fits'):
                 name_file = self.dirTree.GetPath()+'/'+filei
-                print(("Reading file "+name_file+"..."))
-                dic = shra.open_mat(name_file)
+                #print(("Reading file "+name_file+"..."))
+                #dic = shra.open_mat(name_file)
                 print(("Plotting data "+name_file+"..."))
-                shra.show_mat(dic)
-
+                #shra.show_mat(dic)
+                shra.mat_show_rawdata(name_file)
     def showOiFits(self,event):
         print(("show OIFITS {0}".format(self.GetPaths())))
         for filei in self.path:
