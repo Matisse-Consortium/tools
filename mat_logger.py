@@ -53,13 +53,12 @@ import socket
 import mat_fileDialog
 from mat_fileDialog import mat_FileDialog
 from mat_fileDialog import identifyFile
-import mat_show_rawdata
 import threading
 import time
 from openpyxl import Workbook
 from openpyxl.styles import Font,PatternFill
 
-from mat_rawdata_viewer import mat_rawdata_viewer as matViewer
+from mat_show_rawdata import mat_show_rawdata 
 
 # Set useful paths
 fvpath    = distutils.spawn.find_executable("fv")
@@ -424,7 +423,8 @@ class mat_logger(wx.Dialog):
         #dic      = mat_show_rawdata.open_mat(dir0+"/"+filename)
         print("Plotting data  from"+dir0+filename+"...")
         #mat_show_rawdata.show_mat(dic)
-        matViewer(dir0+"/"+filename)
+        mat_show_rawdata(dir0+"/"+filename)
+
 #------------------------------------------------------------------------------
 
     def saveData(self):
