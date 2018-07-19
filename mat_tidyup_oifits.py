@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Created on Fri Mar 16 19:38:46 2018
@@ -12,7 +12,6 @@ import sys
 from astropy.io import fits
 from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
-
 
 # Function to remove all spaces from a given string
 def removeSpaces(string):
@@ -83,7 +82,8 @@ if __name__ == '__main__':
         dic = change_oifitsFile_name(name_file)
     
     elif os.path.isdir(name_file):
-        newdir = os.path.join(name_file,"OIFITS");
+        cwd = os.getcwd()
+        newdir = os.path.join(cwd, os.path.basename(os.path.abspath(name_file))+"_OIFITS");
         try:
             print(newdir+" already exists...")
             os.stat(newdir)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         print(os.path.join(name_file,"**/*.fits*"))
         for root,subfolders,files in os.walk(name_file):
             for file in files:
-                print(file)
+                #print(file)
                 if ( (file.startswith('CALIB_RAW_INT') or file.startswith('TARGET_RAW_INT')) and (file.endswith('fits')) ):
                     try:
                         hdu    = fits.getheader(os.path.join(root,file))
@@ -110,7 +110,4 @@ if __name__ == '__main__':
                     except:
                         print("Not a fits file!")
         
-
-
-
 print("I made my job, baby!")
