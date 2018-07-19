@@ -78,6 +78,8 @@ def open_oi(oi_file):
     wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN': wl}
 
+    dic['HDR'] = hdr
+    
     try:
         dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START']+hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
     except:
@@ -217,7 +219,6 @@ def open_oi(oi_file):
 
     return dic
 
-
 ###############################################################################
 
 def show_oi_vs_freq(dic, log=False,showvis=False):
@@ -306,7 +307,6 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
     plt.xlabel('Spatial Frequency (B/$\lambda$)')
 
     plt.show()
-
 
 ###############################################################################
 
@@ -435,6 +435,188 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     fig1.suptitle(datatype+' vs. wavelength')
     plt.show()
 
+
+
+
+
+
+    
+###############################################################################
+# This function shows the selected oifits data (flux, visibility,
+# closure phase etc.) as a function of any keywork in the header (by
+# default the seeing). It reads data from multiple oifits files in a
+# given directory. The data to be plotted can be filtered with the
+# filter_oi_list function.
+#
+def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xaxis="HIERARCH ESO ISS AMBI FWHM START", showvis=False,plot_errorbars=True):
+    # check if list is not empty:
+    if list_of_dicts:
+        target_names_cal = []
+        XKey_arr_cal      = []
+        arr_cal          = []
+        err_arr_cal      = []
+        sta_index_cal    = []
+
+        for dic in list_of_dicts:
+            wl = np.array(dic['WLEN'])
+            wlenRange_idx = np.logical_and(wl > wlenRange[0] / 1.0e6, wl < wlenRange[1] / 1.0e6)
+            category = dic['CATEGORY'].lower()
+            if 'cal' in category:
+                try:
+                    datay    = np.array(dic[key][datatype])
+                    datayerr = np.array(dic[key][datatype+'ERR'])
+                    #print("ready?")
+                    datax    = dic['HDR'][xaxis]
+                    #print(datax)
+                    n_rows   = datay.shape[0]
+                    # print datay.shape
+                    for i in range(n_rows):
+                        XKey_arr_cal.append(datax)
+                        arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
+                        err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        target_names_cal.append(dic['TARGET'])
+                        if key == 'FLUX':
+                            sta_index = dic[key]['STA_INDEX'][i]
+                            sta_index_cal.append([sta_index])
+                        else:
+                            sta_index = np.sort(dic[key]['STA_INDEX'][i])
+                            sta_index_cal.append(sta_index)
+                        # print dic[key]['STA_INDEX'][i]
+                except:
+                    print((dic['TARGET'], dic['DATEOBS'], "No CAL data found."))
+            
+            sta_names = dic['STA_NAME']
+
+        target_names_cal = np.array(target_names_cal)
+        XKey_arr_cal      = np.array(XKey_arr_cal)
+        arr_cal          = np.array(arr_cal)
+        err_arr_cal      = np.array(err_arr_cal)
+        sta_index_cal    = np.array(sta_index_cal)
+
+        sta_indices = np.unique(sta_index_cal, axis=0)
+        if key == 'VIS' or key == 'VIS2' or key == 'TF2':
+            n_max_config = np.nanmax([6, sta_indices.shape[0]])
+            n_plot_rows = 3
+        elif key == 'T3' or key == 'FLUX':
+            n_max_config = np.nanmax([4, sta_indices.shape[0]])
+            n_plot_rows = 2
+        # print sta_indices.shape
+        if len(XKey_arr_cal) > 0:
+            XKey_range = [np.nanmin(XKey_arr_cal), np.nanmax(XKey_arr_cal)]
+        else:
+            XKey_range = [0.0, 1.0]
+        text_width_XKey = (XKey_range[1] - XKey_range[0]) / 20.0
+
+        fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
+        axs1 = axs1.ravel()
+        for i in range(n_max_config):
+            # print i
+            if datatype == 'DPHI' or datatype == 'CLOS':
+                axs1[i + 0].plot(XKey_range, [0.0, 0.0], '-', color='gray', lw=1.5)
+
+                
+            if len(sta_index_cal) > 0:
+                idxst = np.all(sta_index_cal == sta_indices[i], axis=1)
+                if len(arr_cal[idxst]) > 0:
+                    label = datatype +' cal'
+
+                    print(len(XKey_arr_cal))
+                    print(len(arr_cal))
+                    
+                    if plot_errorbars == True:
+                        if showvis == True:
+                            if key == 'VIS2' or key == 'TF2':
+                                if key == 'VIS2':
+                                    label = 'VIS' + ' cal'
+                                elif key == 'TF2':
+                                    label = 'TF' + ' cal'
+                                axs1[i].errorbar(XKey_arr_cal[idxst],
+                                                 np.sqrt(arr_cal[idxst]),
+                                                 yerr=0.5 * err_arr_cal[idxst] / np.sqrt(arr_cal[idxst]),
+                                                 fmt='o', color='blue',
+                                                 elinewidth=1.0,
+                                                 label=label)
+                        else:
+                            print(i)
+                            axs1[i].errorbar(XKey_arr_cal[idxst],
+                                             arr_cal[idxst],
+                                             yerr=err_arr_cal[idxst],
+                                             fmt='o', color='blue',
+                                             elinewidth=1.0,
+                                             label=label)
+                    else:
+                        if showvis == True:
+                            if key == 'VIS2' or key == 'TF2':
+                                if key == 'VIS2':
+                                    label = 'VIS' + ' sci'
+                                elif key == 'TF2':
+                                    label = 'TF' + ' sci'
+                                axs1[i].errorbar(XKey_arr_cal[idxst], np.sqrt(arr_cal[idxst]),
+                                                 fmt='o', color='blue', elinewidth=1.0,
+                                                 label=label)
+                        else:
+                            axs1[i].errorbar(XKey_arr_cal[idxst], arr_cal[idxst],
+                                             fmt='o', color='blue', elinewidth=1.0,
+                                             label=label)
+                    if i in range(2):
+                        text_tag_flag = 1
+                        prev_text_XKey = 0.0
+                        prev_target_name = ""
+                        for j in range(np.sum(idxst)):
+                            if XKey_arr_cal[idxst][j] > (prev_text_XKey + text_width_XKey):
+                                text_tag_flag = 1
+                            if text_tag_flag == 1 or (prev_target_name != target_names_cal[idxst][j]):
+                                ymin, ymax = axs1[i + 0].get_ylim()
+                                axs1[i].text(XKey_arr_cal[idxst][j], ymax * 1.05,
+                                             target_names_cal[idxst][j].replace('_', ' '), rotation=90,
+                                             va='bottom')
+                                text_tag_flag = 0
+                                prev_text_XKey = XKey_arr_cal[idxst][j]
+                                prev_target_name = target_names_cal[idxst][j]
+            
+            if key == 'VIS' or key == 'VIS2' or key == 'TF2':
+                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
+            elif key == 'T3':
+                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
+                      sta_names[sta_indices[i, 2] == dic['STA_INDEX']][0]
+            elif key == 'FLUX':
+                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0]
+            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+            axs1[i].text(0.05, 0.95, axlabel, horizontalalignment='left', verticalalignment='top',
+                         transform=axs1[i].transAxes, bbox=props)
+            if i == 0:
+                leg = axs1[i].legend(loc='upper right')
+                leg.get_frame().set_alpha(0.5)
+            if datatype == 'VIS2' or datatype == 'TF2':
+                axs1[i].set_ylim([-0.1, 1.1])
+            else:
+                try:
+                    axs1[i].set_ylim([np.nanmin([np.nanmin(arr_cal),np.nanmin(arr_sci)]), np.nanmax([np.nanmax(arr_cal),np.nanmax(arr_sci)])])
+                except:
+                    pass
+            ylabel = datatype
+            if showvis == True:
+                if datatype == 'VIS2':
+                    ylabel = 'VIS'
+                    datatype = 'VIS'
+                elif datatype == 'TF2':
+                    ylabel = 'TF'
+                    datatype = 'TF'
+            axs1[i].set_ylabel(ylabel)
+            axs1[i].set_xlabel('$\mathrm{'+xaxis+'}$')
+        plt.suptitle('$\mathrm{'+datatype+'\ vs.\ time}$')
+        
+        plt.tight_layout()
+        plt.show()
+
+
+
+
+
+
+        
 
 ###############################################################################
 # This function shows the selected oifits data (flux, visibility, closure phase etc.)
@@ -1250,7 +1432,7 @@ def open_oi_dir(input_dir):
 # spectral_resolutions: 'LOW','MED','HIGH'
 # DIT_range: [min,max] (s)
 # targets = []
-def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], targets=[]):
+def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], targets=[], BCD1=[], BCD2=[]):
     filtered_list_of_dicts = []
     if bands:
         # print  'old:',bands
@@ -1272,6 +1454,12 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
             if bands:
                 if dic['BAND'] not in bands_new:
                     continue
+            if BCD1:
+                if dic['BCD1NAME'] not in BCD1:
+                    continue
+            if BCD2:
+                if dic['BCD2NAME'] not in BCD2:
+                    continue
             if spectral_resolutions:
                 if dic['DISP'] not in spectral_resolutions:
                     continue
@@ -1284,7 +1472,7 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
                 target = target.lower().replace("_", " ")
                 if target not in targets:
                     continue
-            print(("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY']))
+            print("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
             filtered_list_of_dicts.append(dic)
 
     return filtered_list_of_dicts
