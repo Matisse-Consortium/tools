@@ -310,7 +310,7 @@ while True:
 
             filelist  = os.listdir(repIter)
             rbname    = elt["recipes"]+"."+elt["tplstart"]
-            sofname   = os.path.join(repIter,rbname+".sof")
+            sofname   = os.path.join(repIter,rbname+".sof").replace(':','_')
     
             if os.path.exists(sofname):
                 print(("sof file "+sofname+" already exists..."))
@@ -335,7 +335,7 @@ while True:
                     fp.write(frame+" "+tag+"\n")
                 fp.close()
             
-            outputDir = os.path.join(repIter,rbname+".rb")
+            outputDir = os.path.join(repIter,rbname+".rb").replace(':','_')
             
             if os.path.exists(outputDir):
                 print(("outputDir "+outputDir+" already exists..."))
