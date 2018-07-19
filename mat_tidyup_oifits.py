@@ -31,7 +31,8 @@ def removeSpaces(string):
 
 def change_oifitsFile_name(oifits):
     direc = os.path.dirname(oifits)
-    
+
+    print("looking if the file is a MATISSE oifits")
     # First check this is indeed an oifits file
     try:
         hdu     = fits.getheader(oifits)
@@ -44,9 +45,12 @@ def change_oifitsFile_name(oifits):
                 targ = hdu['OBJECT']
                     
             newName = os.path.join(direc,
-                                hdu['DATE-OBS'].replace(':','_') +
+                                hdu['HIERARCH ESO TPL START'].replace(':','_') +
                                 '_' + targ.replace(" ","") +
-                                '_' + hdu['HIERARCH ESO DET CHIP TYPE'] + '.fits');
+                                '_' + hdu['HIERARCH ESO DET CHIP TYPE'] +
+                                '_' + hdu['HIERARCH ESO INS BCD1 NAME'] +
+                                hdu['HIERARCH ESO INS BCD2 NAME'] +
+                                  '.fits');
                                    
             print("renaming "+oifits+" into " +newName)
             #copyfile(src, dst)
@@ -92,21 +96,21 @@ if __name__ == '__main__':
             os.mkdir(newdir)
         print("Listing files in directory")
         
-        print(os.path.join(name_file,"**/*.fits*"))
+        print(os.path.join(name_file,"*.fits*"))
         for root,subfolders,files in os.walk(name_file):
-            for file in files:
-                #print(file)
-                if ( (file.startswith('CALIB_RAW_INT') or file.startswith('TARGET_RAW_INT')) and (file.endswith('fits')) ):
+            for fil in files:
+                print(fil)
+                if fil.endswith('fits'):
                     try:
-                        hdu    = fits.getheader(os.path.join(root,file))
+                        hdu    = fits.getheader(os.path.join(root,fil))
                         if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
                             print('Found an oifits file. Copying it...')
-                            print(file)
-                            fil = os.path.basename(file)
+                            print(fil)
+                            fil = os.path.basename(fil)
                             
-                            copyfile(os.path.join(root,file),
+                            copyfile(os.path.join(root,fil),
                                      os.path.join(newdir,fil))
-                            change_oifitsFile_name(os.path.join(newdir,file))
+                            change_oifitsFile_name(os.path.join(newdir,fil))
                     except:
                         print("Not a fits file!")
         
