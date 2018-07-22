@@ -1,4 +1,11 @@
-## calibOB.py
+#################### DOES NOT WORK at the moment #################
+##
+## needs discussion on what is actually needed
+##
+##################################################################
+
+
+## write_MATISSE_OB.py
 ##
 ## PURPOSE
 ##    write a MATISSE "LOLO" OB for a calibrator from the MSDFCC
@@ -9,7 +16,7 @@
 ##         time and you need to adjust f_msdfcc below)
 ##
 ## USE
-##    python3 calibOB.py obj_name
+##    python3 write_MATISSE_OB.py obj_name
 ##
 ## PARAMETERS
 ##    obj_name   Any name by which Simbad knows this object
@@ -21,6 +28,8 @@
 ##    - a .obx file for the given object
 ##
 ## HISTORY
+##    2018-07-22   leo     repaired script, uses old pickle protocol for 
+##                         downward compatibility with Python 2
 ##    2018-07-13   leo     created
 ##
 import sys, os, pickle
@@ -32,47 +41,58 @@ import numpy as np
 
 
 def get_cal_catalogue():
-	f_msdfcc = "/Users/leo/DivMat/python/contrib/leo/msdfcc-v5.fits"
-	hdu = fits.open(f_msdfcc)
-	msdfcc = hdu[1].data
-	##
-	## extract relevant information from MSDFCC and format coordinates
-	## since the latter takes a few minutes, we cache (pickle) this information
-	f_pickle = msdfcc.split("/")[-1].split(".fits")[0]+".pickle"
-	if not os.path.isfile(f_pickle):
-		print("Cached pickle file not found; generating it. This will take a few minutes...")
-		ra = msdfcc["RAJ2000"]
-		dec = msdfcc["DEJ2000"]
-		MAD_Lflux = msdfcc["MAD_Lflux"]
-		median_Lflux = msdfcc["median_Lflux"]
-		MAD_Nflux = msdfcc["MAD_Nflux"]
-		median_Nflux = msdfcc["median_Nflux"]
-		UDDL_est = msdfcc["UDDL_est"]
-		IRflag = msdfcc["IRflag"]
-		CalFlag = msdfcc["CalFlag"]
-		V = msdfcc["V"]
-		H = msdfcc["H"]
-		K = msdfcc["K"]
+	f_msdfcc = "msdfcc-v7.fits"
+	f_msdfcc_light = f_msdfcc.split("/")[-1].split(".fits")[0]+"_light.fits"
+
+	if not os.path.isfile(f_msdfcc_light):
+		print("MSDFCC light file not found. Generating it...")
+		if not os.path.isfile(f_msdfcc):
+			raise ValueError(f_msdfcc + " not found.")
+		hdu = fits.open(f_msdfcc)
+		cal_db = hdu[1].data
 		##
 		## build MSDFCC light / select only good calibrators
+		flux_threshold_L_Jy = 0.1
+		flux_threshold_N_Jy = 0.5
+		diameter_threshold_mas = 3
+		
+		## first select good calibrators (no flags, no nan's)
+		cal_db = cal_db[(cal_db["CalFlag"]==0) &
+			(cal_db["IRflag"] == 0) &
+			(np.isfinite(cal_db["median_L"])) &
+			(np.isfinite(cal_db["MAD_L"])) &
+			(np.isfinite(cal_db["median_N"])) &
+			(np.isfinite(cal_db["MAD_N"])) &
+			(np.isfinite(cal_db["UDDL_est"]))]
+		## then we can select by flux and diameter
+		cal_db = cal_db[(cal_db["median_L"] > flux_threshold_L_Jy) &
+			(cal_db["median_N"] > flux_threshold_N_Jy) &
+			(cal_db["UDDL_est"] < diameter_threshold_mas)]
+		
+		print("Selected {0} out of {1} stars".format(len(cal_db),len(hdu[1].data)))
+#		cal_db 
+
+		ra = cal_db["RAJ2000"]
+		dec = cal_db["DEJ2000"]
 		
 		c = ra + " " + dec
 		coords = coordinates.SkyCoord(c, unit=(u.hourangle,u.deg))
-		
-		msdfcc_light = 
-		
+		msdfcc_light = [coords, median_L, MAD_L, median_N, MAD_N, UDDL_est, 
+			Vmag, Hmag, Kmag]
+				
 		with open(f_pickle,"wb") as f:
-			pickle.dump(msdfcc_light,f)
+			pickle.dump(msdfcc_light,f,protocol=2)
 	else:
 		with open(f_pickle,"rb") as f:
 			msdfcc_light = pickle.load(f)
 
+	return(msdfcc_light)
 
 objectname = sys.argv[1]
 OB_name = objectname+".obx"
 
-print("Generating " + OB_name)
-
+print("Reading calibrator database (light version)...")
+msdfcc_light = get_cal_catalogue()
 
 ##
 ## resolve object name with simbad
@@ -92,6 +112,7 @@ if np.min(sep) < sep_threshold:
 else:
 	raise ValueError("Could not find a calibrator within 1 arcsec of " + objectname)
 
+print("Generating " + OB_name)
 ##
 ## retrieve record from msdfcc
 rec =  hdu[1].data[rec_id]
