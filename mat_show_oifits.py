@@ -62,6 +62,25 @@ from   astropy.io import fits as fits
 import os
 import glob
 import robust
+from astroquery.simbad import Simbad
+from astropy import coordinates
+from os.path import expanduser
+from matplotlib.ticker import *
+
+home = expanduser("~")
+
+###############################################################################
+
+def resolve_target(dic):
+    try:
+        ra  = str(dic['HDR']["RA"])
+        dec = str(dic['HDR']["DEC"])
+        c = coordinates.SkyCoord(ra, dec, unit=('deg','deg'), frame='icrs')
+        result_table = Simbad.query_region(c)
+        resolvedTarg = result_table['MAIN_ID'][0]
+    except:
+        resolvedTarg = dic['TARGET']
+    return resolvedTarg;
 
 ###############################################################################
 
@@ -73,7 +92,6 @@ def open_oi(oi_file):
         return {}
 
     hdr = hdu[0].header
-
     
     wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN': wl}
@@ -90,7 +108,6 @@ def open_oi(oi_file):
     except:
         dic['TAU0'] = 0;
 
-
     target_name = hdu['OI_TARGET'].data['TARGET'][0]
     if not target_name:
         try:
@@ -98,7 +115,12 @@ def open_oi(oi_file):
         except KeyError:
             print ("Target name not found.")
             target_name = ""
+            
     dic['TARGET'] = target_name
+
+    # Fix eventual bad target identification
+    dic['TARGET'] = resolve_target(dic)
+    
     try:
         target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
     except KeyError:
@@ -435,11 +457,6 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     fig1.suptitle(datatype+' vs. wavelength')
     plt.show()
 
-
-
-
-
-
     
 ###############################################################################
 # This function shows the selected oifits data (flux, visibility,
@@ -448,11 +465,14 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
 # given directory. The data to be plotted can be filtered with the
 # filter_oi_list function.
 #
-def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xaxis="HIERARCH ESO ISS AMBI FWHM START", showvis=False,plot_errorbars=True):
+def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2",
+datatype="TF2", xaxis="HIERARCH ESO ISS AMBI FWHM START",
+showvis=False,plot_errorbars=True,
+useStations=True,xlog=False,ylog=False):
     # check if list is not empty:
     if list_of_dicts:
         target_names_cal = []
-        XKey_arr_cal      = []
+        XKey_arr_cal     = []
         arr_cal          = []
         err_arr_cal      = []
         sta_index_cal    = []
@@ -475,25 +495,37 @@ def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xax
                         arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
                         err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
                         target_names_cal.append(dic['TARGET'])
-                        if key == 'FLUX':
-                            sta_index = dic[key]['STA_INDEX'][i]
-                            sta_index_cal.append([sta_index])
+                        
+                        if useStations==True:
+                            if key == 'FLUX':
+                                sta_index = dic[key]['STA_INDEX'][i]
+                                sta_index_cal.append([sta_index])
+                                print(np.shape(sta_index))
+                            else:
+                                sta_index = np.sort(dic[key]['STA_INDEX'][i])
+                                sta_index_cal.append(sta_index)
+                                # print dic[key]['STA_INDEX'][i]
+                                print(np.shape(sta_index))
                         else:
-                            sta_index = np.sort(dic[key]['STA_INDEX'][i])
-                            sta_index_cal.append(sta_index)
-                        # print dic[key]['STA_INDEX'][i]
+                            sta_index = i%6
+                            sta_index_cal.append([sta_index])
+                        
                 except:
                     print((dic['TARGET'], dic['DATEOBS'], "No CAL data found."))
             
-            sta_names = dic['STA_NAME']
+            if useStations==True:
+                sta_names = dic['STA_NAME']
+            else:
+                sta_names = ""
 
         target_names_cal = np.array(target_names_cal)
-        XKey_arr_cal      = np.array(XKey_arr_cal)
+        XKey_arr_cal     = np.array(XKey_arr_cal)
         arr_cal          = np.array(arr_cal)
         err_arr_cal      = np.array(err_arr_cal)
         sta_index_cal    = np.array(sta_index_cal)
 
         sta_indices = np.unique(sta_index_cal, axis=0)
+        print(len(sta_indices))
         if key == 'VIS' or key == 'VIS2' or key == 'TF2':
             n_max_config = np.nanmax([6, sta_indices.shape[0]])
             n_plot_rows = 3
@@ -513,15 +545,14 @@ def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xax
             # print i
             if datatype == 'DPHI' or datatype == 'CLOS':
                 axs1[i + 0].plot(XKey_range, [0.0, 0.0], '-', color='gray', lw=1.5)
-
                 
             if len(sta_index_cal) > 0:
                 idxst = np.all(sta_index_cal == sta_indices[i], axis=1)
                 if len(arr_cal[idxst]) > 0:
                     label = datatype +' cal'
 
-                    print(len(XKey_arr_cal))
-                    print(len(arr_cal))
+                    #print(len(XKey_arr_cal))
+                    #print(len(arr_cal))
                     
                     if plot_errorbars == True:
                         if showvis == True:
@@ -551,12 +582,16 @@ def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xax
                                     label = 'VIS' + ' sci'
                                 elif key == 'TF2':
                                     label = 'TF' + ' sci'
-                                axs1[i].errorbar(XKey_arr_cal[idxst], np.sqrt(arr_cal[idxst]),
-                                                 fmt='o', color='blue', elinewidth=1.0,
+                                axs1[i].errorbar(XKey_arr_cal[idxst],
+                                                 np.sqrt(arr_cal[idxst]),
+                                                 fmt='o', color='blue',
+                                                 elinewidth=1.0,
                                                  label=label)
                         else:
-                            axs1[i].errorbar(XKey_arr_cal[idxst], arr_cal[idxst],
-                                             fmt='o', color='blue', elinewidth=1.0,
+                            axs1[i].errorbar(XKey_arr_cal[idxst],
+                                             arr_cal[idxst],
+                                             fmt='o', color='blue',
+                                             elinewidth=1.0,
                                              label=label)
                     if i in range(2):
                         text_tag_flag = 1
@@ -575,14 +610,23 @@ def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xax
                                 prev_target_name = target_names_cal[idxst][j]
             
             if key == 'VIS' or key == 'VIS2' or key == 'TF2':
-                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
-                      sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
+                if useStations==True:
+                    axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                              sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
+                else:
+                    axlabel = ""
             elif key == 'T3':
-                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
-                      sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
-                      sta_names[sta_indices[i, 2] == dic['STA_INDEX']][0]
+                if useStations==True:
+                    axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                              sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
+                              sta_names[sta_indices[i, 2] == dic['STA_INDEX']][0]
+                else:
+                    axlabel = ""
             elif key == 'FLUX':
-                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0]
+                if useStations==True:
+                    axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0]
+                else:
+                    axlabel = ""
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
             axs1[i].text(0.05, 0.95, axlabel, horizontalalignment='left', verticalalignment='top',
                          transform=axs1[i].transAxes, bbox=props)
@@ -590,7 +634,10 @@ def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xax
                 leg = axs1[i].legend(loc='upper right')
                 leg.get_frame().set_alpha(0.5)
             if datatype == 'VIS2' or datatype == 'TF2':
-                axs1[i].set_ylim([-0.1, 1.1])
+                if ylog == True:
+                    axs1[i].set_ylim([0.3, 1.1])
+                else:
+                    axs1[i].set_ylim([-0.1, 1.1])
             else:
                 try:
                     axs1[i].set_ylim([np.nanmin([np.nanmin(arr_cal),np.nanmin(arr_sci)]), np.nanmax([np.nanmax(arr_cal),np.nanmax(arr_sci)])])
@@ -605,29 +652,43 @@ def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2", datatype="TF2", xax
                     ylabel = 'TF'
                     datatype = 'TF'
             axs1[i].set_ylabel(ylabel)
-            axs1[i].set_xlabel('$\mathrm{'+xaxis+'}$')
-        plt.suptitle('$\mathrm{'+datatype+'\ vs.\ time}$')
+            axs1[i].set_xlabel('$\mathrm{'+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
+
+            if xlog == True:
+                axs1[i].set_xscale('log')
+            if ylog == True:
+                axs1[i].set_yscale('log')
+            #if ylog == True or xlog == True:
+            #    for axis in [axs1[i].xaxis, axs1[i].yaxis]:
+            #        axis.set_major_formatter(LogFormatter(minor_thresholds=[1,0.5,0.2],labelOnlyBase=False))
+            #        axis.set_minor_formatter(LogFormatter(minor_thresholds=[1,0.5,0.2],labelOnlyBase=False))
+                    # axis.set_scientific(False)
+            
+        plt.suptitle('$\mathrm{'+datatype+'\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
+
+
+
         
-        plt.tight_layout()
+        #plt.tight_layout()
         plt.show()
 
-
-
-
-
-
-        
+        plt.savefig(home+"/"+datatype+'_f_'+xaxis.replace(" ","_")+'.png')
 
 ###############################################################################
-# This function shows the selected oifits data (flux, visibility, closure phase etc.)
-# as a function of time. It reads data from multiple oifits files in a given
-# directory.
-# The data to be plotted can be filtered with the filter_oi_list function.
-# Example usage:
-# filtered_list_of_dicts = filter_oi_list(list_of_dicts,dates=["2018-03-14"],bands=['LM'],spectral_resolutions=['MED'],DIT_range=[0,0.2],targets=['l pup'])
-# show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2", datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
+# This function shows the selected oifits data (flux, visibility,
+# closure phase etc.)  as a function of time. It reads data from
+# multiple oifits files in a given directory.  The data to be plotted
+# can be filtered with the filter_oi_list function.
 #
-def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvis=False,plot_errorbars=True):
+# Example usage:
+# filtered_list_of_dicts = filter_oi_list(list_of_dicts,
+# dates=["2018-03-14"], bands=['LM'], spectral_resolutions=['MED'],
+# DIT_range=[0,0.2], targets=['l pup'])
+# show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2",
+# datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
+#
+def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",
+datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
     # check if list is not empty:
     if list_of_dicts:
         target_names_cal = []
@@ -679,15 +740,24 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
                         err_arr_sci.append(robust.mean(datayerr[i, wlenRange_idx]))
                         MJD_arr_sci.append(datax[i])
                         target_names_sci.append(dic['TARGET'])
-                        if key == 'FLUX':
-                            sta_index = dic[key]['STA_INDEX'][i]
-                            sta_index_sci.append([sta_index])
+                        if useStations==True:
+                            if key == 'FLUX':
+                                sta_index = dic[key]['STA_INDEX'][i]
+                                sta_index_sci.append([sta_index])
+                            else:
+                                sta_index = np.sort(dic[key]['STA_INDEX'][i])
+                                sta_index_sci.append(sta_index)
                         else:
-                            sta_index = np.sort(dic[key]['STA_INDEX'][i])
-                            sta_index_sci.append(sta_index)
+                            sta_index = i%6
+                            sta_index_cal.append([sta_index])
                 except:
                     print((dic['TARGET'], dic['DATEOBS'], "No SCI data found."))
-            sta_names = dic['STA_NAME']
+            
+            if useStations==True:
+                sta_names = dic['STA_NAME']
+            else:
+                sta_names = ""
+
 
         target_names_cal = np.array(target_names_cal)
         MJD_arr_cal      = np.array(MJD_arr_cal)
@@ -824,12 +894,18 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
                                 prev_text_MJD = MJD_arr_sci[idxst][j]
                                 prev_target_name = target_names_sci[idxst][j]
             if key == 'VIS' or key == 'VIS2' or key == 'TF2':
-                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                if useStations==True:
+                    axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
                       sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
+                else:
+                    axlabel = ""
             elif key == 'T3':
-                axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
-                      sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
-                      sta_names[sta_indices[i, 2] == dic['STA_INDEX']][0]
+                if useStations==True:
+                    axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
+                              sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0] + ' - ' + \
+                              sta_names[sta_indices[i, 2] == dic['STA_INDEX']][0]
+                else:
+                    axlabel = ""
             elif key == 'FLUX':
                 axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0]
             props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
@@ -865,7 +941,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2", datatype="VIS2",showvi
         #     plt.setp(axs1[i].get_yticklabels(), visible=False)
         #     y_axis = axs1[i].axes.get_yaxis()
         #     y_axis.get_label().set_visible(False)
-        plt.tight_layout()
+        #plt.tight_layout()
         plt.show()
 
 ###############################################################################
@@ -1411,7 +1487,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
 
 
 ###############################################################################
-def open_oi_dir(input_dir):
+def open_oi_dir(input_dir, verbose=True):
     oifits_file_list = glob.glob(input_dir + '/*fits*')
 
     N_files = len(oifits_file_list)
@@ -1420,7 +1496,8 @@ def open_oi_dir(input_dir):
         if "LAMP" not in file:
             dic = open_oi(file)
             if dic:
-                print((dic['TARGET'], dic['DATEOBS'], dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY']))
+                if verbose==True:
+                    print(dic['TARGET'] + " " + dic['DATEOBS'] + " " + dic['BAND'] + " " + dic['DISP'] + " " + str(dic['DIT']) + " " + dic['CATEGORY'])
                 list_of_dicts.append(dic)
 
     return list_of_dicts
@@ -1523,6 +1600,8 @@ def filter_oi_list_night(list_of_dicts, dates='2000-01-01', bands=[], spectral_r
             filtered_list_of_dicts.append(dic)
 
     return filtered_list_of_dicts
+
+
 ###############################################################################
 # Example code for TF and VIS plots.
 # name_dir = r"D:\jvarga\Dokumentumok\MATISSE\data\OIFITS/"
