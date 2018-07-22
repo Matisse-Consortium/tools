@@ -23,9 +23,9 @@
    the holder of the economic rights, and the successive licensors
    have only limited liability.
 
-   $Author$
-   $Date$
-   $Revision$
+  $Author$
+  $Date$
+  $Revision$
 
    In this respect, the user's attention is drawn to the risks
    associated with loading, using, modifying and/or developing or
@@ -74,13 +74,13 @@
 #      buffer file
 
 # Import necessary files
-from libAutoPipeline import matisseType
+from   libAutoPipeline import matisseType
 import wx
 import os
-from ObjectListView import ObjectListView, ColumnDefn, Filter
-from astropy.io import fits
+from   ObjectListView import ObjectListView, ColumnDefn, Filter
+from   astropy.io import fits
 import subprocess
-from fitsheaderviewer import fitsHeaderViewer
+from   fitsheaderviewer import fitsHeaderViewer
 import distutils.spawn
 import fnmatch
 import sys
@@ -547,7 +547,7 @@ class mat_FileDialog(wx.Dialog):
        #print "----dirChanged-----"
        try:
            # if file exists, open it
-           #print "Open existing FileList_File"
+           print ("Opening existing FileList_File...")
            FileList_File = open(self.dir + '/' + FileList_FileName, 'rb')
            #print "Load with pickle"
            matisseFileList = pickle.load(FileList_File)
@@ -605,8 +605,9 @@ class mat_FileDialog(wx.Dialog):
                FileList_File.close()
        except (IOError,EOFError) as error:
            # the file does not exists, or is empty
-           #print "Create new FileList_File"
+           print ("FileList does not exist. Creating a new FileList_File...")
            #print "add new files to the file list"
+           fitsInDir = False;
            for filei in files:
                #if os.path.isfile(self.dir+"/"+filei):
                    #print "   " + filei
@@ -621,11 +622,17 @@ class mat_FileDialog(wx.Dialog):
                        Append = False
                    if Append:
                        matisseFileList.append(matFile)
-           #save matisseFileList in file
-           #print "save matisseFileList in file"
-           FileList_File = open(self.dir+'/'+ FileList_FileName, 'w+b')
-           pickle.dump(matisseFileList, FileList_File)
-           FileList_File.close()
+                   if matFile.isFits:
+                       fitsInDir = True 
+
+           if fitsInDir == True:
+               #save matisseFileList in file
+               #print "save matisseFileList in file"
+               FileList_File = open(self.dir+'/'+ FileList_FileName, 'w+b')
+               pickle.dump(matisseFileList, FileList_File)
+               FileList_File.close()
+           else:
+               print ("No fits files, skipping...")
 
        self.fileList.SetObjects(matisseFileList)
        #flt = Filter.TextSearch(self, columns=self.fileList.columns[1], text="Fits File")
