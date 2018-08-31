@@ -8,6 +8,7 @@ Created on Thu Mar 16 10:37:15 2017
 import numpy as np
 from astropy.io import fits
 
+
 dimSpectral=1960
 dimSpatialInterf=625
 dimSpatialPhoto=150
