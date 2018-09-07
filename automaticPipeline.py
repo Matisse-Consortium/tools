@@ -58,10 +58,10 @@ def runEsorex(cmd):
     item = cmd.split()
     out  = item[-1]+".log"
     err  = item[-1]+".err"
-    print("    Recipes",item[2],"running...")
+    val  = item[-1].split(".")
+    print "Running (Recipes : ",item[2],", TplStart : ",val[1],", Detector : ",val[2],")"
     val  = item[1].split("=")
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
-    print("Done.")
 
 # Initialize variables
 repRaw      = ""
@@ -70,15 +70,21 @@ repResult   = ""
 tplidsel    = ""
 tplstartsel = ""
 nbCore      = 0
+recipesParamN = ""
+recipesParamL = ""
+maxIteration  = 0
+skipL         = 0
+skipN         = 0
+overwrite     = 0
 listArg     = sys.argv
 
 for elt in listArg:
     if ('--help' in elt):
-        print("Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath] [--nbCore=NumberOfCores] [--tplID=template ID] [--tplSTART=template start] [--overwrite] [--skipL] [--skipN]")
+        print("Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath [current direectory]] [--nbCore=NumberOfCores  [1]] [--tplID=template ID []] [--tplSTART=template start []] [--overwrite] [--skipL] [--skipN] [--maxIter=MaximumNumberIteration [1]] [--paramN=mat_raw_estimates recipes parameters for N band [useOpdMod=TRUE]] [--paramL=mat_raw_estimates recipes parameters for LM band [useOpdMod=FALSE]]" )
+        print("     Example : python automaticPipeline.py --dirRaw=/data/2018-05-19 --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
 
 # Parse arguments of the command line
-raw_est_opts = "";
 for elt in listArg:
     if ('--dirRaw' in elt):
         item=elt.split('=')
@@ -98,31 +104,25 @@ for elt in listArg:
     elif ('--tplSTART' in elt):
         item        = elt.split('=')
         tplstartsel = item[1]
-        
-    elif ('--replaceTel' in elt):
-        raw_est_opts += elt + " "
-    elif ('--corrFlux' in elt):
-        raw_est_opts += elt + " "
-    elif ('--useOpdMod' in elt):
-        raw_est_opts += elt + " "
     ##########################################################################
+    elif ('--paramN' in elt):
+        item   = elt.split('N=')
+        val    = item[1].replace('/',' --')
+        recipesParamN=val
+    elif ('--paramL' in elt):
+        item   = elt.split('L=')
+        val    = item[1].replace('/',' --')
+        recipesParamL=val
     if ('--overwrite' in elt):
         overwrite=1
-    else:
-        overwrite=0
-    if ('--skipOddBCD' in elt):
-        skipOddBCD=1
-    else:
-        skipOddBCD=0
+    if ('--maxIter' in elt):
+        item   = elt.split('=')
+        maxIteration=int(item[1])
     if ('--skipL' in elt):
         skipL=1
-    else:
-        skipL=0
     if ('--skipN' in elt):
         skipN=1
-    else:
-        skipN=0
-
+        
 # Print meaningful error messages if something is wrong in the command line
 print(" ")
 print("------------------------------------------------------------------------")
@@ -140,9 +140,14 @@ if (repResult==""):
         print("Info : Results Directory not specified. We use current directory")
 print('%-40s' % ("Results Directory:",),repResult)
 if (nbCore==0):
-    nbCore=8
-    print("Info : Number of Cores not specified. We use "+str(nbCore)+" cores")
-print('%-40s' % ("Number of Cores:",),nbCore)    
+    nbCore=1
+    print("Info : Number of Cores not specified. We use "+str(nbCore)+" core")
+print('%-40s' % ("Number of Cores:",),nbCore)
+if (maxIteration==0):
+    maxIteration=1
+    print("Info : Maximum Number of Iteration not specified. We fix it to "+str(maxIteration))
+print('%-40s' % ("Maximum Number of Iteration:",),maxIteration)
+
 print("------------------------------------------------------------------------")
  
 
@@ -167,33 +172,46 @@ for hdr,filename in zip(allhdr,listRaw):
         tplstart = hdr['HIERARCH ESO TPL START']
         chip     = hdr['HIERARCH ESO DET CHIP NAME']
 
-        # Skip L band data
-        if skipL == 1 and chip == 'HAWAII-2RG':
-            continue;
-        
-        # Skip N band data
-        if skipN == 1 and chip == 'AQUARIUS':
-            continue;
-        
-        # Go through all 4 cases. First case: tplid and tplstart given by user
-        if (tplidsel != "" and tplstartsel != ""):
-            if (tplid == tplidsel and tplstart == tplstartsel):
+        if skipL == 0 and chip == 'HAWAII-2RG':
+            # Go through all 4 cases. First case: tplid and tplstart given by user
+            if (tplidsel != "" and tplstartsel != ""):
+                if (tplid == tplidsel and tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+            # Second case: tpl ID given but not tpl start
+            if (tplidsel != "" and tplstartsel == ""):
+                if (tplid == tplidsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+            # Third case: tpl start given but not tpl ID
+            if (tplidsel == "" and tplstartsel != ""):
+                if (tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+            # Fourth case: nothing given by user
+            if (tplidsel == "" and tplstartsel == ""):
                 listRawSorted.append(filename)
                 allhdrSorted.append(hdr)
-        # Second case: tpl ID given but not tpl start
-        if (tplidsel != "" and tplstartsel == ""):
-            if (tplid == tplidsel):
+    if skipN == 0 and chip == 'AQUARIUS':
+            # Go through all 4 cases. First case: tplid and tplstart given by user
+            if (tplidsel != "" and tplstartsel != ""):
+                if (tplid == tplidsel and tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+            # Second case: tpl ID given but not tpl start
+            if (tplidsel != "" and tplstartsel == ""):
+                if (tplid == tplidsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+            # Third case: tpl start given but not tpl ID
+            if (tplidsel == "" and tplstartsel != ""):
+                if (tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+            # Fourth case: nothing given by user
+            if (tplidsel == "" and tplstartsel == ""):
                 listRawSorted.append(filename)
                 allhdrSorted.append(hdr)
-        # Third case: tpl start given but not tpl ID
-        if (tplidsel == "" and tplstartsel != ""):
-            if (tplstart == tplstartsel):
-                listRawSorted.append(filename)
-                allhdrSorted.append(hdr)
-        # Fourth case: nothing given by user
-        if (tplidsel == "" and tplstartsel == ""):
-               listRawSorted.append(filename)
-               allhdrSorted.append(hdr)
                
 # Replace original list with the sorted one
 listRaw = listRawSorted
@@ -262,14 +280,22 @@ while True:
         hdr = elt["input"][0][2]
         keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
         action        = matisseAction(hdr,elt["input"][0][1])
-        if action=="ACTION_MAT_RAW_ESTIMATES":
-            opts = raw_est_opts
-        else:
-            opts = ""
-        recipes,param = matisseRecipes(action,hdr['HIERARCH ESO DET CHIP NAME'],opts)
+        recipes,param = matisseRecipes(action,hdr['HIERARCH ESO DET CHIP NAME'])
         elt["action"]   = action
         elt["recipes"]  = recipes
-        elt["param"]    = param
+        if action=="ACTION_MAT_RAW_ESTIMATES":
+            if (hdr['HIERARCH ESO DET CHIP NAME'] == "AQUARIUS"):
+                if (recipesParamN == ""):
+                    elt["param"]    = param
+                else:
+                    elt["param"]    = recipesParamN
+            else:
+                if (recipesParamL == ""):
+                    elt["param"]    = param
+                else:
+                    elt["param"]    = recipesParamL
+        else:
+            elt["param"]    = param
         elt["tplstart"] = keyTplStartCurrent
 
 # Fill the list of calib in the Reduction Blocks List from repArchive
@@ -310,7 +336,7 @@ while True:
 
             filelist  = os.listdir(repIter)
             rbname    = elt["recipes"]+"."+elt["tplstart"]
-            sofname   = os.path.join(repIter,rbname+".sof").replace(':','_')
+            sofname   = os.path.join(repIter,rbname+".sof").replace(':',':')
     
             if os.path.exists(sofname):
                 print(("sof file "+sofname+" already exists..."))
@@ -359,14 +385,13 @@ while True:
                 os.mkdir(outputDir)
             
             cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname
-
+            
             if (iterNumber > 1):
                 sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
                 if (os.path.exists(sofnamePrev)):
                     if (filecmp.cmp(sofname,sofnamePrev)):
-                        #outputDirPrev=repIterPrev+"/"+elt["tplstart"]+".rb"
-                        #print "copy "+outputDirPrev+" in "+outputDir
-                        #os.system("cp "+outputDirPrev+"/* "+outputDir+"/.")
+                        print(("Reduction Blocks already processed during previous iteration"))
+                        print(("Remove directory : "+outputDir))
                         shutil.rmtree(outputDir)
                     else:  
                         listIterNumber[cpt] = iterNumber
@@ -387,8 +412,17 @@ while True:
             cptStatusZero+=1
         cpt+=1
     print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
-                
-    if (listCmdEsorex == []):
+
+    if (listCmdEsorex != [] and iterNumber <= maxIteration):
+        # Create a process pool with a maximum of 10 worker processes
+        pool = Pool(processes=nbCore)
+        # Map our function to a data set - number 1 through 20
+        pool.map(runEsorex, listCmdEsorex)
+        
+    print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
+    print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
+
+    if (listCmdEsorex == [] or iterNumber == maxIteration):
         print(" ")
         print("No more iteration to do")
         print("-----------------------")
@@ -407,12 +441,5 @@ while True:
             print('%-24s' % (tplstart,),'%-14s' % (detector,),'%-30s' % (elt["action"],),msg)
 
         break
-    else:
-# Create a process pool with a maximum of 10 worker processes
-        pool = Pool(processes=nbCore)
-# Map our function to a data set - number 1 through 20
-        pool.map(runEsorex, listCmdEsorex)
-    print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
-    print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
 
     

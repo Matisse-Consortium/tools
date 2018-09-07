@@ -104,7 +104,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
         allhdr.append(cacheHdr.cache[elt]['value'])
     print("done.")
 
-    print("Looking for detector basic actions...")
     if (action == "ACTION_MAT_IM_BASIC"    or
         action == "ACTION_MAT_IM_EXTENDED" or
         action == "ACTION_MAT_IM_REM"):
@@ -146,7 +145,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             status=0
         return [res,status]
 
-    print("Looking for flat fielding actions...")
     if (action == "ACTION_MAT_EST_FLAT"):
         nbCalib = 0
         for elt in res:
@@ -263,7 +261,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             status=0
         return [res,status]
 
-    print("Looking for raw estimates actions...")
     if (action=="ACTION_MAT_RAW_ESTIMATES"):
         nbCalib=0
         for elt in res:
@@ -430,7 +427,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 status=0
         return [res,status]
 
-    print("Looking for Kappa Matrix actions...")
     if (action=="ACTION_MAT_EST_KAPPA"):
         nbCalib=0
         for elt in res:
@@ -553,7 +549,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             status=0
         return [res,status]
 
-    print("Looking for shift estimates actions...")
     if (action=="ACTION_MAT_EST_SHIFT"):
         nbCalib=0
         for elt in res:
@@ -654,7 +649,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     return [res,0]
 
-def matisseRecipes(action,det,opts):
+def matisseRecipes(action,det):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
         return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
@@ -673,13 +668,9 @@ def matisseRecipes(action,det,opts):
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS"):
-        return ["mat_raw_estimates",opts]
-#        return ["mat_raw_estimates","--useOpdMod=TRUE --replaceTel=1"]
-#        return ["mat_raw_estimates","--useOpdMod=FALSE --coherentIntegTime=0.1"]
+        return ["mat_raw_estimates","--useOpdMod=TRUE"]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
-        #return ["mat_raw_estimates","--useOpdMod=FALSE --corrFlux=TRUE"]  
-        #return ["mat_raw_estimates","--useOpdMod=FALSE"]   
-        return ["mat_raw_estimates",opts]   
+        return ["mat_raw_estimates","--useOpdMod=FALSE"]   
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
