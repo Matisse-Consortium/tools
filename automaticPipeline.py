@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
   $Id$
@@ -59,7 +59,7 @@ def runEsorex(cmd):
     out  = item[-1]+".log"
     err  = item[-1]+".err"
     val  = item[-1].split(".")
-    print "Running (Recipes : ",item[2],", TplStart : ",val[1],", Detector : ",val[2],")"
+    print("Running (Recipes : ",item[2],", TplStart : ",val[1],", Detector : ",val[2],")")
     val  = item[1].split("=")
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
 
