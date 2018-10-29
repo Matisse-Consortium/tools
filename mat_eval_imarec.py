@@ -264,10 +264,8 @@ if not files:
         openFileDialog.Destroy()
         app.MainLoop()
         app.Destroy()
-        
 
 ###############################################################################
-
 
 plt.figure(1)
 plt.clf();
@@ -275,7 +273,6 @@ plt.subplot(3,3,1)
 
 BX, BY = get_UVs(files)
 plot_UV(BX, BY)
-
 
 ###############################################################################
 
