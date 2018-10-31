@@ -88,23 +88,23 @@ def open_oi(oi_file):
     try:
         hdu = fits.open(oi_file)
     except IOError:
-        print(("Unable to read fits file: " + oi_file))
+        print("Unable to read fits file: " + oi_file)
         return {}
 
     hdr = hdu[0].header
-    
+
     wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN': wl}
 
     dic['HDR'] = hdr
-    
+
     try:
-        dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START']+hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
+        dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START'] + hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
     except:
         dic['SEEING'] = 0;
-        
+
     try:
-        dic['TAU0']   = (hdr['HIERARCH ESO ISS AMBI TAU0 START']+hdr['HIERARCH ESO ISS AMBI TAU0 END'])/2.
+        dic['TAU0']   = (hdr['HIERARCH ESO ISS AMBI TAU0 START'] + hdr['HIERARCH ESO ISS AMBI TAU0 END'])/2.
     except:
         dic['TAU0'] = 0;
 
@@ -115,12 +115,12 @@ def open_oi(oi_file):
         except KeyError:
             print ("Target name not found.")
             target_name = ""
-            
+
     dic['TARGET'] = target_name
 
     # Fix eventual bad target identification
     dic['TARGET'] = resolve_target(dic)
-    
+
     try:
         target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
     except KeyError:
@@ -180,12 +180,12 @@ def open_oi(oi_file):
         dic['VIS']['VISAMPERR'] = hdu['OI_VIS'].data['VISAMPERR']
         dic['VIS']['DPHI']      = hdu['OI_VIS'].data['VISPHI']
         dic['VIS']['DPHIERR']   = hdu['OI_VIS'].data['VISPHIERR']
-        try:        
+        try:
             dic['VIS']['CFLUX']    = hdu['OI_VIS'].data['CFXAMP']
             dic['VIS']['CFLUXERR'] = hdu['OI_VIS'].data['CFXAMPERR']
         except:
             print("WARNING: No correlated fluxes in this OI_VIS table!")
-                    
+
         dic['VIS']['U']         = hdu['OI_VIS'].data['UCOORD']
         dic['VIS']['V']         = hdu['OI_VIS'].data['VCOORD']
         dic['VIS']['TIME']      = hdu['OI_VIS'].data['MJD']
@@ -337,16 +337,16 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     timeVertOffset=0, stdevRange=False, normRange=False,
                     stdevTime=False):
    # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
-    
+
     sta_index_cal = []
-        
+
     # Get data from the input dictionary
     wl     = dic['WLEN'];
     nbWlen = len(wl)
     data   = dic[key][datatype];
     datae  = dic[key][datatype + "ERR"];
     time   = dic[key]["TIME"];
-    
+
     if correct_polynom:
         print("Correct a polynom")
         if normRange:
@@ -361,14 +361,14 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                 data[i,:] = data[i,:] / np.polyval(fit,wl)
             else:
                 data[i,:] = data[i,:] - np.polyval(fit,wl)
-    
+
     if key == 'FLUX':
         sta_index = dic[key]['STA_INDEX']
         sta_index_cal.append([sta_index])
     else:
         sta_index = np.sort(dic[key]['STA_INDEX'])
         sta_index_cal.append(sta_index)
-                            
+
     # Get the unique station indices from the data
     print("Get the unique station indices from the data")
     sta_indices = np.unique(sta_index_cal, axis=0)
@@ -381,25 +381,25 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     elif key == 'T3':
         n_max_config = np.nanmax([4, sta_indices.shape[0]])
         n_plot_rows = 2
-            
+
     print(n_max_config)
-        
+
     fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
     axs1 = axs1.ravel()
-        
+
     #print datae
     #print datae.shape
     print("Plotting...")
     for i in range(int(len(data)/n_max_config)):
-            
+
         label = datatype
         #
-        
+
         for j in range(n_max_config):
             idx = int(i*n_max_config+j);
-            
+
             # Take square root of observable
-            if showvis == True: 
+            if showvis == True:
                 print("Take square root of observable")
                 data[idx, :]  = np.sqrt(data[idx, :])
                 datae[idx, :] = 0.5 * datae[idx, :] / np.sqrt(data[idx, :])
@@ -423,19 +423,19 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     off = 0.5;
                 axs1[j].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. in continuum"+str(round(np.std(data[idx, stdevRange[0]:stdevRange[1]]),3)))
             #print("st. dev.",np.std(data[idx, normrange[0]:normrange[1]]))
-                
+
             if plot_errorbars == True:
                 axs1[j].errorbar(wl * 1e6, data[idx, :],
                     yerr=datae[idx, :],
                     ecolor = 'grey', alpha = 0.25, capsize = 0.5,elinewidth = 1)
-            
-        
+
+
         if stdevTime == True:
             dat = np.reshape(data,[int(len(data)/n_max_config),n_max_config,nbWlen])
             std = np.std(dat,2)
             if stdevRange:
                 axs1[j].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. vs. time"+str(round(np.mean(np.std(dat[:,i, stdevRange[0]:stdevRange[1]],axis=0),3))))
-                         
+
     if datatype == 'VIS2' or datatype == 'TF2' or datatype == 'CFLUX':
         plt.ylim([-0.1,1.1+timeVertOffset*(n_max_config-1)*1.1])
     else:
@@ -457,7 +457,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     fig1.suptitle(datatype+' vs. wavelength')
     plt.show()
 
-    
+
 ###############################################################################
 # This function shows the selected oifits data (flux, visibility,
 # closure phase etc.) as a function of any keywork in the header (by
@@ -495,7 +495,7 @@ useStations=True,xlog=False,ylog=False):
                         arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
                         err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
                         target_names_cal.append(dic['TARGET'])
-                        
+
                         if useStations==True:
                             if key == 'FLUX':
                                 sta_index = dic[key]['STA_INDEX'][i]
@@ -509,10 +509,10 @@ useStations=True,xlog=False,ylog=False):
                         else:
                             sta_index = i%6
                             sta_index_cal.append([sta_index])
-                        
+
                 except:
-                    print((dic['TARGET'], dic['DATEOBS'], "No CAL data found."))
-            
+                    print(dic['TARGET'], dic['DATEOBS'], "No CAL data found.")
+
             if useStations==True:
                 sta_names = dic['STA_NAME']
             else:
@@ -545,7 +545,7 @@ useStations=True,xlog=False,ylog=False):
             # print i
             if datatype == 'DPHI' or datatype == 'CLOS':
                 axs1[i + 0].plot(XKey_range, [0.0, 0.0], '-', color='gray', lw=1.5)
-                
+
             if len(sta_index_cal) > 0:
                 idxst = np.all(sta_index_cal == sta_indices[i], axis=1)
                 if len(arr_cal[idxst]) > 0:
@@ -553,7 +553,7 @@ useStations=True,xlog=False,ylog=False):
 
                     #print(len(XKey_arr_cal))
                     #print(len(arr_cal))
-                    
+
                     if plot_errorbars == True:
                         if showvis == True:
                             if key == 'VIS2' or key == 'TF2':
@@ -608,7 +608,7 @@ useStations=True,xlog=False,ylog=False):
                                 text_tag_flag = 0
                                 prev_text_XKey = XKey_arr_cal[idxst][j]
                                 prev_target_name = target_names_cal[idxst][j]
-            
+
             if key == 'VIS' or key == 'VIS2' or key == 'TF2':
                 if useStations==True:
                     axlabel = sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + \
@@ -663,12 +663,12 @@ useStations=True,xlog=False,ylog=False):
             #        axis.set_major_formatter(LogFormatter(minor_thresholds=[1,0.5,0.2],labelOnlyBase=False))
             #        axis.set_minor_formatter(LogFormatter(minor_thresholds=[1,0.5,0.2],labelOnlyBase=False))
                     # axis.set_scientific(False)
-            
+
         plt.suptitle('$\mathrm{'+datatype+'\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
 
 
 
-        
+
         #plt.tight_layout()
         plt.show()
 
@@ -727,7 +727,7 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                             sta_index_cal.append(sta_index)
                         # print dic[key]['STA_INDEX'][i]
                 except:
-                    print((dic['TARGET'], dic['DATEOBS'], "No CAL data found."))
+                    print(dic['TARGET'], dic['DATEOBS'], "No CAL data found.")
             elif 'sci' in category:
                 try:
                     datay    = np.array(dic[key][datatype])
@@ -751,8 +751,8 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                             sta_index = i%6
                             sta_index_cal.append([sta_index])
                 except:
-                    print((dic['TARGET'], dic['DATEOBS'], "No SCI data found."))
-            
+                    print(dic['TARGET'], dic['DATEOBS'], "No SCI data found.")
+
             if useStations==True:
                 sta_names = dic['STA_NAME']
             else:
@@ -941,13 +941,13 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
         #     plt.setp(axs1[i].get_yticklabels(), visible=False)
         #     y_axis = axs1[i].axes.get_yaxis()
         #     y_axis.get_label().set_visible(False)
-        #plt.tight_layout()
+        plt.tight_layout()
         plt.show()
 
 ###############################################################################
 # showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)
 def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=False, output_path="",plot_errorbars=True):
-    starFlux={'Teta Pyx':27, 'psi Vir':44,'tet Cen':48, \
+    starFluxN={'Teta Pyx':27, 'psi Vir':44,'tet Cen':48, \
           'del Vir':160,'eps Sco':52,'del Oph':110, \
           'FZ Lib':17,'del Sco':15,'HD171094':34, \
           'e Aql':27,'29 Cap':31,'alf Ant':19, \
@@ -961,7 +961,27 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
           'ET Vir':29,'H Sco':30,'HD177507':17, \
           'V345 Tel':9,'RW Lup':18,'HD 150798':144, \
           'BM Sco':85,'RX Tel':82,'HD328913':100, \
-          'Eps Oph':16,'HD182669':2.5,'Nu Hya':30}
+          'Eps Oph':16,'HD182669':2.5,'Nu Hya':30}    # check if list is not empty:
+    starFluxL={'HD138492':49,'HD147929':49,'HD148255':19, \
+               'HD156936':23,'HD161849':33, 'HD165413':35, \
+               'HD186765':39,'HD182669':16,'Teta Pyx':187, \
+               'tet Cen':390,'Tet Cen':390,'alf Ant':129,'HD99333':112, \
+               'C01 Cen':127,'HD138505':105,'HD171094':85, \
+               'e Aql':152,'29 Cap':198,'AV Mic':113,'psi Vir':280, \
+               'eps Sco':381,'ET Vir':169,'FZ Lib':141,'Eps Oph':116, \
+               'HD142527':6,'RW Lup':42,'H Sco':154,'Mu Hya':219, \
+               'Nu Hya':236,'CH Vir':63,'HD 126111':43,'LY TrA':35, \
+               'HD177507':101,'V345 Tel':154,'HD121730':3,'HD132602':1, \
+               'HD142277':3,'HD145278':0.5,'HD165368':50,'HD181925':50, \
+               'HD189140':50,'HD 902':10,'TW PsA':10,'nu Phe':10,'HD218619':20, \
+               'HD183925':21,'V4443 Sgr':24,'HD217826':5,'HD224936':5, \
+               'HD6080':5,'HD216988':3,'HD224644':3,'HD4293':3,'HD457':1, \
+               'tet Gru':1,'Pi Hya':157,'V1064 Sco':50,'Ome Lup':64, \
+               'HD167818':-1,'B Sgr':54,'HD189831':50,'HD943':-1,'g Aqr':42}    # check if list is not empty:
+    if (wlenRange[0] > 6):
+        starFlux=starFluxN
+    else:
+        starFlux=starFluxL
     # check if list is not empty:
     if list_of_dicts:
         # colors: BCD: out-out, in-in, in-out, out-in
@@ -1041,7 +1061,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
                             V2_sta_index_cal.append(sta_index)
                     except:
-                        print((dic['TARGET'], dic['DATEOBS'], "No CAL VIS2 data found."))
+                        print(dic['TARGET'], dic['DATEOBS'], "No CAL VIS2 data found.")
                     try:
                         datay = np.array(dic['T3']['CLOS'])
                         datayerr = np.array(dic['T3']['CLOSERR'])
@@ -1068,7 +1088,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['T3']['STA_INDEX'][i])
                             CP_sta_index_cal.append(sta_index)
                     except:
-                        print((dic['TARGET'], dic['DATEOBS'], "No CAL CP data found."))
+                        print(dic['TARGET'], dic['DATEOBS'], "No CAL CP data found.")
                     try:
                         datay = np.array(dic['TF2']['TF2'])
                         datayerr = np.array(dic['TF2']['TF2ERR'])
@@ -1097,7 +1117,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['TF2']['STA_INDEX'][i])
                             TF2_sta_index.append(sta_index)
                     except:
-                        print((dic['TARGET'], dic['DATEOBS'], "No CAL TF2 data found."))
+                        print(dic['TARGET'], dic['DATEOBS'], "No CAL TF2 data found.")
                 if 'sci' in category:
                     try:
                         datay = np.array(dic['VIS2']['VIS2'])
@@ -1128,7 +1148,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             sta_index = np.sort(dic['VIS2']['STA_INDEX'][i])
                             V2_sta_index.append(sta_index)
                     except:
-                        print((dic['TARGET'], dic['DATEOBS'], "No SCI VIS2 data found."))
+                        print(dic['TARGET'], dic['DATEOBS'], "No SCI VIS2 data found.")
                     try:
                         datay = np.array(dic['T3']['CLOS'])
                         datayerr = np.array(dic['T3']['CLOSERR'])
@@ -1155,7 +1175,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             CP_BCD_arr.append([BCD1, BCD2])
                             CP_MJD_arr.append(datax[i])
                     except:
-                        print((dic['TARGET'], dic['DATEOBS'], "No SCI CP data found."))
+                        print(dic['TARGET'], dic['DATEOBS'], "No SCI CP data found.")
             else:
                 print("Wavelength out of range.")
 
@@ -1259,12 +1279,16 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                             if V2_MJD_arr_cal[idxst][j] > (prev_text_MJD + text_width_MJD):
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_cal[idxst][j]):
-                                axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y,
-                                             target_names_cal[idxst][j].replace('_', ' '),
-                                             #" ("+np.str(starFlux[target_names_cal[idxst][j]])+"Jy)",
-                                             rotation=90, 
-                                             va='bottom',fontsize=10)
- 
+                                if (target_names_cal[idxst][j] in starFlux) :
+                                    axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y, \
+                                                 target_names_cal[idxst][j].replace('_', ' ')+ \
+                                                 " ("+np.str(starFlux[target_names_cal[idxst][j]])+"Jy)", rotation=90, \
+                                                 va='bottom',fontsize=10)
+                                else :
+                                    axs1[i].text(V2_MJD_arr_cal[idxst][j], text_y, \
+                                                 target_names_cal[idxst][j].replace('_', ' '), rotation=90, \
+                                                 va='bottom',fontsize=10)
+
                                 text_tag_flag = 0
                                 prev_text_MJD = V2_MJD_arr_cal[idxst][j]
                                 prev_target_name = target_names_cal[idxst][j]
@@ -1285,6 +1309,13 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                                      yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(np.abs(TF2_arr[cidxst])),
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
+                                    z=np.polyfit(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]), np.sqrt(np.abs(TF2_arr[cidxst])),3)
+                                    p=np.poly1d(z)
+                                    x=(np.max(TF2_MJD_arr[cidxst])-np.min(TF2_MJD_arr[cidxst]))*np.arange(100)/100.
+                                    axs1[i].plot(np.min(TF2_MJD_arr[cidxst])+x,p(x),color=TF2_colors[j])
+                                    val=np.sqrt(np.abs(TF2_arr[cidxst]))-p(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]))
+                                    valmed=np.median(val)
+                                    print np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
                                 else:
                                     axs1[i].errorbar(TF2_MJD_arr[cidxst], TF2_arr[cidxst], yerr=TF2err_arr[cidxst],
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
@@ -1403,6 +1434,13 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                 axs[i + 0].errorbar(CP_MJD_arr_cal[cidxst], CP_arr_cal[cidxst], yerr=CPerr_arr_cal[cidxst],
                                                 fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                 label='CP cal ' + BCD_labels[j])
+                                z=np.polyfit(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst],1)
+                                p=np.poly1d(z)
+                                x=(np.max(CP_MJD_arr_cal[cidxst])-np.min(CP_MJD_arr_cal[cidxst]))*np.arange(100)/100.
+                                axs[i + 0].plot(np.min(CP_MJD_arr_cal[cidxst])+x,p(x),color=V2_cal_colors[j])
+                                val=np.sqrt(np.abs(CP_arr_cal[cidxst]))-p(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]))
+                                valmed=np.median(val)
+                                print "CP",np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[CP_sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0]+ ' - ' + sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
                             else:
                                 axs[i + 0].errorbar(CP_MJD_arr_cal[cidxst], CP_arr_cal[cidxst],
                                                     fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
@@ -1416,11 +1454,16 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_CP_cal[idxst][j]):
                                 ymin, ymax = axs[i + 0].get_ylim()
-                                axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax * 1.05,
-                                                target_names_CP_cal[idxst][j].replace('_', ' '),
-                                                #" ("+np.str(starFlux[target_names_CP_cal[idxst][j]])+"Jy)", rotation=90,
-                                                va='bottom',fontsize=8)
-                                    
+                                if (target_names_CP_cal[idxst][j] in starFlux):
+                                    axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax * 1.05, \
+                                                    target_names_CP_cal[idxst][j].replace('_', ' ')+ \
+                                                    " ("+np.str(starFlux[target_names_CP_cal[idxst][j]])+"Jy)", rotation=90,
+                                                    va='bottom',fontsize=8)
+                                else:
+                                     axs[i + 0].text(CP_MJD_arr_cal[idxst][j], ymax * 1.05, \
+                                                    target_names_CP_cal[idxst][j].replace('_', ' '), rotation=90,
+                                                    va='bottom',fontsize=8)
+
                                 text_tag_flag = 0
                                 prev_text_MJD = CP_MJD_arr_cal[idxst][j]
                                 prev_target_name = target_names_CP_cal[idxst][j]
@@ -1487,6 +1530,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
 
 
 ###############################################################################
+
 def open_oi_dir(input_dir, verbose=True):
     oifits_file_list = glob.glob(input_dir + '/*fits*')
 
@@ -1509,7 +1553,8 @@ def open_oi_dir(input_dir, verbose=True):
 # spectral_resolutions: 'LOW','MED','HIGH'
 # DIT_range: [min,max] (s)
 # targets = []
-def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], targets=[], BCD1=[], BCD2=[]):
+
+def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], targets=[], BCD1=[], BCD2=[], WLEN_range=[]):
     filtered_list_of_dicts = []
     if bands:
         # print  'old:',bands
@@ -1596,7 +1641,7 @@ def filter_oi_list_night(list_of_dicts, dates='2000-01-01', bands=[], spectral_r
                 target  = target.lower().replace("_", " ")
                 if target not in targets:
                     continue
-            print(("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY']))
+            print("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
             filtered_list_of_dicts.append(dic)
 
     return filtered_list_of_dicts
@@ -1649,6 +1694,8 @@ class oi_data_select_frame(wx.Frame):
     name_dir        = ""
     target_selected = ""
 
+###############################################################################
+
     def __init__(self, *args, **kwds):
         self.dic = {}
         self.list_of_dicts = [{}]
@@ -1682,10 +1729,10 @@ class oi_data_select_frame(wx.Frame):
         self.cb_disp_LOW  = wx.RadioButton(self.panel, wx.ID_ANY, "LOW", style=wx.RB_GROUP)
         self.cb_disp_MED  = wx.RadioButton(self.panel, wx.ID_ANY, "MED")
         self.cb_disp_HIGH = wx.RadioButton(self.panel, wx.ID_ANY, "HIGH")
-        
+
         self.cb_pl_OI_t = wx.RadioButton(self.panel, wx.ID_ANY, "Plot OI vs. time", style=wx.RB_GROUP)
         self.cb_pl_OI_wl = wx.RadioButton(self.panel, wx.ID_ANY, "Plot OI vs. wl.")
-        
+
         self.cb_b_J  = wx.CheckBox(self.panel, wx.ID_ANY, "J")
         self.cb_b_H  = wx.CheckBox(self.panel, wx.ID_ANY, "H")
         self.cb_b_K  = wx.CheckBox(self.panel, wx.ID_ANY, "K")
@@ -1693,13 +1740,13 @@ class oi_data_select_frame(wx.Frame):
         self.cb_b_M  = wx.CheckBox(self.panel, wx.ID_ANY, "M")
         self.cb_b_N  = wx.CheckBox(self.panel, wx.ID_ANY, "N")
         self.cb_b_LM = wx.CheckBox(self.panel, wx.ID_ANY, "LM")
-        
+
         self.tb_wl_min = wx.TextCtrl(self.panel, wx.ID_ANY, "3.6")
         self.tb_wl_max = wx.TextCtrl(self.panel, wx.ID_ANY, "4.0")
         self.btn_def_wl  = wx.Button(self.panel, 13, "Default wl")
-        
+
         self.cb_errorbar = wx.CheckBox(self.panel, wx.ID_ANY, "Plot errorbars")
-        
+
         self.btn_CFXAMP = wx.Button(self.panel, 16, "CFXAMP")
         self.btn_CFX2   = wx.Button(self.panel, 17, "CFX2")
         self.btn_VISAMP = wx.Button(self.panel, 0, "VISAMP")
@@ -1720,6 +1767,8 @@ class oi_data_select_frame(wx.Frame):
         self.__do_layout()
         # end wxGlade
 
+###############################################################################
+
     def __set_properties(self):
         # begin wxGlade: oi_data_select_frame.__set_properties
         self.SetTitle("OIFITS plotter")
@@ -1736,6 +1785,8 @@ class oi_data_select_frame(wx.Frame):
         self.cb_errorbar.SetValue(True)
         self.cb_pl_OI_wl.SetValue(True)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClicked)
+
+###############################################################################
 
     def __do_layout(self):
         # begin wxGlade: oi_data_select_frame.__do_layout
@@ -1855,6 +1906,8 @@ class oi_data_select_frame(wx.Frame):
         self.SetSizer(sizer_1)
         self.Layout()
         # end wxGlade
+
+###############################################################################
 
     def OnButtonClicked(self, e):
         plot_t_flag = self.cb_pl_OI_t.GetValue()
@@ -2088,7 +2141,7 @@ class oi_data_select_frame(wx.Frame):
                 openFileDialog = mat_FileDialog(None, 'Open a file', "lmk,")
                 if openFileDialog.ShowModal() == wx.ID_OK:
                     self.name_file = openFileDialog.GetPaths()[0]
-                    print((self.name_file))
+                    print(self.name_file)
                 else:
                     self.name_file = ""
                 openFileDialog.Destroy()
@@ -2107,10 +2160,12 @@ class oi_data_select_frame(wx.Frame):
                     self.name_file = self.tb_path.GetValue()
                     self.OI_load_data(self.name_file)
 
+###############################################################################
+
     def OI_load_data(self,path):
         if os.path.isfile(path):
             self.dic = {}
-            print(("Reading file " + path + "..."))
+            print("Reading file " + path + "...")
             self.dic = open_oi(path)
             self.list_of_dicts = [self.dic]
             # update the values in the form
@@ -2157,6 +2212,8 @@ class oi_data_select_frame(wx.Frame):
         self.date = self.list_of_dicts[0]['DATEOBS'][0:10]
         self.tb_date.SetValue(self.date)
 
+###############################################################################
+
 class OI_plotter(wx.App):
     def OnInit(self):
         self.frame = oi_data_select_frame(None, wx.ID_ANY, "")
@@ -2164,6 +2221,7 @@ class OI_plotter(wx.App):
         self.frame.Show()
         return True
 
+###############################################################################
 
 if __name__ == '__main__':
     listArg = sys.argv
