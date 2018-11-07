@@ -18,32 +18,27 @@ from scipy.optimize import minimize
 import matplotlib.patches as patches
 
 sumframes=[]
-pathfile='/data/RawDataMatisse/2018-09-23/'
-#filename='MATIS.2018-07-17T04:02:50.339.fits'
-files=['MATIS.2018-09-24T05:38:45.341.fits','MATIS.2018-09-24T05:40:35.533.fits','MATIS.2018-09-24T05:42:10.713.fits','MATIS.2018-09-24T05:43:45.943.fits','MATIS.2018-09-24T05:45:30.826.fits','MATIS.2018-09-24T05:47:05.597.fits','MATIS.2018-09-24T05:48:40.828.fits','MATIS.2018-09-24T05:50:16.927.fits']
 
-tplstart=sys.argv[1]
-detec=sys.argv[2]
-direct=sys.argv[3]
+
+tplstart=sys.argv[1]    ####### in the format hh:mm:ss    ex 05:26:21 
+detec=sys.argv[2]      #########  detector, HAWAI for HAWAII-2RG and AQUA for the AQUARIUS
+direct=sys.argv[3]     ######### a directory where a buffering file is created under the tplstartBrut routine, then read then destroyed
 if direct[-1:] != '/' :
     direct=direct+'/'
 
-cmd='python tplstartBrut.py ' +tplstart+' '+detec +' ' +direct
+cmd='python tplstartBrut.py ' +tplstart+' '+detec +' ' +direct   ###### creating the buffer file
 os.system(cmd)
-file=np.load(direct+'pathAndfolderBrut.npz')
-
+file=np.load(direct+'pathAndfolderBrut.npz')   ###### reading the buffer file
 pathF=str(file['arr_0'])
-nonchopper=file['arr_1']
 chopper=file['arr_2']
 
-
-print('pathf',pathF)
-print('chopper',chopper)
-print('nonchopper',nonchopper)
-
-
 cmd='rm -r '+direct+'pathAndfolderBrut.npz'
-os.system(cmd)
+os.system(cmd)    ###### destroying the buffer file
+
+if detect=='HAWAI':
+    DATAnb='DATA11'
+if detect=='AQUA':
+    DATAnb='DATA5'
 
 pathfile=pathF
 #filename=files[1]
@@ -52,18 +47,18 @@ for i in range (len(chopper)):
     print(filename)
     tartine=[]
     hdu=fits.open(pathfile+filename)
-    frames=hdu['IMAGING_DATA'].data['DATA11'].astype(float)
+    ################### DATA11 because we only read the chopping status in the L band files, for reading the N band use DATA5
+    frames=hdu['IMAGING_DATA'].data[DATAnb].astype(float)
+    ######### useless keywords in order, the chopping frequency (which can be missing), the bcd1 status, etc etc
     #frek=hdu[0].header['HIERARCH ESO ISS CHOP FREQ']
     bcd=hdu[0].header['HIERARCH ESO INS BCD1 NAME']
     start=hdu[0].header['HIERARCH ESO TPL START ']
     starname=hdu[0].header['HIERARCH ESO OBS TARG NAME']
     TorS=hdu['IMAGING_DATA'].data['TARTYP']
     hdu.close()
+    
     sumframes0=np.mean(frames,axis=(1,2))
    
-    
-    print('I just closed the file')
-    
     
     for j in range(np.size(TorS)):
         if TorS[j] == 'S':
