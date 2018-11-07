@@ -347,7 +347,8 @@ property rights of the Holder and/or Contributors.
 
 ##    Article 7 - RELATED SERVICES
 
-### 7.1 Under no circumstances shall the Agreement oblige the Licensor to
+### 7.1 Under no circumstances 
+shall the Agreement oblige the Licensor to
 provide technical assistance or maintenance services for the Software.
 
 However, the Licensor is entitled to offer this type of services. The
@@ -356,7 +357,8 @@ maintenance, shall be set forth in a separate instrument. Only the
 Licensor offering said maintenance and/or technical assistance services
 shall incur liability therefor.
 
-### 7.2 Similarly, any Licensor is entitled to offer to its licensees, under
+### 7.2 Similarly, any Licensor is entitled to offer to its licensees, 
+under
 its sole responsibility, a warranty, that shall only be binding upon
 itself, for the redistribution of the Software and/or the Modified
 Software, under terms and conditions that it is free to decide. Said
@@ -367,12 +369,13 @@ and the Licensee.
 
 ##    Article 8 - LIABILITY
 
-### 8.1 Subject to the provisions of Article 8.2, the Licensee shall be
-entitled to claim compensation for any direct loss it may have suffered
+### 8.1 Subject to the provisions of Article 8.2, the Licensee shall be entitled to claim compensation for any direct loss
+it may have suffered
 from the Software as a result of a fault on the part of the relevant
 Licensor, subject to providing evidence thereof.
 
-### 8.2 The Licensor's liability is limited to the commitments made under
+### 8.2 The Licensor's liability is limited to the commitments
+made under
 this Agreement and shall not be incurred as a result of in particular:
 (i) loss due the Licensee's total or partial failure to fulfill its
 obligations, (ii) direct or consequential loss that is suffered by the
@@ -388,7 +391,8 @@ any or all compensation from the Licensor.
 
 ##    Article 9 - WARRANTY
 
-### 9.1 The Licensee acknowledges that the scientific and technical
+### 9.1 The Licensee acknowledges
+that the scientific and technical
 state-of-the-art when the Software was distributed did not enable all
 possible uses to be tested and verified, nor for the presence of
 possible defects to be detected. In this respect, the Licensee's
@@ -401,11 +405,13 @@ the suitability of the product for its requirements, its good working
 order, and for ensuring that it shall not cause damage to either persons
 or properties.
 
-### 9.2 The Licensor hereby represents, in good faith, that it is entitled
+### 9.2 The Licensor hereby represents,
+in good faith, that it is entitled
 to grant all the rights over the Software (including in particular the
 rights set forth in Article 5 <#scope>).
 
-### 9.3 The Licensee acknowledges that the Software is supplied "as is" by
+### 9.3 The Licensee acknowledges that the Software is supplied "as is" 
+by
 the Licensor without any other express or tacit warranty, other than
 that provided for in Article 9.2 <#good-faith> and, in particular,
 without any warranty as to its commercial value, its secured, safe,
@@ -416,7 +422,8 @@ from any error, that it will operate without interruption, that it will
 be compatible with the Licensee's own equipment and software
 configuration, nor that it will meet the Licensee's requirements.
 
-### 9.4 The Licensor does not either expressly or tacitly warrant that the
+### 9.4 The Licensor does not either expressly or tacitly warrant
+that the
 Software does not infringe any third party intellectual property right
 relating to a patent, software or any other property right. Therefore,
 the Licensor disclaims any and all liability towards the Licensee
@@ -435,12 +442,14 @@ of a trademark.
 
 ##    Article 10 - TERMINATION
 
-### 10.1 In the event of a breach by the Licensee of its obligations
+### 10.1 In the event of a breach by the Licensee
+of its obligations
 hereunder, the Licensor may automatically terminate this Agreement
 thirty (30) days after notice has been sent to the Licensee and has
 remained ineffective.
 
-### 10.2 A Licensee whose Agreement is terminated shall no longer be
+### 10.2 A Licensee whose Agreement is terminated
+shall no longer be
 authorized to use, modify or distribute the Software. However, any
 licenses that it may have granted prior to termination of the Agreement
 shall remain valid subject to their having been granted in compliance
@@ -460,7 +469,8 @@ networks, network paralysis following a virus attack, intervention by
 government authorities, natural disasters, water damage, earthquakes,
 fire, explosions, strikes and labor unrest, war, etc.
 
-### 11.2 Any failure by either Party, on one or more occasions, to invoke
+### 11.2 Any failure by either Party,
+on one or more occasions, to invoke
 one or more of the provisions hereof, shall under no circumstances be
 interpreted as being a waiver by the interested Party of its right to
 invoke said provision(s) subsequently.
@@ -473,7 +483,8 @@ terms and conditions hereof shall be effective as between the Parties
 unless it is made in writing and signed by their duly authorized
 representatives.
 
-### 11.4 In the event that one or more of the provisions hereof were to
+### 11.4 In the event that one or more of the provisions
+hereof were to
 conflict with a current or future applicable act or legislative text,
 said act or legislative text shall prevail, and the Parties shall make
 the necessary amendments so as to comply with said act or legislative
@@ -490,8 +501,7 @@ are deemed authentic.
 
 ##    Article 12 - NEW VERSIONS OF THE AGREEMENT
 
-### 12.1 Any person is authorized to duplicate and distribute copies of this
-Agreement.
+### 12.1 Any person is authorized to duplicate and distribute copies of this Agreement.
 
 12.2 So as to ensure coherence, the wording of this Agreement is
 protected and may only be modified by the authors of the License, who
@@ -499,7 +509,8 @@ reserve the right to periodically publish updates or new versions of the
 Agreement, each with a separate number. These subsequent versions may
 address new issues encountered by Free Software.
 
-### 12.3 Any Software distributed under a given version of the Agreement may
+### 12.3 Any Software distributed under a given version of the Agreement
+may
 only be subsequently distributed under the same version of the Agreement
 or a subsequent version, subject to the provisions of Article 5.3.4
 <#compatibility>.
@@ -507,11 +518,13 @@ or a subsequent version, subject to the provisions of Article 5.3.4
 
 ##    Article 13 - GOVERNING LAW AND JURISDICTION
 
-### 13.1 The Agreement is governed by French law. The Parties agree to
+### 13.1 The Agreement is governed by French law.
+The Parties agree to
 endeavor to seek an amicable solution to any disagreements or disputes
 that may arise during the performance of the Agreement.
 
-### 13.2 Failing an amicable solution within two (2) months as from their
+### 13.2 Failing an amicable solution within two (2) months 
+as from their
 occurrence, and unless emergency proceedings are necessary, the
 disagreements or disputes shall be referred to the Paris Courts having
 jurisdiction, by the more diligent Party.
