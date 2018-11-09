@@ -47,7 +47,6 @@
               textbox, filter for target name, more bands (JHK) available
               (for e.g. AMBER data), plot with or without errorbars, plot V or
               V2 (jvarga)
-
 """
 
 import sys
@@ -62,7 +61,7 @@ from   astropy.io import fits as fits
 import os
 import glob
 import robust
-from astroquery.simbad import Simbad
+#from astroquery.simbad import Simbad
 from astropy import coordinates
 from os.path import expanduser
 from matplotlib.ticker import *
@@ -119,7 +118,7 @@ def open_oi(oi_file):
     dic['TARGET'] = target_name
 
     # Fix eventual bad target identification
-    dic['TARGET'] = resolve_target(dic)
+    #dic['TARGET'] = resolve_target(dic)
 
     try:
         target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
@@ -666,9 +665,6 @@ useStations=True,xlog=False,ylog=False):
 
         plt.suptitle('$\mathrm{'+datatype+'\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
 
-
-
-
         #plt.tight_layout()
         plt.show()
 
@@ -757,7 +753,6 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                 sta_names = dic['STA_NAME']
             else:
                 sta_names = ""
-
 
         target_names_cal = np.array(target_names_cal)
         MJD_arr_cal      = np.array(MJD_arr_cal)
@@ -1528,7 +1523,6 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
             plt.show()
         print ("Plots READY.")
 
-
 ###############################################################################
 
 def open_oi_dir(input_dir, verbose=True):
@@ -1545,7 +1539,6 @@ def open_oi_dir(input_dir, verbose=True):
                 list_of_dicts.append(dic)
 
     return list_of_dicts
-
 
 ###############################################################################
 # dates = example format: ["2018-03-16"]
@@ -1596,6 +1589,25 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
                     continue
             print("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
             filtered_list_of_dicts.append(dic)
+
+            # filter oifits files on wavelength
+            if WLEN_range:
+                wl1 = WLEN_range[0];
+                wl2 = WLEN_range[1];
+                dic['VIS2']['VIS2']      = dic['VIS2']['VIS2'][wl1:wl2]
+                dic['VIS2']['VIS2ERR']   = dic['VIS2']['VIS2ERR'][wl1:wl2]
+                dic['VIS']['VISAMP']     = dic['VIS']['VISAMP'][wl1:wl2]
+                dic['VIS']['VISAMPERR']  = dic['VIS']['VISAMPERR'][wl1:wl2]
+                dic['VIS']['DPHI']       = dic['VIS']['DPHI'][wl1:wl2]
+                dic['VIS']['DPHIERR']    = dic['VIS']['DPHIERR'][wl1:wl2]
+                dic['TF2']['TF2']        = dic['TF2']['TF2'][wl1:wl2]
+                dic['TF2']['TF2ERR']     = dic['TF2']['TF2ERR'][wl1:wl2]
+                dic['T3']['T3AMP']       = dic['T3']['T3AMP'][wl1:wl2]
+                dic['T3']['T3AMPERR']    = dic['T3']['T3AMPERR'][wl1:wl2]
+                dic['T3']['T3CLOS']      = dic['T3']['CLOS'][wl1:wl2]
+                dic['T3']['T3CLOSERR']   = dic['T3']['CLOSERR'][wl1:wl2]
+                dic['FLUX']['FLUX']      = dic['T3']['CLOS'][wl1:wl2]
+                dic['FLUX']['T3CLOSERR'] = dic['T3']['CLOSERR'][wl1:wl2]
 
     return filtered_list_of_dicts
 
@@ -1694,7 +1706,7 @@ class oi_data_select_frame(wx.Frame):
     name_dir        = ""
     target_selected = ""
 
-###############################################################################
+    ###########################################################################
 
     def __init__(self, *args, **kwds):
         self.dic = {}
@@ -1767,7 +1779,7 @@ class oi_data_select_frame(wx.Frame):
         self.__do_layout()
         # end wxGlade
 
-###############################################################################
+    ###########################################################################
 
     def __set_properties(self):
         # begin wxGlade: oi_data_select_frame.__set_properties
@@ -1786,7 +1798,7 @@ class oi_data_select_frame(wx.Frame):
         self.cb_pl_OI_wl.SetValue(True)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClicked)
 
-###############################################################################
+    ###########################################################################
 
     def __do_layout(self):
         # begin wxGlade: oi_data_select_frame.__do_layout
@@ -1907,7 +1919,7 @@ class oi_data_select_frame(wx.Frame):
         self.Layout()
         # end wxGlade
 
-###############################################################################
+    ###########################################################################
 
     def OnButtonClicked(self, e):
         plot_t_flag = self.cb_pl_OI_t.GetValue()
@@ -1941,11 +1953,7 @@ class oi_data_select_frame(wx.Frame):
                                               self.DIT + self.DIT_range],
                                    targets=[])
                 else:
-                    self.filtered_list_of_dicts = filter_oi_list(self.list_of_dicts, dates=[self.date],
-                                                                 bands=selected_bands,
-                                                                 spectral_resolutions=selected_spectral_resolutions,
-                                                                 DIT_range=[self.DIT - self.DIT_range,
-                                                                            self.DIT + self.DIT_range], targets=[self.target_selected])
+                    self.filtered_list_of_dicts = filter_oi_list(self.list_of_dicts, dates=[self.date], bands=selected_bands, spectral_resolutions=selected_spectral_resolutions, DIT_range=[self.DIT - self.DIT_range, self.DIT + self.DIT_range], targets=[self.target_selected])
             else:
                 self.filtered_list_of_dicts = self.list_of_dicts
 
@@ -2160,7 +2168,7 @@ class oi_data_select_frame(wx.Frame):
                     self.name_file = self.tb_path.GetValue()
                     self.OI_load_data(self.name_file)
 
-###############################################################################
+    ###########################################################################
 
     def OI_load_data(self,path):
         if os.path.isfile(path):
