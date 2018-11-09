@@ -62,7 +62,7 @@ from   astropy.io import fits as fits
 import os
 import glob
 import robust
-from astroquery.simbad import Simbad
+#from astroquery.simbad import Simbad
 from astropy import coordinates
 from os.path import expanduser
 from matplotlib.ticker import *
@@ -72,15 +72,15 @@ home = expanduser("~")
 ###############################################################################
 
 def resolve_target(dic):
-    try:
-        ra  = str(dic['HDR']["RA"])
-        dec = str(dic['HDR']["DEC"])
-        c = coordinates.SkyCoord(ra, dec, unit=('deg','deg'), frame='icrs')
-        result_table = Simbad.query_region(c)
-        resolvedTarg = result_table['MAIN_ID'][0]
-    except:
+#    try:
+#        ra  = str(dic['HDR']["RA"])
+#        dec = str(dic['HDR']["DEC"])
+#        c = coordinates.SkyCoord(ra, dec, unit=('deg','deg'), frame='icrs')
+#        result_table = Simbad.query_region(c)
+#        resolvedTarg = result_table['MAIN_ID'][0]
+#    except:
         resolvedTarg = dic['TARGET']
-    return resolvedTarg;
+        return resolvedTarg;
 
 ###############################################################################
 
