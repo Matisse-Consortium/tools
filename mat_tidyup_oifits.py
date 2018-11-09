@@ -87,6 +87,7 @@ if __name__ == '__main__':
     
     elif os.path.isdir(name_file):
         cwd = os.getcwd()
+        # Generate a new directory name: The directory where the fits files are + the extension _OIFITS
         newdir = os.path.join(cwd, os.path.basename(os.path.abspath(name_file))+"_OIFITS");
         try:
             print(newdir+" already exists...")
@@ -114,4 +115,4 @@ if __name__ == '__main__':
                     except:
                         print("Not a fits file!")
         
-print("I made my job, baby!")
+print("I made my job!")
