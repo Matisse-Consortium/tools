@@ -119,7 +119,7 @@ def open_oi(oi_file):
     dic['TARGET'] = target_name
 
     # Fix eventual bad target identification
-    dic['TARGET'] = resolve_target(dic)
+    #dic['TARGET'] = resolve_target(dic)
 
     try:
         target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
