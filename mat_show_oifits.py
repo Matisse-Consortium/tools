@@ -62,7 +62,7 @@ from   astropy.io import fits as fits
 import os
 import glob
 import robust
-from astroquery.simbad import Simbad
+#from astroquery.simbad import Simbad
 from astropy import coordinates
 from os.path import expanduser
 from matplotlib.ticker import *
@@ -119,7 +119,7 @@ def open_oi(oi_file):
     dic['TARGET'] = target_name
 
     # Fix eventual bad target identification
-    dic['TARGET'] = resolve_target(dic)
+    #dic['TARGET'] = resolve_target(dic)
 
     try:
         target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
