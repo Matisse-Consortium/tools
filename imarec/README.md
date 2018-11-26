@@ -1,4 +1,3 @@
-
 C-Shell script for easy usage of the MATISSE image reconstruction software
 ==========================================================================
 
