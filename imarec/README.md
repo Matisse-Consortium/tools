@@ -4,16 +4,16 @@ C-Shell script for easy usage of the MATISSE image reconstruction software
 (Karl-Heinz Hofmann, Dieter Schertl, Max-Planck-Institut for Radio Astronomy, Bonn, Germany, February 2018)
 
 
-1. Both C-shell scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh" are easy-to-use 
+1. Both C-shell scripts `mat_cal_imarec_all.csh` and `mat_cal_imarec_all.2.csh` are easy-to-use 
    callers of the MATISSE image reconstruction recipe mat_cal_imarec.
 
 
 2. All necessary scripts and files are stored in one folder, named mat_cal_imarec.scripts00/, anywhere on your computer.
-   The enviroment variable $SCRIPTS must point to this folder, i.e.
-      % setenv SCRIPTS /MYPATH/mat_cal_imarec.scripts00
-   or
-      $ set SCRIPTS /MYPATH/mat_cal_imarec.scripts00
-      $ export SCRIPTS
+The enviroment variable $SCRIPTS must point to this folder, i.e.
+    setenv SCRIPTS /MYPATH/mat_cal_imarec.scripts00
+or
+    set SCRIPTS /MYPATH/mat_cal_imarec.scripts00
+    export SCRIPTS
 
 
 3. The following software is required:
@@ -23,9 +23,9 @@ C-Shell script for easy usage of the MATISSE image reconstruction software
    - The HEASARC ftools package, which can be downloaded from https://heasarc.gsfc.nasa.gov/ftools/ftools_menu.html 
      (for installation instructions see https://heasarc.gsfc.nasa.gov/lheasoft/install.html )
      As noted there, you must initialize the package by sourcing $HEADAS/headas-init.sh, i.e.
-        % source $HEADAS/headas-init.csh 
+        source $HEADAS/headas-init.csh 
      or 
-        $ . $HEADAS/headas-init.sh
+        $HEADAS/headas-init.sh
 
    - Our scripts need the following LINUX programs, too:
      gnuplot, awk, latex, convert, sort, psmerge.
@@ -39,7 +39,7 @@ C-Shell script for easy usage of the MATISSE image reconstruction software
      - different regularisation hyperparameters $mu, which control the strength of the regularisation
      - a number of radii of a circular binary object mask, which resctricts the image space, where the reconstruction can have a non-zero values
 
-   You can use one of the two scripts "mat_cal_imarec_all.csh" or "mat_cal_imarec_all.2.csh", their difference is explained below.
+   You can use one of the two scripts `mat_cal_imarec_all.csh` or `mat_cal_imarec_all.2.csh`, their difference is explained below.
    Both scripts use a parameter file ("mat_cal_imarec_all.par" or "mat_cal_imarec_all.2.par") where all parameters of the reconstruction run are described.
 
    Their overall reconstruction scheme is illustrated by the the following pseudocode: ($name denotes the name of the corresponding parameter in the parameter file)
@@ -66,8 +66,8 @@ C-Shell script for easy usage of the MATISSE image reconstruction software
    As a criterion to select the best reconstruction, the minimum of a value named qrec is used. It is calculated from the measured Chi-squares
    and the residual ratio values (for more details see Hofmann, Weigelt, & Schertl, D. 2014, A&A, 565, A48).
    There are two versions how qrec is calculated:
-        $qrecmode=1: it is calculated using the chi^2 and the residual ratio values of both the visibilities and the phases (Closure or Fourier phase)
-        $qrecmode=2: it is calculated using the chi^2 and the residual ratio values of only phases (Closure or Fourier phase)
+        * $qrecmode=1: it is calculated using the chi^2 and the residual ratio values of both the visibilities and the phases (Closure or Fourier phase)
+        * $qrecmode=2: it is calculated using the chi^2 and the residual ratio values of only phases (Closure or Fourier phase)
     --> experience shows, usually the qrec from $qrecmode=2 yields better results than qrec from $qrecmode=1!
 
 
