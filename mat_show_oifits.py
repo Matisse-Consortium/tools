@@ -95,7 +95,8 @@ def open_oi(oi_file):
     wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN': wl}
 
-    dic['HDR'] = hdr
+    dic['HDR']  = hdr
+    dic['file'] = oi_file;
 
     try:
         dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START'] + hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
@@ -1722,10 +1723,10 @@ class oi_data_select_frame(wx.Frame):
         self.statusbar.SetStatusText('')
 
         # Menu Bar
-        self.frame_menubar = wx.MenuBar()
-        wxglade_tmp_menu   = wx.Menu()
-        self.frame_menubar.Append(wxglade_tmp_menu, "File")
-        self.SetMenuBar(self.frame_menubar)
+        #self.frame_menubar = wx.MenuBar()
+        #wxglade_tmp_menu   = wx.Menu()
+        #self.frame_menubar.Append(wxglade_tmp_menu, "File")
+        #self.SetMenuBar(self.frame_menubar)
         # Menu Bar end
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.btn_open_oifits = wx.Button(self.panel, 15, "Open OIFITS data")
