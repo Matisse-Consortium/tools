@@ -1,15 +1,15 @@
 
-
 C-Shell script for easy usage of the MATISSE image reconstruction software
-============================================================================================
+==========================================================================
+
 (Karl-Heinz Hofmann, Dieter Schertl, Max-Planck-Institut for Radio Astronomy, Bonn, Germany, February 2018)
 
 
-a) Both C-shell scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh" are easy-to-use 
+1. Both C-shell scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh" are easy-to-use 
    callers of the MATISSE image reconstruction recipe mat_cal_imarec.
 
 
-b) All necessary scripts and files are stored in one folder, named mat_cal_imarec.scripts00/, anywhere on your computer.
+2. All necessary scripts and files are stored in one folder, named mat_cal_imarec.scripts00/, anywhere on your computer.
    The enviroment variable $SCRIPTS must point to this folder, i.e.
       % setenv SCRIPTS /MYPATH/mat_cal_imarec.scripts00
    or
@@ -17,7 +17,7 @@ b) All necessary scripts and files are stored in one folder, named mat_cal_imare
       $ export SCRIPTS
 
 
-c) The following software is required:
+3. The following software is required:
 
    - The ESO pipeline for MATISSE must be installed.
 
@@ -33,7 +33,7 @@ c) The following software is required:
      You can check if all this software is available with:
        $SCRIPTS/swtest.csh
      
-d) Overall reconstruction procedure.
+4. Overall reconstruction procedure.
    During the run, this software automatically uses different image reconstruction parameters to find the "best" reconstruction.
    These parameters are:
      - a number of regularisation functions $regFuncs
@@ -72,7 +72,7 @@ d) Overall reconstruction procedure.
     --> experience shows, usually the qrec from $qrecmode=2 yields better results than qrec from $qrecmode=1!
 
 
-e) The Difference between "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh" is the different way, the $muStarts are defined and used.
+5. The Difference between "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh" is the different way, the $muStarts are defined and used.
 
    - "mat_cal_imarec_all.csh" loop over all $regFuncs using a fixed list of different start values $muStart.
      It will call IRBis with each of this $regFuncs/$muStart pairs.
@@ -83,14 +83,14 @@ e) The Difference between "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh
      This loop stops, if the returned qrec starts to increase, i.e. the actual qrec is larger than the one of the run before.
 
 
-f) An image reconstruction run is started with: 
+6. An image reconstruction run is started with: 
 
      % $SCRIPTS/mat_cal_imarec_all.csh    parfile # (a template of the parameter file parfile is $SCRIPTS/mat_cal_imarec_all.par)
    or
      % $SCRIPTS/mat_cal_imarec_all.2.csh  parfile # (a template of the parameter file parfile is $SCRIPTS/mat_cal_imarec_all.2.par)
 
 
-g) Tutorial -- Usage of the scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh":
+7. Tutorial -- Usage of the scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh":
 
         Step 0: Define the enviroment variable $SCRIPTS with the absolute path of the script folder, i.e.
                   % setenv SCRIPTS /MYPATH/mat_cal_imarec.scripts00
@@ -210,7 +210,7 @@ g) Tutorial -- Usage of the scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec
 		3) The outputs of the script "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh" are described below
 
 
-h) Short summary of the results of the scripts:
+8. Short summary of the results of the scripts:
 
 	1) The results are stored in result folders named 
               BIS.*.Script*.E.1/   ($algoMode=1 : only the bispectrum was used), 
