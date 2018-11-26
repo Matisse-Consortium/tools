@@ -85,26 +85,31 @@ C-Shell script for easy usage of the MATISSE image reconstruction software
 6. An image reconstruction run is started with: 
 
      % $SCRIPTS/mat_cal_imarec_all.csh    parfile # (a template of the parameter file parfile is $SCRIPTS/mat_cal_imarec_all.par)
+   
    or
+   
      % $SCRIPTS/mat_cal_imarec_all.2.csh  parfile # (a template of the parameter file parfile is $SCRIPTS/mat_cal_imarec_all.2.par)
 
 
 7. Tutorial -- Usage of the scripts "mat_cal_imarec_all.csh" and "mat_cal_imarec_all.2.csh":
 
-        Step 0: Define the enviroment variable $SCRIPTS with the absolute path of the script folder, i.e.
+    * Step 0: Define the enviroment variable $SCRIPTS with the absolute path of the script folder, i.e.
+    
                   % setenv SCRIPTS /MYPATH/mat_cal_imarec.scripts00
+               
                 or
+               
                   $ set SCRIPTS /MYPATH/mat_cal_imarec.scripts00
                   $ export SCRIPTS
 
-	Step 1: Create a work folder for the image reconstruction session (usually named as the target to be processed)
+	* Step 1: Create a work folder for the image reconstruction session (usually named as the target to be processed)
                 and cd to this folder.
 
-	Step 2: Copy the parameter file "$SCRIPTS/mat_cal_imarec_all.par" ("$SCRIPTS/mat_cal_imarec_all.2.par") of the C-shell script
+	* Step 2: Copy the parameter file "$SCRIPTS/mat_cal_imarec_all.par" ("$SCRIPTS/mat_cal_imarec_all.2.par") of the C-shell script
 		"mat_cal_imarec_all.csh" ("mat_cal_imarec_all.2.csh") into your work folder
 		% cp $SCRIPTS/mat_cal_imarec_all.par .
 
-	Step 3: Estimation of the size of the target and FOV to be used for image reconstruction:
+	* Step 3: Estimation of the size of the target and FOV to be used for image reconstruction:
 		- The size of the target is estimated by fitting a circular Gaussian, uniform disk, fully darkened disk or a modified Lorentz
                   intensity distribution into the observed squared visibilities of the target and their corresponding reduced chi^2.
                 - Calculation of the proposed size for the FOV of the reconstruction (in pixel and milliarcseconds).
