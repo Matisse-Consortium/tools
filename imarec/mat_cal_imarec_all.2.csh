@@ -347,8 +347,14 @@ cd $resultdir
    cp $dir0qrec/rec_*.fits   bestrec.qrec1.fits
    cp $dir0cpqrec/rec_*.fits bestrec.qrec2.fits
    cp $SCRIPTS/displ.csh .
-   if( $qrecmode == 1 ) ./displ.csh E.liste.00.sorted
-   if( $qrecmode == 2 ) ./displ.csh E.liste.03.sorted
+#
+   rm -rf qrecmode=1 qrecmode=2; mkdir qrecmode=1 qrecmode=2
+   ./displ.csh E.liste.00.sorted
+   mv $cwd:t.lin.ps $cwd:t.sqrt.ps $cwd:t.log.ps qrecmode=1/
+   ./displ.csh E.liste.03.sorted
+   mv $cwd:t.lin.ps $cwd:t.sqrt.ps $cwd:t.log.ps qrecmode=2/
+#   if( $qrecmode == 1 ) ./displ.csh E.liste.00.sorted
+#   if( $qrecmode == 2 ) ./displ.csh E.liste.03.sorted
    rm -f head03 head04 E.liste.00 E.liste.0
 cd ..
 # echo "- some proposed image reconstruction parameter are listed in data.parameter "
@@ -357,8 +363,8 @@ echo "==========================================================================
 echo "---> chi^2 values and more of all runs are listed in E.liste "
 ls -l $resultdir/E.liste
 echo "------------------------------------------------------------------------------------------------------------------------------------------------"
-if($qrecmode == 2) echo "- the reconstructions of all runs are displayed sorted with according decreasing quality (using  phase qrec)"
-if($qrecmode == 1) echo "- the reconstructions of all runs are displayed sorted with according decreasing quality (using phase+visibility qrec)"
+# if($qrecmode == 2) echo "- the reconstructions of all runs are displayed sorted with according decreasing quality (using  phase qrec)"
+# if($qrecmode == 1) echo "- the reconstructions of all runs are displayed sorted with according decreasing quality (using phase+visibility qrec)"
 echo "   a) with a linear lookuptable in $resultdir.lin.ps "
 echo "   b) with a sqrt   lookuptable in $resultdir.sqrt.ps "
 echo "   c) with a log    lookuptable in $resultdir.log.ps "
@@ -369,8 +375,11 @@ echo "---> best reconstruction according to qrec from qrecmode=2: bestrec.qrec2.
 ls -l $resultdir/bestrec.qrec2.fits
 echo "------------------------------------------------------------------------------------------------------------------------------------------------"
 if($model0 != "no") echo "---> Distance reconstructed & theoretical object on qrec in $resultdir.distqrec.1.plot.ps and $resultdir.distqrec.2.plot.ps"
-if($model0 != "no") ls -l $resultdir/$resultdir.lin.ps $resultdir/$resultdir.sqrt.ps $resultdir/$resultdir.log.ps $resultdir/$resultdir.distqrec.1.plot.ps $resultdir/$resultdir.distqrec.2.plot.ps
-if($model0 == "no") ls -l $resultdir/$resultdir.lin.ps $resultdir/$resultdir.sqrt.ps $resultdir/$resultdir.log.ps
+if($model0 != "no") ls -l $resultdir/$resultdir.distqrec.1.plot.ps $resultdir/$resultdir.distqrec.2.plot.ps
+echo "- the reconstructions of all runs are displayed sorted according to decreasing quality (using  phase qrec):"
+ls -l $resultdir/qrecmode=2/$resultdir.lin.ps $resultdir/qrecmode=2/$resultdir.sqrt.ps $resultdir/qrecmode=2/$resultdir.log.ps
+echo "- the reconstructions of all runs are displayed sorted according to decreasing quality (using phase+visibility qrec):"
+ls -l $resultdir/qrecmode=1/$resultdir.lin.ps $resultdir/qrecmode=1/$resultdir.sqrt.ps $resultdir/qrecmode=1/$resultdir.log.ps
 echo "=============================================================================================================================================================================="
 
 Label999:

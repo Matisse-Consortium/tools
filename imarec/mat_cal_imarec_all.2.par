@@ -20,12 +20,13 @@ set guess         = 1             # Flag (integer !=0) --> estimation of image r
                                   #  --> UV coverage in postscript file Parameter.Estimation/uv.ps; wavelength channels used plotted in Parameter.Estimation/wavelengths.ps
                                   #  --> info about the interferometric data and image reconstruction parameters are given in the ASCII file Parameter.Estimation/data.parameter
 				  # Flag (integer ==0) --> image reconstruction run
+set fitfwhm2      = 20.0          # 2.35 # 40.0 # 0.1           # Start FWHM for the model fit (in mas)
 #
 #
 # ------------------------------------------------------------------------------------
 # INPUT - parameter
 # ================= BEGIN OF INPUT for the image reconstruction run (guess = 0) ==================================================================================
-set engine        = 1           # Specifies the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
+set engine        = 2           # Specifies the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
 set algoMode      = 1           # Specifies if bispectrum or complex visibilities are used for reconstruction. 1 = use bispectrum, 2 = use complex visibilities,
                                 # 3 = use bispectrum and complex visibilities. [1]
 set fov           = 120         # Field of view for the reconstructed image in [mas].
@@ -46,7 +47,7 @@ set oradiusNumber = 6           # number of object mask radius scans
 # - IRBis runs with the hyperparameter list $muStart, $muFactor, $muNumber.
 set qrecmode      = 2
 set muStart0      = 10.0 # 1.0   # Test of different muStart values $muStart(next) = $muStart(actual) * $muFactor0 beginning with $muStart0 in the loop below
-set muFactor0     = 0.1    # for the test of different muStart values in the loop below
+set muFactor0     = 0.5 # 0.1    # for the test of different muStart values in the loop below
 set muFactor      = 0.5 # 0.1    # next mu value is actual mu multiplied with mufactor (for IRBis call only)
 set muNumber      = 12 # 6       # number of regularization parameter runs (for IRBis call only)
                                  # mu(n) = muStart*muFactor^(n-1)  (n = 1..muNumber)
@@ -100,7 +101,7 @@ set convScale   = -1.0    # the reconstruction is convolved with the ideal PSF o
                           # to the length of the longest baseline of the data (--> reconstruction with interferometric resolution);
                           # optionally this PSF is scaled using convScale: convScale=1.0 means interferometric resolution;
                           # convScale>1.0 means super resolution: positive values correspond to an ideal telescope PSF; negative values correspond to a Gaussian PSF
-set fitfwhm       = 20.0 # 2.35   # 0.1    # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
+set fitfwhm       = $fitfwhm2 # 2.35   # 0.1    # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
 set precision     = 0      # Number of digits after decimal point for gradient and cost value (precision < 0 : round relative, precision == 0 : no round, precision > 0 : round absolute). [0]
 set bltol         = 0.05   # Maximum allowed baseline difference (in meter?) for finding a VIS2 element for a T3 element. [0.05]
 set mjdtol        = 0.0001 # Maximum allowed MJD difference (in days?) for finding a VIS2 element for a T3 element. [0.0001]
@@ -114,7 +115,7 @@ set info          = "param,result" # "param,result,prepare" # "istd,param,result
 set calcT3amp2    = 1             # =1: T3 amplitude and error is calculated from the visibilities^2; =0: is not calculated (for guess = 1 only)
 set mjdtol2       = 0.0001        # Maximum allowed MJD difference (in days?) for finding a VIS2 element for a T3 element. [0.0001]
 set bltol2        = 0.05          # Maximum allowed baseline difference (in meter?) for finding a VIS2 element for a T3 element. [0.05]
-set fitfwhm2      = 20.0 # 2.35 # 40.0 # 0.1           # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
+# set fitfwhm2      = 20.0 # 2.35 # 40.0 # 0.1           # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
 # ================= END of INPUT (guess = 1) ====================================================================================
 # ------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------

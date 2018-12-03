@@ -110,6 +110,25 @@
   set ttfov  = `awk '{if ($0 ~ /mat_guess_parameters: --fov=/) {print $0;}}' esorex.log`
   set ttnpix = `awk '{if ($0 ~ /mat_guess_parameters: --npix=/) {print $0;}}' esorex.log`
 
+# ----------- Plott der gemessenen Visibility und der gefittetn Modelle ------------------------------------- A -----------------
+set vis20 = `echo A.vis2.dat`
+set vis2 = $vis20.new; rm -f $vis2; awk '{ if($1!="#") {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$13,$14,$11;}; }' $vis20 > $vis2
+ls -l $vis2
+rm -f $vis2.0
+awk 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz ";}; \
+                               if(($1=="#")&&(z==1)) {print "# 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7        |", "8            |", "9           |", "10          |", "11          |", "12          |", "13   ";}; \
+                               if($1!="#") {rad=sqrt($3^2+$4^2); radc=rad*1000.; vis=sqrt(sqrt($6^2)); if($6==0.0) {viserr=0.0;}; if($6!=0.0) {viserr=0.5*$7/vis;}; \
+                                            visgauss=sqrt(sqrt($8^2)); visud=sqrt(sqrt($9^2)); visfdd=sqrt(sqrt($10^2)); visld=sqrt(sqrt($14^2)); visa=sqrt(sqrt($11^2)); visb=sqrt(sqrt($12^2)); visc=sqrt(sqrt($13^2)); \
+                                            print $1,$3,$4,vis,viserr,visgauss,visud,visfdd, visa,visb,visc,radc,visld;}; z=z+1;}' $vis2 > $vis2.0
+
+rm -f $vis2.0.sorted ttt; awk '{if($1!="#") {print $0;};}' $vis2.0 > ttt; sort -n -k 12 ttt > $vis2.0.sorted
+
+$SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussudfdda.ps \
+                            "fitted Uniform disk model (diameter={$tud}mas)" 7 "fitted Gaussian model (FWHM={$tgauss}mas)" 6 "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8 \
+                            "fitted Lorentz function (FWHM={$tld}mas)" 13
+
+# ----------- Plott der gemessenen Visibility und der gefittetn Modelle ------------------------------------- E -----------------
+
   set vis2 = A.vis2.dat
   set cp   = A.cp.dat
   set ft   = A.ft.dat
@@ -261,7 +280,7 @@
 
   echo "- some proposed image reconstruction parameter are listed in data.parameter "
   echo "- uv coverage as postscript plot uv.ps "
-  ls -l $est/data.parameter $est/uv.ps $est/wavelengths.ps
+  ls -l $est/data.parameter $est/uv.ps $est/wavelengths.ps $est/gaussudfdda.ps
   if( $?JPLOT ) then
 ##    if( $JPLOT == 1 ) ls -l $est/A.vis.dat.ps $est/A.ft.dat.ps $est/A.cp.dat.ps
   endif
