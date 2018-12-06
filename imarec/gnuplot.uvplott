@@ -1,0 +1,26 @@
+#!/bin/tcsh
+#
+set maxuv     = $3
+set text      = $4
+echo $1 $2 $maxuv
+#
+gnuplot << EOF
+#set logscale y
+#set nokey
+#set size 0.8, 1.
+set size square
+set xrange [${maxuv}:-${maxuv}]
+set yrange [-${maxuv}:$maxuv]
+# set xtics 0,5,100
+# set ytics 0,5,100
+#set term postscript enh color solid "Helvetica" 20
+set term postscript enh color solid "Helvetica" 18
+set xlabel "uv plane X coordinate [m]"
+set ylabel "uv plane Y coordinate [m]"
+set grid
+set output "$2"
+plot \
+"$1" using 1:2 title "$text" with points lt 1 pt 7 ps 0.6
+EOF
+#
+

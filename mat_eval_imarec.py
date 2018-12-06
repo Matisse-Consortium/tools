@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Created on Mon Oct 22 10:41:41 2018
 
-test 
+test
 
 @author: fmillour
 """
@@ -27,12 +27,12 @@ def open_hdr(oi_file):
         hdu = fits.open(oi_file)
     except IOError:
         print(("Unable to read fits file: " + oi_file))
-        return {} 
+        return {}
 
     hdr = hdu[0].header
-    
+
     print(hdr)
-    
+
     return hdr
 
 ###############################################################################
@@ -135,7 +135,7 @@ def fitEllipse(x,y):
     return a
 
 ###############################################################################
-    
+
 def ellipse_center(a):
     b,c,d,f,g,a = a[1]/2, a[2], a[3]/2, a[4]/2, a[5], a[0]
     num = b*b-a*c
@@ -144,13 +144,13 @@ def ellipse_center(a):
     return np.array([x0,y0])
 
 ###############################################################################
-    
+
 def ellipse_angle_of_rotation2( a ):
     b,c,d,f,g,a = a[1]/2, a[2], a[3]/2, a[4]/2, a[5], a[0]
     return 0.5*np.arctan(2*b/(a-c))
 
 ###############################################################################
-    
+
 def ellipse_axis_length( a ):
     b,c,d,f,g,a = a[1]/2, a[2], a[3]/2, a[4]/2, a[5], a[0]
     up = 2*(a*f*f+c*d*d+g*b*b-2*b*d*f-a*c*g)
@@ -163,29 +163,29 @@ def ellipse_axis_length( a ):
 ###############################################################################
 
 def get_UV(file):
-    
+
     BX = []
     BY = []
 
     res = open_hdr(file)
     try:
         instru = res['INSTRUME']
-    except:    
+    except:
         try:
             instru = res['HIERARCH ESO INS MODE']
         except:
             print('error, unknown instrument!')
-            
+
     print(instru)
-        
-        
+
+
     if instru == 'MATISSE':
         ntels = 4;
     elif instru == 'MIDI':
         ntels = 2;
     else:
         ntels = res['HIERARCH ESO DET NTEL']
-    
+
     #read in priority the keywords
     try:
         base=0;
@@ -194,13 +194,13 @@ def get_UV(file):
                 tel1 = i;
                 tel2 = j;
                 base+=1;
-                
+
                 blen = (res['HIERARCH ESO ISS PBL'+str(tel1)+str(tel2)+' START']+res['HIERARCH ESO ISS PBL'+str(tel1)+str(tel2)+' END'])/2
                 bang = (res['HIERARCH ESO ISS PBLA'+str(tel1)+str(tel2)+' START']+res['HIERARCH ESO ISS PBLA'+str(tel1)+str(tel2)+' END'])/2
-                
+
                 bx = blen * np.sin(bang * np.pi / 180.)
                 by = blen * np.cos(bang * np.pi / 180.)
-                
+
                 BX = np.append(BX, bx)
                 BY = np.append(BY, by)
     # otherwise look into the OI_VIS2 table directly
@@ -208,7 +208,7 @@ def get_UV(file):
         print('No PBL keywords. taking a look into the OI_VIS2 table...')
         hdu = fits.open(file)
         print(hdu['OI_VIS2'])
-                       
+
     return BX,BY
 
 ###############################################################################
@@ -216,14 +216,14 @@ def get_UV(file):
 def get_UVs(files):
     BX = []
     BY = []
-    
+
     for file in files:
         print(file)
         bx, by = get_UV(file)
-        
+
         BX = np.append(BX, bx)
         BY = np.append(BY, by)
-        
+
     return BX, BY;
 
 ###############################################################################
@@ -231,15 +231,15 @@ def get_UVs(files):
 def plot_UV(BX, BY, marker='o', markersize=6, color="red"):
     plt.axis('equal')
     for i,base in enumerate(BX):
-        
+
         plt.plot(base,BY[i], marker=marker, markersize=markersize, color=color)
         plt.plot(-base,-BY[i], marker='o', markersize=markersize-3, color=color)
-    
-    plt.plot(0,0, marker='+', markersize=markersize, color=color)     
-    
+
+    plt.plot(0,0, marker='+', markersize=markersize, color=color)
+
 ###############################################################################
- 
-# Enter your list of files (if you really want it!)    
+
+# Enter your list of files (if you really want it!)
 #files = [u'C:/DATA/WR104/2018-07-17T064751_WR104_IR-N_IN.fits', u'C:/DATA/WR104/2018-07-17T064751_WR104_IR-LM_IN.fits']
 files = []
 
@@ -251,13 +251,13 @@ if not files:
         if ('--help' in elt):
             print ("Usage: mat_fileDialog.py [--dir=start directory]")
             sys.exit(0)
-    
+
     repBase = []
     for elt in listArg:
         if ('--dir' in elt):
             item=elt.split('=')
             repBase=item[1]
-    
+
     if __name__ == '__main__':
         app = wx.App()
         openFileDialog = mat_FileDialog(None, 'Open a file',repBase)
@@ -282,7 +282,7 @@ plot_UV(BX, BY)
 
 BXA = np.append(BX, -BX)
 BYA = np.append(BY, -BY)
-       
+
 BLDST = [];
 BLANG = [];
 for idx1,bas1 in enumerate(BXA):
@@ -435,17 +435,17 @@ for region in regions:
     new_vertices.append(poly)
     area = Polygon(poly).area
     AREA = np.append(AREA,area)
-    
+
 # Fill cells with colors: green for small cells, and red for big ones
 for region in regions:
     polygon = vertices[region]
     shape = list(polygon.shape)
     shape[0] += 1
     p = Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(mask)
-    poly = np.array(list(zip(p.boundary.coords.xy[0][:-1], p.boundary.coords.xy[1][:-1]))) 
+    poly = np.array(list(zip(p.boundary.coords.xy[0][:-1], p.boundary.coords.xy[1][:-1])))
     area = Polygon(poly).area
     plt.fill(*zip(*poly), alpha=1, c=[area / np.max(AREA), 1 - area / np.max(AREA),0])
-    
+
 # Plot the UV coverage on top of the voronoi cells.
 plot_UV(BX, BY,color='black',markersize=4)
 #plt.plot(points[:,0], points[:,1], 'ko')
