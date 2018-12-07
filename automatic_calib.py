@@ -1,8 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 #-----------------------------------------------------------------------------------------
 # Script to run all of the mat_cal_xxx  on the files produced by the automaticPipeline
 #---------- Version 0, 10 Nov 2018 -------------------------------------------------------
 #-----------------------------------------------------------------------------------------
-from subprocess import call 
+from subprocess import call
 import argparse
 import glob
 from astropy.io import fits
@@ -62,18 +65,18 @@ call('cat %s %s > %s'%(targsof, calibsof, combinedsof), shell=True)
 #----- Run the Recipes ----------------------------------------------------
 sof = combinedsof
 outdir = args.out_dir
-mat_cal_cphase = "esorex --output-dir=%s mat_cal_cphase %s"%(outdir,sof)
-mat_cal_dphase = "esorex --output-dir=%s mat_cal_dphase %s"%(outdir,sof)
-mat_cal_vis = "esorex --output-dir=%s mat_cal_vis %s"%(outdir,sof)
+#mat_cal_cphase = "esorex --output-dir=%s mat_cal_cphase %s"%(outdir,sof)
+#mat_cal_dphase = "esorex --output-dir=%s mat_cal_dphase %s"%(outdir,sof)
+#mat_cal_vis = "esorex --output-dir=%s mat_cal_vis %s"%(outdir,sof)
 mat_cal_oifits = "esorex --output-dir=%s mat_cal_oifits %s"%(outdir,sof)
 
 
-print 'Running mat_cal_cphase on sof:%s'%(sof)
-call(mat_cal_cphase, shell=True)
-print 'Running mat_cal_dphase on sof:%s'%(sof)
-call(mat_cal_dphase, shell=True)
-print 'Running mat_cal_vis on sof:%s'%(sof)
-call(mat_cal_vis, shell=True)
+#print 'Running mat_cal_cphase on sof:%s'%(sof)
+#call(mat_cal_cphase, shell=True)
+#print 'Running mat_cal_dphase on sof:%s'%(sof)
+#call(mat_cal_dphase, shell=True)
+#print 'Running mat_cal_vis on sof:%s'%(sof)
+#call(mat_cal_vis, shell=True)
 print 'Running mat_cal_oifits on sof:%s'%(sof)
 call(mat_cal_oifits, shell=True)
 
