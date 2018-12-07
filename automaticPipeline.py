@@ -226,10 +226,10 @@ print("Determining the number of reduction blocks...")
 for hdr,filename in zip(allhdr,listRaw):
     try:
         tplstart = hdr['HIERARCH ESO TPL START']
+        chipname = hdr['HIERARCH ESO DET CHIP NAME']
     except:
         print(("WARNING, "+filename+" is not a valid MATISSE fits file!"))
         continue;
-    chipname = hdr['HIERARCH ESO DET CHIP NAME']
    # Reduction blocks are defined by template start and detector name
     temp = tplstart+"."+chipname
     keyTplStart.append(temp)
