@@ -48,11 +48,11 @@ def change_oifitsFile_name(oifits):
                 targ = hdu['OBJECT']
 
             newName = os.path.join(direc,
-                                hdu['HIERARCH ESO TPL START'].replace(':','_') +
+                                hdu['HIERARCH ESO TPL START'].replace(':','') +
                                 '_' + targ.replace(" ","") +
                                 '_' + hdu['HIERARCH ESO DET CHIP TYPE'] +
                                 '_' + hdu['HIERARCH ESO INS BCD1 NAME'] +
-                                hdu['HIERARCH ESO INS BCD2 NAME'] +
+                                '_'+hdu['HIERARCH ESO INS BCD2 NAME'] +
                                   '.fits');
 
             print("renaming "+oifits+" into " +newName)
