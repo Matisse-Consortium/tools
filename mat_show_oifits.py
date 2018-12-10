@@ -145,7 +145,10 @@ def open_oi(oi_file):
         band = ''
     dic['BAND'] = band
     try:
-        dispersion_name = hdr['HIERARCH ESO DET DISP NAME']
+       if (det_name == 'AQUARIUS'):
+          dispersion_name = hdr['HIERARCH ESO INS DIN NAME']
+        else :
+          dispersion_name = hdr['HIERARCH ESO INS DIL NAME']
     except KeyError:
         print ("Dispersion name not found.")
         dispersion_name = ""
