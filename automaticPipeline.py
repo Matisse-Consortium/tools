@@ -7,7 +7,7 @@
   Copyright (C) 2017- Observatoire de la Côte d'Azur
 
   Created in 2016
-  @author: pbe
+  @author: pbe, fmi
 
   Automatic MATISSE pipeline !
 
@@ -361,11 +361,11 @@ while True:
             outputDir = os.path.join(repIter,rbname+".rb").replace(':','_')
             
             print("\nTesting if last reduction went through...")
-            if not os.path.isfile(os.path.join(outputDir, "TARGET_RAW_INT_0001.fits")):
+            if glob.glob(os.path.join(outputDir, "*_RAW_INT_*.fits")) or glob.glob(os.path.join(outputDir, "IM_BASIC.fits")):
+                print("Yes!")
+            else:
                 overwritei = 1;
                 print("Nope!")
-            else:
-                print("Yes!")
 
             if os.path.exists(sofname):
                 print(("sof file "+sofname+" already exists..."))
