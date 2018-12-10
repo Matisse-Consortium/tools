@@ -12,6 +12,7 @@ import sys
 from astropy.io import fits
 from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
+from fnmatch import fnmatch
 
 ###############################################################################
 # Function to remove all spaces from a given string
@@ -105,8 +106,10 @@ if __name__ == '__main__':
         print(os.path.join(name_file,"*.fits*"))
         for root,subfolders,files in os.walk(name_file):
             for fil in files:
-                print(fil)
-                if fil.endswith('fits'):
+                matchfilestoavoid = ["TARGET_CAL_0","OBJ_CORR_FLUX_0","OI_OPDWVPO_","PHOT_BEAMS_","CALIB_CAL_0","RAW_DPHASE_","matis_eop","nrjReal","DSPtarget","nrjImag","fringePeak","BSreal","BSimag"]
+                #print(fil)
+                #print(fnmatch(fil, 'CALIB_CAL_0*'))
+                if fil.endswith('fits') and not fnmatch(fil, "TARGET_CAL_0*") and not fnmatch(fil,"OBJ_CORR_FLUX_0*") and not fnmatch(fil,"OI_OPDWVPO_*") and not fnmatch(fil,"PHOT_BEAMS_*") and not fnmatch(fil,"CALIB_CAL_0*") and not fnmatch(fil,"RAW_DPHASE_*") and not fnmatch(fil,"matis_eop*") and not fnmatch(fil,"nrjReal*") and not fnmatch(fil,"nrjImag*") and not fnmatch(fil,"fringePeak*") and not fnmatch(fil,"BSreal*") and not fnmatch(fil, "BSimag*") :
                     try:
                         hdu    = fits.getheader(os.path.join(root,fil))
                         if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
