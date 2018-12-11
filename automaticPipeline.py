@@ -55,11 +55,12 @@ from functools import partial
 
 # Run esorex recipes
 def runEsorex(cmd):
+    print(cmd)
     item = cmd.split()
     out  = item[-1]+".log"
     err  = item[-1]+".err"
     val  = item[-1].split(".")
-    print("Running (Recipes : ",item[2],", TplStart : ",val[1],", Detector : ",val[2],")")
+    #print("Running (Recipes : ",item[2],", TplStart : ",val[1],", Detector : ",val[2],")")
     val  = item[1].split("=")
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
 
@@ -166,6 +167,7 @@ for filename in listRaw:
 
 listRawSorted = []
 allhdrSorted  = []
+listRes = []
 for hdr,filename in zip(allhdr,listRaw):
     if ('HIERARCH ESO TPL START' in hdr and 'HIERARCH ESO DET CHIP NAME' in hdr) :
         tplid    = hdr['HIERARCH ESO TPL ID']
@@ -175,87 +177,97 @@ for hdr,filename in zip(allhdr,listRaw):
         if skipL == 0 and chip == 'HAWAII-2RG':
             # Append low resolution stuff in the front of the list
             disperser = hdr['HIERARCH ESO INS DIL NAME']
-            if disperser == 'LOW':
-                # append at the beginning of the list
-                wta = 0
-            else:
-                # append at the end of the list
-                wta = len(listRawSorted)
 
             # Go through all 4 cases. First case: tplid and tplstart given by user
             if (tplidsel != "" and tplstartsel != ""):
                 if (tplid == tplidsel and tplstart == tplstartsel):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
             # Second case: tpl ID given but not tpl start
             if (tplidsel != "" and tplstartsel == ""):
                 if (tplid == tplidsel):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
             # Third case: tpl start given but not tpl ID
             if (tplidsel == "" and tplstartsel != ""):
                 if (tplstart == tplstartsel):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
             # Fourth case: nothing given by user
             if (tplidsel == "" and tplstartsel == ""):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+                    
         if skipN == 0 and chip == 'AQUARIUS':
             # Append low resolution stuff in the front of the list
             disperser = hdr['HIERARCH ESO INS DIN NAME']
-            if disperser == 'LOW':
-                # append at the beginning of the list
-                wta = 0
-            else:
-                # append at the end of the list
-                wta = len(listRawSorted)
 
             # Go through all 4 cases. First case: tplid and tplstart given by user
             if (tplidsel != "" and tplstartsel != ""):
                 if (tplid == tplidsel and tplstart == tplstartsel):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
             # Second case: tpl ID given but not tpl start
             if (tplidsel != "" and tplstartsel == ""):
                 if (tplid == tplidsel):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
             # Third case: tpl start given but not tpl ID
             if (tplidsel == "" and tplstartsel != ""):
                 if (tplstart == tplstartsel):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
             # Fourth case: nothing given by user
             if (tplidsel == "" and tplstartsel == ""):
-                    listRawSorted.insert(wta, filename)
-                    allhdrSorted.insert(wta, hdr)
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
 
 # Replace original list with the sorted one
 listRaw = listRawSorted
 allhdr  = allhdrSorted
-
 
 # Determination of the number of Reduction Blocks
 keyTplStart    = []
 listIterNumber = []
 print("Determining the number of reduction blocks...")
 
-for hdr,filename in zip(allhdr,listRaw):
+for hdr,filename,res in zip(allhdr,listRaw,listRes):
     try:
         tplstart = hdr['HIERARCH ESO TPL START']
         chipname = hdr['HIERARCH ESO DET CHIP NAME']
     except:
-        print(("WARNING, "+filename+" is not a valid MATISSE fits file!"))
+        print("WARNING, "+filename+" is not a valid MATISSE fits file!")
         continue;
    # Reduction blocks are defined by template start and detector name
     temp = tplstart+"."+chipname
     keyTplStart.append(temp)
 
-keyTplStart=list(set(keyTplStart))
+# Put LOW first, then MED then HIGH
+keyTplStart2=sorted(set(keyTplStart))
+for idx2,ikey2 in enumerate(keyTplStart2):
+    #print(idx2)
+    #print(ikey2)
+    idx = np.where([ikey == ikey2 for ikey in keyTplStart])
+    idx = idx[0][0]
+    #print(idx)
+   # put high res data at the end
+    if listRes[idx] == 'HIGH':
+       listRes[idx] = 'zHIGH'
+    keyTplStart2[idx2] = listRes[idx]+"%"+keyTplStart2[idx2]
+keyTplStart=sorted(set(keyTplStart2))
+keyTplStart=list([it.split("%")[1] for it in keyTplStart])
+
 for elt in keyTplStart:
     listIterNumber.append(0)
-print(("Found "+str(len(keyTplStart))+" reduction blocks."))
+print("Found "+str(len(keyTplStart))+" reduction blocks.")
 
 iterNumber = 0
 while True:
@@ -285,9 +297,14 @@ while True:
     for hdr,filename in zip(allhdr,listRaw):
     #for filename in listRaw:
         try:
-            stri = hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
+            chiupname = hdr['HIERARCH ESO DET CHIP NAME'];
+            stri = hdr['HIERARCH ESO TPL START']+'.'+chiupname
+            print(chipname)
+            if len(chipname)==0:
+                print("WARNING, "+filename+" is a RMNREC file!")
+                continue
         except:
-            print(("WARNING, "+filename+" is not a valid MATISSE fits file!"))
+            print("WARNING, "+filename+" is not a valid MATISSE fits file!")
             continue;
         tag  = matisseType(hdr)
         listRedBlocks[keyTplStart.index(stri)]["input"].append([filename,tag,hdr])
@@ -360,21 +377,25 @@ while True:
             sofname   = os.path.join(repIter,rbname+".sof").replace(':',':')
             outputDir = os.path.join(repIter,rbname+".rb").replace(':','_')
             
-            print("\nTesting if last reduction went through...")
-            if glob.glob(os.path.join(outputDir, "*_RAW_INT_*.fits")) or glob.glob(os.path.join(outputDir, "IM_BASIC.fits")):
-                print("Yes!")
-            else:
-                overwritei = 1;
-                print("Nope!")
+            if overwritei == 0:
+                print("\nTesting if last reduction went through...")
+                if glob.glob(os.path.join(outputDir, "*_RAW_INT_*.fits")) or glob.glob(os.path.join(outputDir, "IM_BASIC.fits")):
+                    print("Yes!")
+                else:
+                    overwritei = 1;
+                    print("Nope!")
 
+            resol = 'no res'
             if os.path.exists(sofname):
-                print(("sof file "+sofname+" already exists..."))
+                print("sof file "+sofname+" already exists...")
                 if overwritei:
                     print("WARNING: Overwriting existing files")
 
                     fp = open(sofname,'w')
                     for frame,tag,hdr in elt['input']:
                         fp.write(frame+" "+tag+"\n")
+                        #print(frame, hdr['HIERARCH ESO INS DIL NAME'])
+                        resol = hdr['HIERARCH ESO INS DIL NAME']
                     for frame,tag in elt['calib']:
                         fp.write(frame+" "+tag+"\n")
                     fp.close()
@@ -382,17 +403,19 @@ while True:
                     print("WARNING: sof file exists. Skipping... (consider using --overwrite)")
                     #continue;
             else:
-                print(("sof file "+sofname+" does not exist. Creating it..."))
+                print("sof file "+sofname+" does not exist. Creating it...")
                 fp = open(sofname,'w')
                 for frame,tag,hdr in elt['input']:
                     fp.write(frame+" "+tag+"\n")
+                    #print(frame, hdr['HIERARCH ESO INS DIL NAME'])
+                    resol = hdr['HIERARCH ESO INS DIL NAME']
                 for frame,tag in elt['calib']:
                     fp.write(frame+" "+tag+"\n")
                 fp.close()
 
 
             if os.path.exists(outputDir):
-                print(("outputDir "+outputDir+" already exists..."))
+                print("outputDir "+outputDir+" already exists...")
                 # Remove any previous logfile
                 print("Remove any previous logfile...")
                 try:
@@ -409,7 +432,7 @@ while True:
                         print("WARNING: outputDir exists. Skipping... (consider using --overwrite)\n")
                         continue;
             else:
-                print(("outputDir "+outputDir+" does not exist. Creating it...\n"))
+                print("outputDir "+outputDir+" does not exist. Creating it...\n")
                 os.mkdir(outputDir)
 
             cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname
@@ -418,8 +441,8 @@ while True:
                 sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
                 if (os.path.exists(sofnamePrev)):
                     if (filecmp.cmp(sofname,sofnamePrev)):
-                        print(("Reduction Blocks already processed during previous iteration"))
-                        print(("Remove directory : "+outputDir))
+                        print("Reduction Blocks already processed during previous iteration")
+                        print("Remove directory : "+outputDir)
                         shutil.rmtree(outputDir)
                     else:
                         listIterNumber[cpt] = iterNumber
@@ -440,7 +463,7 @@ while True:
             cptStatusZero+=1
         cpt+=1
     print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
-
+    
     if (listCmdEsorex != [] and iterNumber <= maxIteration):
         # Create a process pool with a maximum of 10 worker processes
         pool = Pool(processes=nbCore)
