@@ -57,6 +57,7 @@ import threading
 import time
 from openpyxl import Workbook
 from openpyxl.styles import Font,PatternFill
+from mat_time_flux_plot import mat_time_flux_plot
 
 from mat_show_rawdata import mat_show_rawdata 
 
@@ -119,6 +120,7 @@ class mat_logData():
         modn = "F"
         seeing = " "
         tau0 = " "
+        wo=" "
         if self.tplid=="MATISSE_img_acq":
             tpltype="ACQ"
             isImageAcq="F"
@@ -205,7 +207,9 @@ class mat_fileData():
             shutter4 = findHeaderKeyword(h,"HIERARCH ESO INS BSL4 ST")
             self.shutters = shutter1 and shutter2 and shutter3 and shutter4
             self.mod = self.modl
-       
+            self.wo= findHeaderKeyword(h,"HIERARCH ESO SEQ DIL WL0")
+
+            
         elif det=="AQUARIUS":
             self.band="N"
             self.disp = findHeaderKeyword(h,"HIERARCH ESO INS DIN NAME") 
@@ -294,6 +298,7 @@ class mat_logger(wx.Dialog):
                ColumnDefn("Disp.",      "left",40, "disp",      minimumWidth=20),
                ColumnDefn("DIT",        "left",40, "dit",       minimumWidth=20),
                ColumnDefn("NDIT",       "left",40, "ndit",      minimumWidth=20),
+               ColumnDefn("Central_wave",       "left",40, "wo",      minimumWidth=20),
                ColumnDefn("Mod",        "left",35, "mod",       minimumWidth=20),
                ColumnDefn("Chp",        "left",30, "chop",      minimumWidth=20),
                ColumnDefn("expNo",      "left",37, "expno",     minimumWidth=20),
@@ -399,6 +404,8 @@ class mat_logger(wx.Dialog):
         #wx.EVT_MENU( menu, 0, self.showHeader)
         m2   = menu.Append( 1, "Show RAW DATA")
         menu.Bind(wx.EVT_MENU,self.showRawData,m2)
+        m3   = menu.Append( 1, "Plot Flux vs Time")
+        menu.Bind(wx.EVT_MENU,self.plotFluxTime,m3)
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
         
@@ -424,6 +431,17 @@ class mat_logger(wx.Dialog):
         print("Plotting data  from"+dir0+filename+"...")
         #mat_show_rawdata.show_mat(dic)
         mat_show_rawdata(dir0+"/"+filename)
+
+#------------------------------------------------------------------------------
+                
+    def plotFluxTime(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)            
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+
+        print("Plotting flux vs time for file "+ filename+"...")
+        mat_time_flux_plot(filename)
 
 #------------------------------------------------------------------------------
 
