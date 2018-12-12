@@ -192,6 +192,8 @@ def open_oi(oi_file):
         dic['VIS']['U']         = hdu['OI_VIS'].data['UCOORD']
         dic['VIS']['V']         = hdu['OI_VIS'].data['VCOORD']
         dic['VIS']['TIME']      = hdu['OI_VIS'].data['MJD']
+        if dic['VIS']['TIME'][0] < 50000:
+            dic['VIS']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['VIS']['STA_INDEX'] = hdu['OI_VIS'].data['STA_INDEX']
     except:
         print("WARNING: No OI_VIS table!")
@@ -203,6 +205,11 @@ def open_oi(oi_file):
         dic['VIS2']['U']         = hdu['OI_VIS2'].data['UCOORD']
         dic['VIS2']['V']         = hdu['OI_VIS2'].data['VCOORD']
         dic['VIS2']['TIME']      = hdu['OI_VIS2'].data['MJD']
+        if dic['VIS2']['TIME'][0] < 50000:
+            print("WARNING: incoherent MJD, picking it up from header")
+            print(np.shape(hdu['OI_VIS2'].data['MJD']))
+            dic['VIS2']['TIME'] = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
+            print(np.shape(np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])))
         dic['VIS2']['STA_INDEX'] = hdu['OI_VIS2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_VIS2 table!")
@@ -214,6 +221,8 @@ def open_oi(oi_file):
         # dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
         # dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
         dic['TF2']['TIME']      = hdu['TF2'].data['MJD']
+        if dic['TF2']['TIME'][0] < 50000:
+            dic['TF2']['TIME'] = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['TF2']['STA_INDEX'] = hdu['TF2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_TF2 table!")
@@ -229,6 +238,8 @@ def open_oi(oi_file):
         dic['T3']['U2']        = hdu['OI_T3'].data['U2COORD']
         dic['T3']['V2']        = hdu['OI_T3'].data['V2COORD']
         dic['T3']['TIME']      = hdu['OI_T3'].data['MJD']
+        if dic['T3']['TIME'][0] < 50000:
+            dic['T3']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['T3']['STA_INDEX'] = hdu['OI_T3'].data['STA_INDEX']
     except:
         print("WARNING: No OI_T3 table!")
@@ -238,6 +249,8 @@ def open_oi(oi_file):
         dic['FLUX']['FLUX']      = hdu['OI_FLUX'].data['FLUXDATA']
         dic['FLUX']['FLUXERR']   = hdu['OI_FLUX'].data['FLUXERR']
         dic['FLUX']['TIME']      = hdu['OI_FLUX'].data['MJD']
+        if dic['FLUX']['TIME'][0] < 50000:
+            dic['FLUX']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['FLUX']['STA_INDEX'] = hdu['OI_FLUX'].data['STA_INDEX']
     except:
         print("WARNING: No OI_FLUX table!")
@@ -1542,6 +1555,7 @@ def open_oi_dir(input_dir, verbose=True):
                     print(dic['TARGET'] + " " + dic['DATEOBS'] + " " + dic['BAND'] + " " + dic['DISP'] + " " + str(dic['DIT']) + " " + dic['CATEGORY'])
                 list_of_dicts.append(dic)
 
+    print("Done!")
     return list_of_dicts
 
 ###############################################################################
