@@ -55,7 +55,11 @@ from functools import partial
 
 # Run esorex recipes
 def runEsorex(cmd):
+    spl = cmd.split("%");
+    cmd = spl[0];
     print(cmd)
+    resol = spl[1];
+    print(resol)
     item = cmd.split()
     out  = item[-1]+".log"
     err  = item[-1]+".err"
@@ -299,7 +303,7 @@ while True:
         try:
             chiupname = hdr['HIERARCH ESO DET CHIP NAME'];
             stri = hdr['HIERARCH ESO TPL START']+'.'+chiupname
-            print(chipname)
+            #print(chipname)
             if len(chipname)==0:
                 print("WARNING, "+filename+" is a RMNREC file!")
                 continue
@@ -435,7 +439,7 @@ while True:
                 print("outputDir "+outputDir+" does not exist. Creating it...\n")
                 os.mkdir(outputDir)
 
-            cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname
+            cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname+"%"+resol;
 
             if (iterNumber > 1):
                 sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
