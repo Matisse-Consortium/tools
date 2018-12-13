@@ -74,6 +74,7 @@ repArchive  = ""
 repResult   = ""
 tplidsel    = ""
 tplstartsel = ""
+useResol    = ""
 nbCore      = 0
 recipesParamN = ""
 recipesParamL = ""
@@ -103,6 +104,9 @@ for elt in listArg:
     elif ('--nbCore' in elt):
         item   = elt.split('=')
         nbCore = int(item[1])
+    elif ('--resol' in elt):
+        item     = elt.split('=')
+        useResol = item[1]
     elif ('--tplID' in elt):
         item     = elt.split('=')
         tplidsel = item[1]
@@ -138,11 +142,11 @@ else:
     print('%-40s' % ("Raw Data Directory:",),repRaw)
 if (repArchive==""):
     repArchive="/data/CalibMap"
-    print("Info: Calibration Directory not specified. We used the default directory")
+    print("Info: Calibration Directory not specified. We use the default directory")
 print('%-40s' % ("Calibration Directory:",),repArchive)
 if (repResult==""):
         repResult=os.getcwd()
-        print("Info : Results Directory not specified. We use current directory")
+        print("Info : Results Directory not specified. We use the current directory")
 print('%-40s' % ("Results Directory:",),repResult)
 if (nbCore==0):
     nbCore=1
@@ -182,6 +186,10 @@ for hdr,filename in zip(allhdr,listRaw):
             # Append low resolution stuff in the front of the list
             disperser = hdr['HIERARCH ESO INS DIL NAME']
 
+            if useResol != "":
+                if disperser != useResol:
+                    continue
+                
             # Go through all 4 cases. First case: tplid and tplstart given by user
             if (tplidsel != "" and tplstartsel != ""):
                 if (tplid == tplidsel and tplstart == tplstartsel):
@@ -210,6 +218,10 @@ for hdr,filename in zip(allhdr,listRaw):
             # Append low resolution stuff in the front of the list
             disperser = hdr['HIERARCH ESO INS DIN NAME']
 
+            if useResol != "":
+                if disperser != useResol:
+                    continue
+                
             # Go through all 4 cases. First case: tplid and tplstart given by user
             if (tplidsel != "" and tplstartsel != ""):
                 if (tplid == tplidsel and tplstart == tplstartsel):
@@ -497,6 +509,4 @@ while True:
 
         break
 
-
-
-    
+from mat_tidyup_oifits import *
