@@ -60,6 +60,7 @@ from openpyxl.styles import Font,PatternFill
 from mat_time_flux_plot import mat_time_flux_plot
 
 from mat_show_rawdata import mat_show_rawdata 
+import subprocess
 
 # Set useful paths
 fvpath    = distutils.spawn.find_executable("fv")
@@ -420,6 +421,8 @@ class mat_logger(wx.Dialog):
         menu.Bind(wx.EVT_MENU,self.showRawData,m2)
         m3   = menu.Append( 1, "Plot Flux vs Time")
         menu.Bind(wx.EVT_MENU,self.plotFluxTime,m3)
+        m4   = menu.Append( 1, "Open with fv")
+        menu.Bind(wx.EVT_MENU,self.openWithFv,m4)
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
         
@@ -456,6 +459,20 @@ class mat_logger(wx.Dialog):
 
         print("Plotting flux vs time for file "+ filename+"...")
         mat_time_flux_plot(filename)
+
+
+
+#------------------------------------------------------------------------------
+                
+    def openWithFv(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)            
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+        print("Open {0} with fv".format(os.getcwd()+"/"+filename))
+        subprocess.Popen(["fv" ,filename])
+
+
 
 #------------------------------------------------------------------------------
 
