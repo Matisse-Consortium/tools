@@ -1,0 +1,782 @@
+#!/bin/tcsh
+# gnuplot caller for 1D files
+#set echo
+
+# set defaults
+# set tmp = /tmp/$USER/gptmp.$$
+set tmp = /tmp/gptmp.$$
+set terminal  = x11
+set gnuwait   = 'pause -1 "cr=weiter"'
+set wait      = $gnuwait:q
+set output
+set defoutput = $tmp
+set defext
+set defsize   = 1.0,1.0
+set size = x
+set angles
+set polar
+set psfont
+set psfontsize
+set pscolor
+set logy
+set logx
+set xmin
+set xmax
+set ymin
+set ymax
+set grid
+set xtics
+set ytics
+set xlabel
+set ylabel
+set headline
+set nevertitle
+if ($?PRINTER) then
+  set defprinter = $PRINTER
+else
+  set defprinter = lj69
+endif
+set title = ""
+set rmfiles = y
+
+# foption-defaults
+set ds   = lines
+set xcol = 1
+set ycol = 2
+set ecol = 3
+set lcol = -1
+set lsh = 0
+set scal  = 1
+set norm  = 0
+set anorm
+set add   = 0
+set xshift = 0
+set xmul   = 1
+set exp    = 1
+set kmod   = 0
+set notitle = n
+set function = 0
+set bars = small
+
+set delfiles
+set directcmd
+
+set argvsave = "$argv[1-]:q"
+
+#---- parse options --------------------------------------------------------
+while ($#argv > 0)
+  switch ($argv[1]:q)
+
+    case -kmod:
+      set kmod = 1
+      shift
+    breaksw
+
+    case -keep:
+      set rmfiles = n
+      shift
+    breaksw
+      
+    case -nevertitle:
+      set nevertitle = y
+      shift
+    breaksw
+
+    case -anorm:
+      set anorm   = $argv[2]:q
+      shift; shift
+      if ($norm != 0) then
+        echo "options -anorm and -norm cannot be used together"
+        exit -1
+      endif
+    breaksw
+
+    case -norm:
+      set norm   = $argv[2]:q
+      shift; shift
+      if (" $anorm" != " ") then
+        echo "options -anorm and -norm cannot be used together"
+        exit -1
+      endif
+    breaksw
+
+    case -angles:
+      set angles = "set angles $argv[2]:q"
+      shift; shift
+    breaksw
+
+    case -polar:
+      set polar = "set polar"
+      shift
+    breaksw
+
+    case -xlabelargv:
+      set xlabel = "set xlabel 'gplot $argvsave:q'"
+      shift
+    breaksw
+
+    case -xlabel:
+      set xlabel = "set xlabel '$argv[2]:q'"
+      shift
+      shift
+    breaksw
+
+    case -ylabel:
+      set ylabel = "set ylabel '$argv[2]:q'"
+      shift
+      shift
+    breaksw
+
+    case -headline:
+      set headline = "set title '$argv[2]:q'"
+      shift
+      shift
+    breaksw
+
+    case -xtics:
+      set xtics = "set xtics $argv[2]:q"
+      shift
+      shift
+    breaksw
+
+    case -ytics:
+      set ytics = "set ytics $argv[2]:q"
+      shift
+      shift
+    breaksw
+
+    case -grid:
+      set grid = "set grid"
+      shift
+    breaksw
+
+    case -printer:
+      set printer = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -psfont:
+      set psfont = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -pscolor:
+      set pscolor = (color solid)
+      shift
+    breaksw
+
+    case -psfontsize:
+      set psfontsize = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -latex
+      set terminal = latex
+      set defext  = ".tex"
+      set wait
+      set fileout
+      shift
+    breaksw
+
+    case -Cl:
+      set defprinter = hplj69
+      set pscolor = (color solid)
+      # no breaksw here!!!
+    case -Pl:
+      set printout
+      # no breaksw here!!!
+    case -psfl:
+      set terminal      = postscript 
+      set psorient      = landscape 
+      set psfontdef     = '"Helvetica"'
+      set psfontsizedef = 10
+      set defsize       = "1,1"
+      set defext        = ".ps"
+      set wait
+      set fileout
+      shift
+    breaksw
+
+    case -Cp:
+      set defprinter = hplj69
+      set pscolor = (color solid)
+      # no breaksw here!!!
+    case -Pp:
+      set printout
+      # no breaksw here!!!
+    case -psfp:
+      set terminal      = postscript 
+      set psorient      = portrait
+      set psfontdef     = '"Helvetica"'
+      set psfontsizedef = 9 
+      set defsize       = "1.0,0.5"
+      set defext        = ".ps"
+      set wait
+      set fileout
+      shift
+    breaksw
+
+    case -epsf:
+      set terminal      = postscript
+      set psorient      = eps
+      set psfontdef     = '"Helvetica"'
+      set psfontsizedef = 11
+      set defsize       = "1.0,1.0"
+      set defext        = ".eps"
+      set wait
+      set fileout
+      shift
+    breaksw
+
+
+    case -png:
+      set terminal      = png
+      set psorient      = port
+      set psfontdef     = '"Helvetica"'
+      set psfontsizedef = 11
+      set defsize       = "1.0,0.5"
+      set defext        = ".ps"
+      set wait
+      set fileout
+      shift
+    breaksw
+
+    case -size:
+      set size = "$argv[2]:q"
+      shift
+      shift
+    breaksw
+
+    case -o:
+      set output = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -logx:
+      set  logx = "set logscale x"
+      shift
+    breaksw
+
+    case -logy:
+      set  logy = "set logscale y"
+      shift
+    breaksw
+
+    case -xmin:
+      set xmin = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -xmax:
+      set xmax = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -ymin:
+      set ymin = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -ymax:
+      set ymax = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -bars:
+      set bars = $argv[2]
+      shift; shift
+    breaksw
+
+    #----- foptions copied in here --------------------------------------
+    case -directcmd:
+      set directcmd = ($directcmd:q '; ' "$argv[2]:q")
+      shift; shift
+    breaksw
+
+    case -notitle:
+      set notitle = y
+      shift
+    breaksw
+
+    case -kmod:
+      set kmod = 1
+      shift
+    breaksw
+
+    case -xshift:
+      set xshift = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -exp:
+      set exp = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -xmul:
+      set xmul = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -scale:
+      set scal = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -add:
+      set add = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+# keine ahnung was das soll, $shif wird nie verwendet
+#    case -shift:
+#      set shif = $argv[2]:q
+#      shift
+#      shift
+#    breaksw
+
+    case -lshift:
+      set lsh = $argv[2]:q;
+      shift
+      shift
+    breaksw
+
+    case -lcol:
+      set lcol = $argv[2]:q;
+      shift
+      shift
+    breaksw
+
+    case -t:
+      set title = "$argv[2]:q"
+      shift
+      shift
+    breaksw
+    
+    case -ds:
+    case -datastyle:
+      set ds = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -xcol:
+    case -x:
+      set xcol = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -ycol:
+    case -y:
+      set ycol = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -ecol:
+    case -e:
+      set ecol = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -f:
+      set function = 1
+      shift
+    breaksw
+
+
+    default:
+      break
+  endsw
+end
+
+if ($#argv < 1 || "$1" == "-h") then
+  set qwe = $0
+cat <<EOF
+USAGE: $qwe:t [options] [foption] plotfile [[foption] plotfile...]
+  The script plots the plotfile(s) all together in one plot.
+  If plotfile is "." then the last file is used again.
+
+OPTIONS (valid for all plotfiles) :
+  -keep            : dont remove temporary files 
+  -polar           : polar plot
+  -angles degrees|radians :
+                     angles in polar plot column are degrees or radians 
+  -logx            : log-scale on x-axis
+  -logy            : log-scale on y-axis
+  -xmin     num    : set xrange minimum to number
+  -xmax     num    : set xrange maximum to number
+  -ymin     num    : set yrange minimum to number
+  -ymax     num    : set yrange maximum to number
+  -grid            : draw a grid at the tic marks
+  -xlabel   string : label X-axis with string
+  -ylabel   string : label Y-axis with string
+  -xlabelargv      : label X-axis with the calling command
+  -headline string : Headline (Title) of plot
+  -nevertitle      : dont print any plotfile title
+  -psfp            : create a portrait  postscript file
+  -psfl            : create a landscape postscript file
+  -epsf            : create an eps file
+  -png             : create a png image
+  -psfontsize num  : set size of postscript font
+  -psfont   num    : set name of postscript font
+  -pscolor         : output is color-Postscript
+  -o filename      : create outputfile named filename
+  -Pp              : print plot in portrait
+  -Pl              : print plot in landscape
+  -Cp or -Cl       : like -Px, but do a color-print
+  -printer  name   : set printer name (default lj for -Px, tek for -Cx)
+  -size     sx,sy  : define size of plot (quadratic: 0.7,0.7 -psfp; 0.757,1 else)
+  -norm     num    : multiplicative scale of first number plotfile(s) to num 
+  -anorm    num    : additive       scale of first number plotfile(s) to num
+  -directcmd "cmd" : add "cmd" to gnuplot script
+  -bars small|large: plot errorbars without/with line at top/bottom
+
+FOPTIONS (valid only for the next plotfile except where noted below):
+  -f function      : define a functional expression to plot
+                     (most of the following foptions are irrelevant)
+  -x|-xcol number  : column number of x-coordinate (valid until changed)
+  -y|-ycol number  : column number of y-coordinate (valid until changed)
+  -e|-ecol number  : column number of error-bar size (valid until changed)
+  -lcol    number  : label points with string in column #number
+                     (if number==0, label with line#)
+  -lshift  number  : x-shift for point-lables (in x-corrdinate-units)
+  -t       title   : set title for next plotfile
+  -notitle         : no title for next plotfile
+  -ds      style   : set data style (lines, points, linespoints ect.) 
+                     (valid until changed)
+  -scale   number  : multiply y-value by number when plotting
+  -add     number  : add number to y-value when plotting
+  -exp     number  : exponentiate y by number
+  -xshift  number  : shift X-Coordinates by number
+  -xmul    number  : multily X-Coordinates by number (after shifting!)
+  -kmod            : keep scale add exp xshift and xmul option for all following plotfiles
+
+SCALING
+  scaling with the -norm N, -scale S and -add A options is done as:
+    Y' = (Y * norm + A) * S
+  with norm = N / first-Y-value-in-file
+EOF
+  exit 1
+endif
+
+if (! $?printer) then
+  set printer = $defprinter
+endif
+
+if ($size == x) then
+  set size = "$defsize"
+endif
+
+set gtmp = $tmp.gnuplot
+
+if ("$output " == " ") then
+  set output = "$defoutput$defext"
+endif
+set output_tmp = $gtmp.out
+
+set delfiles = ( $delfiles $gtmp )
+echo -n                                > $gtmp
+if ($terminal == postscript) then
+  if ("$psfont " == " ")     set psfont = ($psfontdef)
+  if ("$psfontsize " == " ") set psfontsize = $psfontsizedef
+  echo "set terminal $terminal enh $psorient $pscolor $psfont:q $psfontsize" >> $gtmp
+else
+  echo "set terminal $terminal:q"        >> $gtmp
+endif
+echo "set size $size"                  >> $gtmp
+if ($?fileout) then
+  echo "set output   '$output_tmp'"        >> $gtmp
+endif
+echo "set xrange [$xmin : $xmax]"      >> $gtmp
+echo "set yrange [$ymin : $ymax]"      >> $gtmp
+if ("$angles" != "") echo $angles        >> $gtmp
+if ("$polar" != "") echo $polar        >> $gtmp
+
+if ("$logx" != "") echo "$logx"        >> $gtmp
+if ("$logy" != "") echo "$logy"        >> $gtmp
+if ("$grid" != "") echo $grid          >> $gtmp
+if ("$xtics" != "") echo $xtics        >> $gtmp
+if ("$ytics" != "") echo $ytics        >> $gtmp
+if ("$xlabel" != "") echo $xlabel:q    >> $gtmp
+if ("$ylabel" != "") echo $ylabel:q    >> $gtmp
+if ("$headline" != "") echo $headline  >> $gtmp
+if ("$directcmd:q" != "") echo $directcmd:q >> $gtmp
+set directcmd
+echo "set bars $bars"                  >> $gtmp
+
+#---- scan foptions ----------------------------------------------------------
+set plot
+set d = ':'
+set c
+while ($#argv > 0)
+  switch ($argv[1]:q)
+
+    case -directcmd:
+      echo $argv[2]:q >> $gtmp
+      shift; shift
+    breaksw
+
+    case -notitle:
+      set notitle = y
+      shift
+    breaksw
+
+    case -kmod:
+      set kmod = 1
+      shift
+    breaksw
+
+    case -xshift:
+      set xshift = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -exp:
+      set exp = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -xmul:
+      set xmul = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -scale:
+      set scal = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -add:
+      set add = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -lshift:
+      set lsh = $argv[2]:q;
+      shift
+      shift
+    breaksw
+
+    case -lcol:
+      set lcol = $argv[2]:q;
+      shift
+      shift
+    breaksw
+
+    case -t:
+      set title = "$argv[2]:q"
+      shift
+      shift
+    breaksw
+    
+    case -ds:
+    case -datastyle:
+      set ds = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -xcol:
+    case -x:
+      set xcol = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -ycol:
+    case -y:
+      set ycol = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -ecol:
+    case -e:
+      set ecol = $argv[2]:q
+      shift
+      shift
+    breaksw
+
+    case -f:
+      set function = 1
+      shift
+    breaksw
+
+    default:
+#echo $title:q
+      set file1 = $argv[1]:q
+      shift
+      if ("$file1:q" == "-") then
+        set filetitle = "<stdin>"
+        set file
+      else 
+        if ("$file1:q" != ".") then
+          # . denotes same file
+          set filetitle = $file1:q
+          set file      = $file1:q
+        endif
+      endif
+      if (($notitle == y) || ($nevertitle == y)) then
+        set title = notitle
+      else
+        if ("$title:q" == "") then
+          if ($function == 1) then
+            set title = "title '$filetitle:q'"
+          else
+            set no
+            set sc
+            set ad
+            set xs
+            set xm
+            set ex
+            if ($norm   != "0") set no = " norm=$norm"
+            if (" $anorm" != " ") set no = " anorm=$anorm"
+            if ($scal   != "1") set sc = " scale=$scal"
+            if ($add    != "0") set ad = " add=$add"
+            if ($xshift != "0") set xs = " xshift=$xshift"
+            if ($xmul   != "1") set xm = " xmul=$xmul"
+            if ($exp    != "1") set ex = " exp=$exp"
+            if ("$ds" == "errorbars") then
+              set title = "title '$filetitle:q $xcol$d$ycol$d$ecol$no$sc$ex$ad$xs$xm'"
+            else 
+              set title = "title '$filetitle:q $xcol$d$ycol$no$sc$ex$ad$xs$xm'"
+            endif
+          endif
+        else
+          set title = "title '$title:q'"
+        endif
+      endif
+      #--- create temporary plotfiles ------
+      @ nfiles++;
+      set cmd = ('BEGIN { xcol='$xcol';'\
+                 '        ycol='$ycol';'\
+                 '        ecol='$ecol';'\
+                 '        lcol='$lcol';'\
+                 '        ds  ="'$ds'";'\
+                 '        norm="'$norm'";'\
+                 '        anorm="'$anorm'";'\
+                 '        scal="'$scal'";'\
+                 '        add="'$add'";'\
+                 '        xshift="'$xshift'";'\
+                 '        ex="'$exp'";'\
+                 '        xmul="'$xmul'";'\
+                 '}'\
+                 '($1 != "#") && (NF != 0){'\
+                 '  if (norm != 0)   {if (NR==1) {no = norm/$ycol;}}'\
+                 '  else             {no = 1;}'\
+                 '  if (anorm != "") {if (NR==1) {ano = anorm-$ycol;}}'\
+                 '  else             {ano = 0;}'\
+                 '  if (lcol <= 0) lstr = NR;'\
+                 '  if (lcol >  0) lstr = $lcol;'\
+                 '  if (ds != "errorbars") estr = "0.0";'\
+                 '  else                   estr = $ecol*scal;'\
+                 '  if (xcol==0) {'\
+                 '    if (($ycol != "INDEF") && (estr != "INDEF"))'\
+                 '      printf "%.9f %.9f %.9f %s\n", xmul*(NR-1+xshift), ((no*($ycol+ano)+add)*scal)^ex, estr, lstr;'\
+                 '  }'\
+                 '  else {'\
+                 '    if (($xcol != "INDEF") && ($ycol != "INDEF")'\
+                 '        && (estr != "INDEF"))'\
+                 '      printf "%.9f %.9f %.9f %s\n", xmul*($xcol+xshift), ((no*($ycol+ano)+add)*scal)^ex, estr, lstr;'\
+                 '  }'\
+                 '}'\
+                )
+      if ($function == 1) then
+        set plot = ( $plot:q $c $file:q $title:q with $ds )
+        set function = 0
+      else
+        awk "$cmd:q" $file:q > $tmp.$nfiles
+        set delfiles = ($delfiles $tmp.$nfiles)
+
+        set dsa = ($ds)
+        if ("$dsa[1]" == 'errorbars') then
+          set use = '1:2:3'
+        else
+          set use = '1:2'
+        endif
+        set plot = ( $plot:q $c "'$tmp.$nfiles'" using $use:q $title:q with $ds )
+        set lfile = $tmp.$nfiles
+      endif
+
+      #--- create label-file if necessary --------------
+      if ($lcol >= 0) then
+      set cmd = ('BEGIN { xcol=1;'\
+                   '        ycol=2;'\
+                   '        lcol=4;'\
+                   '        lsh='$lsh';'\
+                   '}'\
+                   '{'\
+                   '  lstr = $lcol;'\
+                   '  printf "set label %s%s%s at %f,%f\n",'\
+                   '         "\"",lstr,"\"",$xcol+lsh,$ycol;'\
+                   '}'\
+                  )
+        awk "$cmd:q" $lfile >> $gtmp
+      endif
+
+      set c = ','
+      set title   = ""
+      set notitle = n
+      #set lcol    = -1 # changed ds 2006-11-10
+      if ($kmod == 0) then 
+        set scal   = 1
+        set add    = 0
+        set exp    = 1
+        set xshift = 0
+        set xmul   = 1
+      endif
+    breaksw
+  endsw
+end
+
+(echo -n "plot "; echo $plot:q ) >> $gtmp
+echo $wait:q >> $gtmp
+
+gnuplot $gtmp
+if ($status) exit $status
+
+if ($?fileout) then
+  if ($?printout) then
+    echo "printing postscript plot on $printer"
+    lpr -P{$printer} $output_tmp
+    set delfiles = ( $delfiles $output_tmp )
+  else
+    mv $output_tmp $output
+    echo "created file $output"
+  endif
+endif
+
+# cp $gtmp /tmp/$USER/gplot.script
+cp $gtmp /tmp/gplot.script
+# echo gnuplot script saved in '"'/tmp/$USER/gplot.script'"'
+echo gnuplot script saved in '"'/tmp/gplot.script'"'
+
+if ($rmfiles != n) then
+  /bin/rm $delfiles
+else
+  echo temporary files are:
+  foreach file ($delfiles)
+    echo "  $file"
+  end
+endif
