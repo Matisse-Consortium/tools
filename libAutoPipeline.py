@@ -668,7 +668,7 @@ def matisseRecipes(action,det):
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS"):
         return ["mat_raw_estimates","--useOpdMod=TRUE"]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
-        return ["mat_raw_estimates","--useOpdMod=FALSE"]   
+        return ["mat_raw_estimates","--useOpdMod=FALSE --compensate=[pb,nl,if,rb,bp,od]"]   
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
