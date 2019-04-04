@@ -47,7 +47,6 @@
               textbox, filter for target name, more bands (JHK) available
               (for e.g. AMBER data), plot with or without errorbars, plot V or
               V2 (jvarga)
-
 """
 
 import sys
@@ -96,7 +95,8 @@ def open_oi(oi_file):
     wl = hdu['OI_WAVELENGTH'].data['EFF_WAVE']
     dic = {'WLEN': wl}
 
-    dic['HDR'] = hdr
+    dic['HDR']  = hdr
+    dic['file'] = oi_file;
 
     try:
         dic['SEEING'] = (hdr['HIERARCH ESO ISS AMBI FWHM START'] + hdr['HIERARCH ESO ISS AMBI FWHM END'])/2.
@@ -145,7 +145,10 @@ def open_oi(oi_file):
         band = ''
     dic['BAND'] = band
     try:
-        dispersion_name = hdr['HIERARCH ESO DET DISP NAME']
+        if (det_name == 'AQUARIUS'):
+          dispersion_name = hdr['HIERARCH ESO INS DIN NAME']
+        else :
+          dispersion_name = hdr['HIERARCH ESO INS DIL NAME']
     except KeyError:
         print ("Dispersion name not found.")
         dispersion_name = ""
@@ -189,6 +192,8 @@ def open_oi(oi_file):
         dic['VIS']['U']         = hdu['OI_VIS'].data['UCOORD']
         dic['VIS']['V']         = hdu['OI_VIS'].data['VCOORD']
         dic['VIS']['TIME']      = hdu['OI_VIS'].data['MJD']
+        if dic['VIS']['TIME'][0] < 50000:
+            dic['VIS']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['VIS']['STA_INDEX'] = hdu['OI_VIS'].data['STA_INDEX']
     except:
         print("WARNING: No OI_VIS table!")
@@ -200,6 +205,11 @@ def open_oi(oi_file):
         dic['VIS2']['U']         = hdu['OI_VIS2'].data['UCOORD']
         dic['VIS2']['V']         = hdu['OI_VIS2'].data['VCOORD']
         dic['VIS2']['TIME']      = hdu['OI_VIS2'].data['MJD']
+        if dic['VIS2']['TIME'][0] < 50000:
+            print("WARNING: incoherent MJD, picking it up from header")
+            print(np.shape(hdu['OI_VIS2'].data['MJD']))
+            dic['VIS2']['TIME'] = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
+            print(np.shape(np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])))
         dic['VIS2']['STA_INDEX'] = hdu['OI_VIS2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_VIS2 table!")
@@ -211,6 +221,8 @@ def open_oi(oi_file):
         # dic['TF2']['U']       = hdu['OI_TF2'].data['UCOORD']
         # dic['TF2']['V']       = hdu['OI_TF2'].data['VCOORD']
         dic['TF2']['TIME']      = hdu['TF2'].data['MJD']
+        if dic['TF2']['TIME'][0] < 50000:
+            dic['TF2']['TIME'] = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['TF2']['STA_INDEX'] = hdu['TF2'].data['STA_INDEX']
     except:
         print("WARNING: No OI_TF2 table!")
@@ -226,6 +238,8 @@ def open_oi(oi_file):
         dic['T3']['U2']        = hdu['OI_T3'].data['U2COORD']
         dic['T3']['V2']        = hdu['OI_T3'].data['V2COORD']
         dic['T3']['TIME']      = hdu['OI_T3'].data['MJD']
+        if dic['T3']['TIME'][0] < 50000:
+            dic['T3']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['T3']['STA_INDEX'] = hdu['OI_T3'].data['STA_INDEX']
     except:
         print("WARNING: No OI_T3 table!")
@@ -235,6 +249,8 @@ def open_oi(oi_file):
         dic['FLUX']['FLUX']      = hdu['OI_FLUX'].data['FLUXDATA']
         dic['FLUX']['FLUXERR']   = hdu['OI_FLUX'].data['FLUXERR']
         dic['FLUX']['TIME']      = hdu['OI_FLUX'].data['MJD']
+        if dic['FLUX']['TIME'][0] < 50000:
+            dic['FLUX']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['FLUX']['STA_INDEX'] = hdu['OI_FLUX'].data['STA_INDEX']
     except:
         print("WARNING: No OI_FLUX table!")
@@ -666,9 +682,6 @@ useStations=True,xlog=False,ylog=False):
 
         plt.suptitle('$\mathrm{'+datatype+'\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
 
-
-
-
         #plt.tight_layout()
         plt.show()
 
@@ -757,7 +770,6 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                 sta_names = dic['STA_NAME']
             else:
                 sta_names = ""
-
 
         target_names_cal = np.array(target_names_cal)
         MJD_arr_cal      = np.array(MJD_arr_cal)
@@ -1528,7 +1540,6 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
             plt.show()
         print ("Plots READY.")
 
-
 ###############################################################################
 
 def open_oi_dir(input_dir, verbose=True):
@@ -1544,8 +1555,8 @@ def open_oi_dir(input_dir, verbose=True):
                     print(dic['TARGET'] + " " + dic['DATEOBS'] + " " + dic['BAND'] + " " + dic['DISP'] + " " + str(dic['DIT']) + " " + dic['CATEGORY'])
                 list_of_dicts.append(dic)
 
+    print("Done!")
     return list_of_dicts
-
 
 ###############################################################################
 # dates = example format: ["2018-03-16"]
@@ -1596,6 +1607,25 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
                     continue
             print("Selected: ", target, date, dic['BAND'], dic['DISP'], dic['DIT'], dic['CATEGORY'])
             filtered_list_of_dicts.append(dic)
+
+            # filter oifits files on wavelength
+            if WLEN_range:
+                wl1 = WLEN_range[0];
+                wl2 = WLEN_range[1];
+                dic['VIS2']['VIS2']      = dic['VIS2']['VIS2'][wl1:wl2]
+                dic['VIS2']['VIS2ERR']   = dic['VIS2']['VIS2ERR'][wl1:wl2]
+                dic['VIS']['VISAMP']     = dic['VIS']['VISAMP'][wl1:wl2]
+                dic['VIS']['VISAMPERR']  = dic['VIS']['VISAMPERR'][wl1:wl2]
+                dic['VIS']['DPHI']       = dic['VIS']['DPHI'][wl1:wl2]
+                dic['VIS']['DPHIERR']    = dic['VIS']['DPHIERR'][wl1:wl2]
+                dic['TF2']['TF2']        = dic['TF2']['TF2'][wl1:wl2]
+                dic['TF2']['TF2ERR']     = dic['TF2']['TF2ERR'][wl1:wl2]
+                dic['T3']['T3AMP']       = dic['T3']['T3AMP'][wl1:wl2]
+                dic['T3']['T3AMPERR']    = dic['T3']['T3AMPERR'][wl1:wl2]
+                dic['T3']['T3CLOS']      = dic['T3']['CLOS'][wl1:wl2]
+                dic['T3']['T3CLOSERR']   = dic['T3']['CLOSERR'][wl1:wl2]
+                dic['FLUX']['FLUX']      = dic['T3']['CLOS'][wl1:wl2]
+                dic['FLUX']['T3CLOSERR'] = dic['T3']['CLOSERR'][wl1:wl2]
 
     return filtered_list_of_dicts
 
@@ -1694,7 +1724,7 @@ class oi_data_select_frame(wx.Frame):
     name_dir        = ""
     target_selected = ""
 
-###############################################################################
+    ###########################################################################
 
     def __init__(self, *args, **kwds):
         self.dic = {}
@@ -1710,10 +1740,10 @@ class oi_data_select_frame(wx.Frame):
         self.statusbar.SetStatusText('')
 
         # Menu Bar
-        self.frame_menubar = wx.MenuBar()
-        wxglade_tmp_menu   = wx.Menu()
-        self.frame_menubar.Append(wxglade_tmp_menu, "File")
-        self.SetMenuBar(self.frame_menubar)
+        #self.frame_menubar = wx.MenuBar()
+        #wxglade_tmp_menu   = wx.Menu()
+        #self.frame_menubar.Append(wxglade_tmp_menu, "File")
+        #self.SetMenuBar(self.frame_menubar)
         # Menu Bar end
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.btn_open_oifits = wx.Button(self.panel, 15, "Open OIFITS data")
@@ -1767,7 +1797,7 @@ class oi_data_select_frame(wx.Frame):
         self.__do_layout()
         # end wxGlade
 
-###############################################################################
+    ###########################################################################
 
     def __set_properties(self):
         # begin wxGlade: oi_data_select_frame.__set_properties
@@ -1786,7 +1816,7 @@ class oi_data_select_frame(wx.Frame):
         self.cb_pl_OI_wl.SetValue(True)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClicked)
 
-###############################################################################
+    ###########################################################################
 
     def __do_layout(self):
         # begin wxGlade: oi_data_select_frame.__do_layout
@@ -1907,7 +1937,7 @@ class oi_data_select_frame(wx.Frame):
         self.Layout()
         # end wxGlade
 
-###############################################################################
+    ###########################################################################
 
     def OnButtonClicked(self, e):
         plot_t_flag = self.cb_pl_OI_t.GetValue()
@@ -1941,11 +1971,7 @@ class oi_data_select_frame(wx.Frame):
                                               self.DIT + self.DIT_range],
                                    targets=[])
                 else:
-                    self.filtered_list_of_dicts = filter_oi_list(self.list_of_dicts, dates=[self.date],
-                                                                 bands=selected_bands,
-                                                                 spectral_resolutions=selected_spectral_resolutions,
-                                                                 DIT_range=[self.DIT - self.DIT_range,
-                                                                            self.DIT + self.DIT_range], targets=[self.target_selected])
+                    self.filtered_list_of_dicts = filter_oi_list(self.list_of_dicts, dates=[self.date], bands=selected_bands, spectral_resolutions=selected_spectral_resolutions, DIT_range=[self.DIT - self.DIT_range, self.DIT + self.DIT_range], targets=[self.target_selected])
             else:
                 self.filtered_list_of_dicts = self.list_of_dicts
 
@@ -2160,7 +2186,7 @@ class oi_data_select_frame(wx.Frame):
                     self.name_file = self.tb_path.GetValue()
                     self.OI_load_data(self.name_file)
 
-###############################################################################
+    ###########################################################################
 
     def OI_load_data(self,path):
         if os.path.isfile(path):

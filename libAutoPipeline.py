@@ -94,7 +94,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
         action == "ACTION_MAT_CAL_DET_HIGH_GAIN"):
         return [res,1]
 
-    print("reading cal files headers...")
     allhdr        = []
     for elt in listCalibFile:
         #allhdr.append(getheader(elt,0))
@@ -102,7 +101,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             value = getheader(elt,0);
             cacheHdr.update(elt,value)
         allhdr.append(cacheHdr.cache[elt]['value'])
-    print("done.")
 
     if (action == "ACTION_MAT_IM_BASIC"    or
         action == "ACTION_MAT_IM_EXTENDED" or
