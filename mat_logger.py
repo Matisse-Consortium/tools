@@ -258,7 +258,9 @@ class mat_logger(wx.Dialog):
         self.logfilename = os.path.join(dir0,"mat_log_"+self.date+'.pkl')
         self.csvfilename = os.path.join(dir0,"mat_log_"+self.date+'.txt')
         self.excelfilename = os.path.join(dir0,"mat_log_"+self.date+'.xlsx')
-
+        
+        
+        print("booooooooooooooooooooooooooo")
         print("The log file name is "+self.logfilename)
         self.tplList    = []       
         self.tplListObj = []
@@ -419,9 +421,9 @@ class mat_logger(wx.Dialog):
         #wx.EVT_MENU( menu, 0, self.showHeader)
         m2   = menu.Append( 1, "Show RAW DATA")
         menu.Bind(wx.EVT_MENU,self.showRawData,m2)
-        m3   = menu.Append( 1, "Plot Flux vs Time")
+        m3   = menu.Append( 2, "Plot Flux vs Time")
         menu.Bind(wx.EVT_MENU,self.plotFluxTime,m3)
-        m4   = menu.Append( 1, "Open with fv")
+        m4   = menu.Append( 3, "Open with fv")
         menu.Bind(wx.EVT_MENU,self.openWithFv,m4)
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
