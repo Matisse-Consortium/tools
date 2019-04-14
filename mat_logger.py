@@ -419,7 +419,7 @@ class mat_logger(wx.Dialog):
                     
             
         colwidth=[15,6,6,8,19,6,6,6,6,6,6,6,6,6,6,6,8,8,8,100]
-        for i in range(17):
+        for i in range(20):
             sheet.column_dimensions["{0}".format(chr(65+i))].width = colwidth[i]
         #csvfile.close()
 
