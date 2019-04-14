@@ -406,7 +406,7 @@ class mat_logger(wx.Dialog):
                     cell=sheet['{0}{1}'.format(chr(65+j),i)]
                     cell.fill = PatternFill("solid",fgColor=color)
                 
-                for iline in range(nline):
+                for iline in range(nlines):
                     i+=1
                     xlobj2=[""]*16
                     xlobj2.append(xlobj[iline])
