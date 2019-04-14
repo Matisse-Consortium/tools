@@ -389,7 +389,7 @@ class mat_logger(wx.Dialog):
                 #csvfile.write(csvobj)
                 xlobj=csvobj.split("\n")
                 print(xlobj)
-                nlines=len(xlobj)-1
+                nlines=len(xlobj)
                 
                 xlobj2=xlobj[0].split(";")
                 
@@ -408,9 +408,9 @@ class mat_logger(wx.Dialog):
                     cell=sheet['{0}{1}'.format(chr(65+j),i)]
                     cell.fill = PatternFill("solid",fgColor=color)
                 
-                for iline in range(nlines):
+                for iline in range(1,nlines):
                     i+=1
-                    xlobj2=[""]*16
+                    xlobj2=[""]*19
                     xlobj2.append(xlobj[iline])
                     sheet.append(xlobj2)
                     for j in range(20):
