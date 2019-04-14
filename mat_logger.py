@@ -388,9 +388,11 @@ class mat_logger(wx.Dialog):
                 csvobj=tplListObji.getCSV()
                 #csvfile.write(csvobj)
                 xlobj=csvobj.split("\n")
+                print(xlobj)
                 nlines=len(xlobj)-1
                 
                 xlobj2=xlobj[0].split(";")
+                
                 
                 sheet.append(xlobj2)
                 if xlobj2[3]=="ACQ":
