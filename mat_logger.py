@@ -387,22 +387,34 @@ class mat_logger(wx.Dialog):
                 i+=1
                 csvobj=tplListObji.getCSV()
                 #csvfile.write(csvobj)
-                xlobj=csvobj.split("\n")[0]
-                xlobj=xlobj.split(";")
+                xlobj=csvobj.split("\n")
+                nlines=len(xlobj)-1
                 
-                sheet.append(xlobj)
-                if xlobj[3]=="ACQ":
+                xlobj2=xlobj[0].split(";")
+                
+                sheet.append(xlobj2)
+                if xlobj2[3]=="ACQ":
                      color = "8ce4ba"
-                elif xlobj[3]=="OBS":
+                elif xlobj2[3]=="OBS":
                     color = "8db4e2"
                 if tplListObji.isok == False:
                     color = "c86432"
                  
-                print("{0} =>color={1}".format(xlobj[3],color))
-       
+                print("{0} =>color={1}".format(xlobj2[3],color))
+                
                 for j in range(20):
                     cell=sheet['{0}{1}'.format(chr(65+j),i)]
                     cell.fill = PatternFill("solid",fgColor=color)
+                
+                for iline in range(nline):
+                    i+=1
+                    xlobj2=[""]*16
+                    xlobj2.append(xlobj[iline])
+                    sheet.append(xlobj2)
+                    for j in range(20):
+                        cell=sheet['{0}{1}'.format(chr(65+j),i)]
+                        cell.fill = PatternFill("solid",fgColor=color)
+                    
             
         colwidth=[15,6,6,8,19,6,6,6,6,6,6,6,6,6,6,6,8,8,8,100]
         for i in range(17):
