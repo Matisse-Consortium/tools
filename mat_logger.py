@@ -58,6 +58,7 @@ import time
 from openpyxl import Workbook
 from openpyxl.styles import Font,PatternFill
 from mat_time_flux_plot import mat_time_flux_plot
+from mat_plotRmnrecOpd import mat_plotRmnrecOpd
 
 from mat_show_rawdata import mat_show_rawdata 
 import subprocess
@@ -439,6 +440,8 @@ class mat_logger(wx.Dialog):
         menu.Bind(wx.EVT_MENU,self.plotFluxTime,m3)
         m4   = menu.Append( 3, "Open with fv")
         menu.Bind(wx.EVT_MENU,self.openWithFv,m4)
+        m5   = menu.Append( 4, "Plot RMNREC OPD")
+        menu.Bind(wx.EVT_MENU,self.plotRmnrecOpd,m5)
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
         
@@ -487,6 +490,19 @@ class mat_logger(wx.Dialog):
         filename = l[idx].filename
         print("Open {0} with fv".format(os.getcwd()+"/"+filename))
         subprocess.Popen(["fv" ,filename])
+
+
+#------------------------------------------------------------------------------
+                
+    def plotRmnrecOpd(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)            
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+
+        print("Plotting RMNREC OPD for file "+ filename+"...")
+        mat_plotRmnrecOpd(filename,removeAvg=False,relative=False)
+
 
 
 
