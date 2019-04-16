@@ -46,5 +46,31 @@ def mat_plotRmnrecOpd(filename,removeAvg=True,relative=False):
     ax[3].set_xlabel("Time (s)",size="15") 
     ax[3].set_xlim(-4,np.max(time))
     
-    
-mat_plotRmnecOpd(dirdata+file,removeAvg=True,relative=False)
+
+
+if  __name__== '__main__' :
+
+
+    arg=sys.argv
+
+    if (arg[1]=="--help" or arg[1]== "-h"):
+        print "mat_plotRmnecOpd script to visualize OD offset from RMNREC file"
+        print "Usage : filename [-options]"
+        print "options :"
+        print " --removeAvg [True False]"
+        print " --relative [True False]"   
+    else:   
+        filename=arg[1]
+        
+
+        narg=len(arg)
+        removeAvg=False
+        relative=False
+        #print arg
+        for i in range(2,narg):
+            if (arg[i] == '--removeAvg' ):
+                removeAvg=arg[i+1]
+            if (arg[i] == '--relative' ):
+                relative=arg[i+1]    
+                
+        mat_plotRmnecOpd(filename,removeAvg=True,relative=False)
