@@ -86,8 +86,8 @@ listArg     = sys.argv
 
 for elt in listArg:
     if ('--help' in elt):
-        print("Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath [current direectory]] [--nbCore=NumberOfCores  [1]] [--tplID=template ID []] [--tplSTART=template start []] [--overwrite] [--skipL] [--skipN] [--maxIter=MaximumNumberIteration [1]] [--paramN=mat_raw_estimates recipes parameters for N band [useOpdMod=TRUE]] [--paramL=mat_raw_estimates recipes parameters for LM band [useOpdMod=FALSE]]" )
-        print("     Example : python automaticPipeline.py --dirRaw=/data/2018-05-19 --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
+        print("Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath [current direectory]] [--nbCore=NumberOfCores  [1]] [--tplID=template ID []] [--tplSTART=template start []] [--overwrite] [--skipL] [--skipN] [--resol=[LR/MR/HR]] [--maxIter=MaximumNumberIteration [1]] [--paramN=mat_raw_estimates recipes parameters for N band [useOpdMod=TRUE]] [--paramL=mat_raw_estimates recipes parameters for LM band [useOpdMod=FALSE]]" )
+        print("     Example : python automaticPipeline.py --dirRaw=/data/2018-05-19 --skipN --resol=LR --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
 
 # Parse arguments of the command line
