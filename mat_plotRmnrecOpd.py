@@ -20,7 +20,7 @@ file="MATISSE_OBS_RMNREC104_0055.fits"
 
 def mat_plotRmnrecOpd(filename,removeAvg=True,relative=False):
     data=fits.open(filename)
-    fig, ax=plt.subplots(4,1, sharex=True,sharey=True)   
+    fig, ax=plt.subplots(4,1, sharex=True,sharey=removeAvg)   
     fig.suptitle("{0}".format(file))
     fig.text(0.03,0.5,"Offset ($\mu$m)",rotation=90,horizontalalignment='center',size="15")
     iplot=0
