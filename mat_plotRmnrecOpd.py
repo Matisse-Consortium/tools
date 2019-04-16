@@ -73,4 +73,4 @@ if  __name__== '__main__' :
             if (arg[i] == '--relative' ):
                 relative=arg[i+1]    
                 
-        mat_plotRmnecOpd(filename,removeAvg=True,relative=False)
+        mat_plotRmnrecOpd(filename,removeAvg=True,relative=False)
