@@ -37,7 +37,7 @@ def mat_plotRmnrecOpd(filename,removeAvg=True,relative=False):
                  offset0=offset
              if (relative):
                 offset=offset-offset0
-             ax[iplot].plot(time,offset,marker="",linestyle="--",color='red')
+             ax[iplot].plot(time,offset,marker="+",linestyle="-",color='red')
              ax[iplot].text(-3,avg,"DL{0}".format(i+1),horizontalalignment='left',verticalalignment='center',color='black',size="20")
              iplot+=1
              #ax[i].set_ylim()
