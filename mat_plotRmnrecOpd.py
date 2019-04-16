@@ -45,7 +45,7 @@ def mat_plotRmnrecOpd(filename,removeAvg=True,relative=False):
              #ax[i].set_ylim()
     ax[3].set_xlabel("Time (s)",size="15") 
     ax[3].set_xlim(-4,np.max(time))
-    
+    plt.show()  
 
 
 if  __name__== '__main__' :
