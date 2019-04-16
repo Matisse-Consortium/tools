@@ -25,12 +25,10 @@ def mat_plotRmnrecOpd(filename,removeAvg=True,relative=False):
     fig.text(0.03,0.5,"Offset ($\mu$m)",rotation=90,horizontalalignment='center',size="15")
     iplot=0
     offset0=[0]
-    
+    idx=np.where(data["OPD_DL1"].data['TIME']!=0)
+    time=np.take( data["OPD_DL1"].data['TIME'],idx)[0]/1e6   
     for i in range(6): 
         if np.sum(data["DL{0}".format(i+1)].data['position'])!=0:
-    
-             idx=np.where(data["OPD_DL1"].data['TIME']!=0)
-             time=np.take( data["OPD_DL1"].data['TIME'],idx)[0]/1e6
              offset=np.take(data["OPD_DL{0}".format(i+1)].data['rtOffset'],idx)[0]*1e6
              avg=np.mean(offset)
              if removeAvg:
@@ -46,6 +44,7 @@ def mat_plotRmnrecOpd(filename,removeAvg=True,relative=False):
     ax[3].set_xlabel("Time (s)",size="15") 
     ax[3].set_xlim(-4,np.max(time))
     plt.show()  
+    print(data["OPD_DL1"].data['TIME'])
 
 
 if  __name__== '__main__' :
