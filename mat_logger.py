@@ -501,7 +501,7 @@ class mat_logger(wx.Dialog):
         filename = l[idx].filename
 
         print("Plotting RMNREC OPD for file "+ filename+"...")
-        mat_plotRmnrecOpd(filename,removeAvg=Falsemrelative=False)
+        mat_plotRmnrecOpd(filename,removeAvg=False,relative=False)
 
 
 
