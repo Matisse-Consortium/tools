@@ -443,7 +443,7 @@ class mat_logger(wx.Dialog):
         menu.Bind(wx.EVT_MENU,self.openWithFv,m4)
         m5   = menu.Append( 4, "Plot RMNREC OPD")
         menu.Bind(wx.EVT_MENU,self.plotRmnrecOpd,m5)
-        m6   = menu.Append( 5, "Plot RMNREC OPD")
+        m6   = menu.Append( 5, "Plot Acquisition")
         menu.Bind(wx.EVT_MENU,self.plotacq,m6)
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
