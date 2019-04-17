@@ -59,6 +59,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font,PatternFill
 from mat_time_flux_plot import mat_time_flux_plot
 from mat_plotRmnrecOpd import mat_plotRmnrecOpd
+from mat_acq_plot import mat_acq_plot
 
 from mat_show_rawdata import mat_show_rawdata 
 import subprocess
@@ -442,6 +443,8 @@ class mat_logger(wx.Dialog):
         menu.Bind(wx.EVT_MENU,self.openWithFv,m4)
         m5   = menu.Append( 4, "Plot RMNREC OPD")
         menu.Bind(wx.EVT_MENU,self.plotRmnrecOpd,m5)
+        m6   = menu.Append( 5, "Plot RMNREC OPD")
+        menu.Bind(wx.EVT_MENU,self.plotacq,m6)
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
         
@@ -479,6 +482,17 @@ class mat_logger(wx.Dialog):
         print("Plotting flux vs time for file "+ filename+"...")
         mat_time_flux_plot(filename)
 
+
+#------------------------------------------------------------------------------
+                
+    def plotacq(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)            
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+
+        print("Plotting Acquisition for file "+ filename+"...")
+        mat_acq_plot(filename)
 
 
 #------------------------------------------------------------------------------
