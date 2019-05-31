@@ -60,6 +60,7 @@ from openpyxl.styles import Font,PatternFill
 from mat_time_flux_plot import mat_time_flux_plot
 from mat_plotRmnrecOpd import mat_plotRmnrecOpd
 from mat_acq_plot import mat_acq_plot
+import shutil
 
 from mat_show_rawdata import mat_show_rawdata 
 import subprocess
@@ -445,11 +446,14 @@ class mat_logger(wx.Dialog):
         menu.Bind(wx.EVT_MENU,self.plotRmnrecOpd,m5)
         m6   = menu.Append( 5, "Plot Acquisition")
         menu.Bind(wx.EVT_MENU,self.plotacq,m6)
+        m7   = menu.Append( 5, "Copy files")
+        menu.Bind(wx.EVT_MENU,self.copyFiles,m6)       
         #wx.EVT_MENU( menu, 1, self.showRawData)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
         
 #---------cd /data/Tools/python---------------------------------------------------------------------
-        
+
+
     def showHeader(self,event):
 
         itemNum  = self.fileListWidget.GetNextSelected(-1)            
@@ -518,7 +522,28 @@ class mat_logger(wx.Dialog):
         mat_plotRmnrecOpd(filename,removeAvg=False,relative=False)
 
 
+        
+#------------------------------------------------------------------------------
 
+
+    def copyFiles(self,event):
+        l = self.fileListWidget.GetObjects()
+        selectedFiles=[]
+        itemNum  = self.fileListWidget.GetNextSelected(-1)
+        while itemNum!=-1:
+            idx = self.fileListWidget.GetItem(itemNum).GetData()
+            selectedFiles.append(l[idx].filename)
+            itemNum  = self.fileListWidget.GetNextSelected(itemNum)      
+
+        dialog=wx.DirDialog(self,"Choose the directory")
+        if dialog.ShowModal() == wx.ID_CANCEL:
+            return
+
+        path = dialog.GetPath()+"/"
+        for filei in selectedFiles:
+            shutil.copy(os.getcwd()+"/"+filei,path)
+
+                
 
 #------------------------------------------------------------------------------
 
