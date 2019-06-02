@@ -545,6 +545,7 @@ class mat_logger(wx.Dialog):
         for filei in selectedFiles:
             shutil.copy(os.getcwd()+"/"+filei,path)
 
+
 #------------------------------------------------------------------------------
 
 
