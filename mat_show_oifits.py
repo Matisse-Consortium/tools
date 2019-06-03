@@ -1192,7 +1192,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                 print("Wavelength out of range.")
 
         sta_names = dic['STA_NAME']
-
+     
         target_names_cal = np.array(target_names_cal)
         V2_BCD_arr_cal   = np.array(V2_BCD_arr_cal)
         V2_MJD_arr_cal   = np.array(V2_MJD_arr_cal)
@@ -1228,6 +1228,9 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
         CPerr_arr       = np.array(CPerr_arr)
         CP_sta_index    = np.array(CP_sta_index)
 
+        print(V2_MJD_arr_cal)
+        print(V2_MJD_arr)
+        
         if len(V2_sta_index_cal) > 0:
             sta_indices = np.unique(V2_sta_index_cal, axis=0)
         elif len(V2_sta_index) > 0:
@@ -1247,6 +1250,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
             MJD_range = [np.nanmin(V2_MJD_arr_cal), np.nanmax(V2_MJD_arr_cal)]
         else:
             MJD_range = [0.0, 1.0]
+        print(MJD_range)
         text_width_MJD = (MJD_range[1] - MJD_range[0]) / 20.0
         fig1, axs1 = plt.subplots(3, 2, figsize=(15, 16), sharex=True, sharey=True)
         axs1 = axs1.ravel()
@@ -1581,9 +1585,9 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
     for dic in list_of_dicts:
         if dic:
             date = dic['DATEOBS'][0:10]
-            if dates:
-                if date not in dates:
-                    continue
+            #if dates:
+            #    if date not in dates:
+            #        continue
             if bands:
                 if dic['BAND'] not in bands_new:
                     continue
