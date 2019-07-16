@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from astropy.io import fits
 import os
 import glob
@@ -20,8 +23,13 @@ else:
 os.chdir(dir)
 for file in glob.glob("*.fits"):    
     d=fits.open(file,mode='update')
-    if (d['OI_TARGET'].data['TARGET'][0]).strip()==tarname:    
+    #print("{0}=>{1}".format(file, d[0].header['ESO OBS TARG NAME'].strip()))
+    if d[0].header['ESO OBS TARG NAME'].strip()==tarname:    
         print("changing type of {0} to {1}".format(file,tartype))
-        d['OI_TARGET'].data['CATEGORY'][0]= tartype
-        d.flush()
+
+	if tartype=="SCI":	
+       		d[0].header['ESO PRO CATG']= "TARGET_RAW_INT"
+	elif tartype=="CAL":
+       		d[0].header['ESO PRO CATG']= "CALIB_RAW_INT"			        
+	d.flush()
     d.close()
