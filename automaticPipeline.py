@@ -60,6 +60,7 @@ def runEsorex(cmd):
     print(cmd)
     resol = spl[1];
     print(resol)
+    sys.stdout.flush()
     item = cmd.split()
     out  = item[-1]+".log"
     err  = item[-1]+".err"
@@ -71,7 +72,7 @@ def runEsorex(cmd):
 
 
 
-def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0,FilesRaw=[]):
+def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0,filesRaw=[]):
 	tplidsel    = ""
 	tplstartsel = ""
 
@@ -80,8 +81,8 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	# Print meaningful error messages if something is wrong in the command line
 	print(" ")
 	print("------------------------------------------------------------------------")
-	if (dirRaw == "" and FilesRaw==[]):
-	    print("ERROR : You have to specifiy a Raw Data Directory with --dirRaw=DirectoryPath or a list of raw files with --FilesRaw=[...]")
+	if (dirRaw == "" and filesRaw==[]):
+	    print("ERROR : You have to specifiy a Raw Data Directory with --dirRaw=DirectoryPath or a list of raw files with --filesRaw=[...]")
 	    sys.exit(0)
 	else:
 	    print('%-40s' % ("Raw Data Directory:",),dirRaw)
@@ -103,10 +104,10 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	print('%-40s' % ("Maximum Number of Iteration:",),maxIter)
 
 	print("------------------------------------------------------------------------")
-	if FilesRaw==[]:
+	if filesRaw==[]:
 	    listRaw = glob.glob(dirRaw+"/MATIS*.fits")
 	else:
-	    listRaw = FilesRaw
+	    listRaw = filesRaw
 
 	if (dirCalib != ""):
 	    listArchive = glob.glob(dirCalib+"/*.fits")
@@ -455,7 +456,6 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 
 		break
 
-
 if __name__ == '__main__':
     listArg = sys.argv
     name_file = []
@@ -474,6 +474,7 @@ if __name__ == '__main__':
     skipL         = 0
     skipN         = 0
     overwrite     = 0
+    filesRaw    = []
     listArg     = sys.argv
  
 
@@ -486,44 +487,47 @@ if __name__ == '__main__':
     # Parse arguments of the command line
     for elt in listArg:
         if ('--dirRaw' in elt):
-	    item=elt.split('=')
-	    dirRaw=item[1]
+	        item=elt.split('=')
+	        dirRaw=item[1]
         elif ('--dirCalib' in elt):
-	    item=elt.split('=')
-	    dirCalib=item[1]
+	        item=elt.split('=')
+	        dirCalib=item[1]
         elif ('--dirResult' in elt):
-	    item=elt.split('=')
-	    dirResult=item[1]
+	        item=elt.split('=')
+	        dirResult=item[1]
         elif ('--nbCore' in elt):
-	    item   = elt.split('=')
-	    nbCore = int(item[1])
+	        item   = elt.split('=')
+	        nbCore = int(item[1])
         elif ('--resol' in elt):
-	    item     = elt.split('=')
-	    resol = item[1]
+	        item     = elt.split('=')
+	        resol = item[1]
         elif ('--tplID' in elt):
-	    item     = elt.split('=')
-	    tplidsel = item[1]
+	        item     = elt.split('=')
+	        tplidsel = item[1]
         elif ('--tplSTART' in elt):
-	    item        = elt.split('=')
-	    tplstartsel = item[1]
-        ##########################################################################
+	        item        = elt.split('=')
+	        tplstartsel = item[1]
         elif ('--paramN' in elt):
-	    item   = elt.split('N=')
-	    val    = item[1].replace('/',' --')
-	    paramN=val
+	        item   = elt.split('N=')
+	        val    = item[1].replace('/',' --')
+	        paramN=val
         elif ('--paramL' in elt):
-	    item   = elt.split('L=')
-	    val    = item[1].replace('/',' --')
-	    paramL=val
+	        item   = elt.split('L=')
+	        val    = item[1].replace('/',' --')
+	        paramL=val
+        elif ('--filesRaw' in elt):
+	        item=elt.split('=')
+	        filesRaw= item[1].strip("[]").replace("'","").replace(" ","").split(",")
         if ('--overwrite' in elt):
-	    overwrite=1
+	        overwrite=1
         if ('--maxIter' in elt):
-	    item   = elt.split('=')
-	    maxIter=int(item[1])
+	        item   = elt.split('=')
+	        maxIter=int(item[1])
         if ('--skipL' in elt):
-	    skipL=1
+	        skipL=1
         if ('--skipN' in elt):
-	    skipN=1
+	        skipN=1
+	  
+    print(filesRaw)
 
-
-    mat_autoPipeline(dirRaw,dirResult,dirCalib,nbCore,resol,paramL,paramN,overwrite,maxIter,skipL,skipN)
+    mat_autoPipeline(dirRaw,dirResult,dirCalib,nbCore,resol,paramL,paramN,overwrite,maxIter,skipL,skipN,filesRaw)
