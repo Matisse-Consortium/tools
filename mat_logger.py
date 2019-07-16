@@ -41,8 +41,8 @@
 
 # Import necessary files
 from libAutoPipeline import matisseType
-import wx
-import os
+import wx, wx.html
+import os, stat
 from ObjectListView import ObjectListView, ColumnDefn
 from astropy.io import fits
 from fitsheaderviewer import fitsHeaderViewer
@@ -249,6 +249,179 @@ class mat_fileData():
         self.chop = findHeaderKeyword(h,"HIERARCH ESO ISS CHOP ST")
         print self.shutters
 
+###############################################################################        
+        
+class mat_showReductionLog(wx.Frame):       
+    def __init__(self, parent, filename,refreshTime=2):
+        self.refreshTime=refreshTime
+        self.filename=filename
+        super(mat_showReductionLog, self).__init__(parent,title="reduction",size=(1000,800))
+        self.text = wx.TextCtrl(self, style=wx.ALIGN_LEFT|wx.TE_MULTILINE|wx.TE_CHARWRAP|wx.TE_READONLY)
+        self.updateTextFromFile()
+        self.Show()
+    def updateTextFromFile(self):
+        f=open(self.filename,"r")
+        txt=f.read()
+        f.close()
+        self.text.SetValue(txt)
+        wx.CallLater(self.refreshTime*1000,self.updateTextFromFile)
+        
+###############################################################################
+
+class mat_bandParamOptions(wx.Frame):
+    def __init__(self, parent, band):       
+        super(mat_bandParamOptions, self).__init__(parent,title="Help",size=(1000,800))
+        
+        html = wx.html.HtmlWindow(self) 
+        html.SetPage(
+            "<h2>Param{0} options</h2>"
+            "<p>Put here mat_raw_estimates recipes parameters for the {0} detector</p>"
+            "<p><b>the \"--\" before the parameter name should be removed and the parameters should be separated by \"/\"<b></p>"
+            "<h3>List of parameters:</h3>"
+            "<table style='vertical-align:top;'>"
+            "<tr><td><b>Name</b></td>"
+            "<td><b>Default Value</b></td>"
+            "<td><b>Description</b></td><tr>"
+            "<tr><td>compensate</td>"
+            "<td>pb,cb,rb,nl,if,bp,od</td>"
+            "<td style='text-align:justify'>Defines which kind of compensation should be applied (none = no compensation at all, all = all compensations possible, dd ="
+            "detector specific defaults, pb = subtract pixel bias, gb = subtract global bias, cb = subtract detector channel bias, rb ="
+            "subtract row bias, ct = subtract crosstalk, nl = nonlinearity compensation, if = divide by instrument flat, df = divide by"
+            "detector flat, bp = bad pixel interpolation, el = convert to electrons, od = remove optical distortion).</td></tr>"
+            "<tr><td>gain</td>"
+            "<td>0.0</td>"
+            "<td>Default conversion gain in [e-/DU].</td></tr>"
+            "<tr><td>reduce</td>"
+            "<td>TRUE</td>"
+            "<td>Flag if the reference sub-windows should be removed from the result.</td></tr>" 
+            "<tr><td>ioi</td>"
+            "<td>0,0</td>"
+            "<td>images of interest: <first>,<count>.</td></tr>"
+            "<tr><td>tartyp</td>"
+            "<td>0</td>"
+            "<td>TARTYP estimation (0 = none, 1 = N*S+U+N*T+U, 2 = show intensity, 4 = show correlation, 8 = estimate TARTYP, 16 = change"
+            "TIME, TARTYP, LOCALOPD and STEPPING_PHASE, 32 = exchange U with S or T)</td></tr>"
+            "<tr><td>excess_count_lm</td>"
+            "<td>0</td>"
+            "<td>Excess frames mistakenly produced before first TIM-Board trigger(LM-Band).</td></tr>"
+            "<tr><td>excess_count_n</td>"
+            "<td>0</td>"
+            "<td>Excess frames mistakenly produced before first TIM-Board trigger (N-Band).</td></tr>"
+            "<tr><td>hampelFilterKernel</td>"
+            "<td>0</td>"
+            "<td>Only for L/M band. Apply atemporal Hampel filter to all pixels before deriving the photometry."
+            "This filter improves the photometric estimation in case of faint stars (< 5Jy in L band with AT)."
+            "The parameter fixes the size fo the kernel of the filter (kernel=10 is recommended).</td></tr>"
+            "<tr><td>replaceTel</td>"
+            "<td>0</td>"
+            "<td>Replace Photometry of one telescope by the mean of the 3 others. (0: none, 1: AT1/UT1, 2: AT2/UT2, 3: AT3/UT3, 4: AT4/UT4).</td></tr>"
+            "<tr><td>useOpdMod</td><td>FALSE</td><td>useOpdMod option.</td></tr>"
+            "<tr><td>coherentIntegTime</td><td>0.0</td><td>Specify a coherent integration time (in s)</td></tr>"
+            "<tr><td>corrFlux</td><td>FALSE</td><td>corrFlux option.</td></tr>"
+            "<tr><td>cumulBlock</td><td>FALSE</td><td>cumul all blocks of an OB.</td></tr>"
+            "<tr><td>coherentAlgo</td><td>2</td><td>Estimation Algorithm (1: AMBER like Method, 2: CRAL Cohrent Integration Method).</td></tr>"           
+            "</table><h3>Examples</h3>"
+            "<p> paramN=/useOpdMod=TRUE/corrFlux=TRUE</p>"
+            "<p> paramL=/cumulBlock=TRUE</p>".format(band)
+        ) 
+       
+        
+        
+###############################################################################
+
+class mat_pipelineOptions(wx.Panel):
+
+    def __init__(self, parent):
+        super(mat_pipelineOptions, self).__init__(parent)
+        
+        tabPipelineSizer = wx.BoxSizer(wx.VERTICAL)
+        hboxPipelineButtons = wx.BoxSizer(wx.HORIZONTAL)       
+        hboxPipeline1 = wx.BoxSizer(wx.HORIZONTAL)
+        hboxPipeline2 = wx.BoxSizer(wx.HORIZONTAL)
+        hboxPipeline3 = wx.BoxSizer(wx.HORIZONTAL)     
+        hboxPipeline4 = wx.BoxSizer(wx.HORIZONTAL)            
+        hboxPipeline5 = wx.BoxSizer(wx.HORIZONTAL)     
+         
+        dirResultLabel = wx.StaticText(self, -1, "dirResult",style=wx.ALIGN_CENTER_HORIZONTAL) 
+        self.dirResultCtrl = wx.TextCtrl(self)
+        dirResultBut = wx.Button(self,label="Choose",style=wx.BU_EXACTFIT)
+        hboxPipeline1.Add(dirResultLabel,proportion=1, flag=wx.LEFT|wx.RIGHT| wx.ALIGN_CENTER_VERTICAL)
+        hboxPipeline1.Add(self.dirResultCtrl,proportion=6, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        hboxPipeline1.Add(dirResultBut,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        
+        dirCalibLabel = wx.StaticText(self, -1, "dirCalib",style=wx.ALIGN_CENTER_HORIZONTAL) 
+        self.dirCalibCtrl = wx.TextCtrl(self)
+        dirCalibBut = wx.Button(self,label="Choose",style=wx.BU_EXACTFIT)
+        hboxPipeline2.Add(dirCalibLabel,proportion=1, flag=wx.LEFT|wx.RIGHT| wx.ALIGN_CENTER_VERTICAL)
+        hboxPipeline2.Add(self.dirCalibCtrl,proportion=6, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        hboxPipeline2.Add(dirCalibBut,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        
+        nbCoreLabel = wx.StaticText(self, -1, "nbCore",style=wx.ALIGN_CENTER_HORIZONTAL) 
+        self.nbCoreCtrl = wx.Slider(self, value = 2, minValue = 1, maxValue = 8, style=wx.LEFT|wx.RIGHT| wx.ALIGN_CENTER_VERTICAL|wx.SL_LABELS)
+        self.skipLCtrl = wx.CheckBox(self,label="skipL") 
+        self.skipNCtrl = wx.CheckBox(self,label="skipN")
+
+        hboxPipeline3.Add(nbCoreLabel,proportion=1, flag=wx.LEFT|wx.RIGHT| wx.ALIGN_CENTER_VERTICAL)
+        hboxPipeline3.Add(self.nbCoreCtrl,proportion=4, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        hboxPipeline3.Add(self.skipLCtrl,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        hboxPipeline3.Add(self.skipNCtrl,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)        
+        
+        
+        paramLLabel = wx.StaticText(self, -1, "paramL",style=wx.ALIGN_CENTER_HORIZONTAL) 
+        self.paramLCtrl = wx.TextCtrl(self)
+        paramLBut = wx.Button(self,label="Help",style=wx.BU_EXACTFIT)
+        hboxPipeline4.Add(paramLLabel,proportion=1, flag=wx.LEFT|wx.RIGHT| wx.ALIGN_CENTER_VERTICAL)
+        hboxPipeline4.Add(self.paramLCtrl,proportion=6, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        hboxPipeline4.Add(paramLBut,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        
+        paramNLabel = wx.StaticText(self, -1, "paramN",style=wx.ALIGN_CENTER_HORIZONTAL) 
+        self.paramNCtrl = wx.TextCtrl(self)
+        paramNBut = wx.Button(self,label="Help",style=wx.BU_EXACTFIT)
+        hboxPipeline5.Add(paramNLabel,proportion=1, flag=wx.LEFT|wx.RIGHT| wx.ALIGN_CENTER_VERTICAL)
+        hboxPipeline5.Add(self.paramNCtrl,proportion=6, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        hboxPipeline5.Add(paramNBut,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        
+        
+        self.reduceSelectedBut    = wx.Button(self,label="Reduce Selected",style=wx.BU_EXACTFIT)
+        self.resetSelection       = wx.Button(self,label="Reset Selection",style=wx.BU_EXACTFIT)        
+        hboxPipelineButtons.Add(self.reduceSelectedBut, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        hboxPipelineButtons.Add(self.resetSelection,    proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)   
+        
+        tabPipelineSizer.Add(hboxPipeline1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        tabPipelineSizer.Add(hboxPipeline2,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        tabPipelineSizer.Add(hboxPipeline3,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        tabPipelineSizer.Add(hboxPipeline4,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        tabPipelineSizer.Add(hboxPipeline5,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)          
+        
+        tabPipelineSizer.Add(hboxPipelineButtons,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        self.SetSizerAndFit(tabPipelineSizer)
+        
+        dirResultBut.Bind(wx.EVT_BUTTON,  self.dirResultChooseClicked)
+        dirCalibBut.Bind(wx.EVT_BUTTON,  self.dirCalibChooseClicked)
+        paramLBut.Bind(wx.EVT_BUTTON,  self.paramLButClicked)               
+        paramNBut.Bind(wx.EVT_BUTTON,  self.paramNButClicked)     
+        
+    def dirResultChooseClicked(self,event):
+        dialog=wx.DirDialog(self,"Choose the output directory")
+        if dialog.ShowModal() == wx.ID_CANCEL:
+            return       
+        self.dirResultCtrl.SetValue(dialog.GetPath()+"/")
+        
+    def dirCalibChooseClicked(self,event):
+        dialog=wx.DirDialog(self,"Choose the calib directory")
+        if dialog.ShowModal() == wx.ID_CANCEL:
+            return       
+        self.dirCalibCtrl.SetValue(dialog.GetPath()+"/")
+        
+    def paramLButClicked(self,event):
+        dlg = mat_bandParamOptions(self, "L")
+        dlg.Show()
+        
+    def paramNButClicked(self,event):
+        dlg = mat_bandParamOptions(self, "N")
+        dlg.Show()       
+        
+                
 ###############################################################################
 
 class mat_logger(wx.Dialog):
@@ -258,11 +431,11 @@ class mat_logger(wx.Dialog):
         
         self.date = os.path.basename(os.path.realpath(date).rstrip('\\').rstrip('/'))
         print("The current directory is "+self.date)
-        self.logfilename = os.path.join(dir0,"mat_log_"+self.date+'.pkl')
-        self.csvfilename = os.path.join(dir0,"mat_log_"+self.date+'.txt')
-        self.excelfilename = os.path.join(dir0,"mat_log_"+self.date+'.xlsx')
-        
-        
+        self.logfilename = os.path.join(dir0,"mat_logger_"+self.date+'.pkl')
+        self.csvfilename = os.path.join(dir0,"mat_logger_"+self.date+'.txt')
+        self.excelfilename = os.path.join(dir0,"mat_logger_"+self.date+'.xlsx')
+
+
         print("The log file name is "+self.logfilename)
         self.tplList    = []       
         self.tplListObj = []
@@ -271,6 +444,7 @@ class mat_logger(wx.Dialog):
         self.Centre()
         self.Show()
         self.path=""
+        self.selectedTpl=[]
                     
 #------------------------------------------------------------------------------
 
@@ -280,34 +454,59 @@ class mat_logger(wx.Dialog):
         font  = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
             
         font.SetPointSize(7)
-
-		
-		
+ 
         hbox   = wx.BoxSizer(wx.HORIZONTAL)  
         hbox2  = wx.BoxSizer(wx.HORIZONTAL)    
         vbox   = wx.BoxSizer(wx.VERTICAL)   
-        vbox2  = wx.BoxSizer(wx.VERTICAL)   
-       
+        vbox2  = wx.BoxSizer(wx.VERTICAL)
+    
+        tabs = wx.Notebook(panel)
+        tabLog=wx.Panel(tabs)
+        tabs.AddPage(tabLog,"Log")
+        self.tabPipeline=mat_pipelineOptions(tabs)
+        tabs.AddPage(self.tabPipeline,"Pipeline options")
+        tabSelectedList=wx.Panel(tabs)
+        tabs.AddPage(tabSelectedList,"Selected Obs.")
+        
+        
         self.tplListWidget = ObjectListView(panel,wx.ID_ANY, style=wx.LC_REPORT)   
         cols=[ ColumnDefn("Tpl. Start","left",130,"tplstart",minimumWidth=20),
                ColumnDefn("Tpl. Id",   "left",155,"tplid",   minimumWidth=20),
                ColumnDefn("Target",   "left",65, "target",  minimumWidth=20),
                ColumnDefn("Flux L",   "left",55, "fluxL",  minimumWidth=20),      
-               ColumnDefn("Flux N",   "left",55, "fluxN",  minimumWidth=20),                             
+               ColumnDefn("Flux N",   "left",55, "fluxN", minimumWidth=20),                             
                #ColumnDefn("PROG. ID","left",70,"progid",minimumWidth=20),                        
                ColumnDefn("nFiles",    "left",35, "nbFiles", minimumWidth=20),                         
                ColumnDefn("nExp",     "left",35, "nexp",    minimumWidth=20),
                ColumnDefn(" ",      "left",30, "ok",   minimumWidth=20,checkStateGetter="isok")]
         self.tplListWidget.SetColumns(cols)
-        self.tplListWidget.rowFormatter=self.setRowColorTpl
-      
-        
+        self.tplListWidget.rowFormatter=self.setRowColorTpl      
         self.tplListWidget.AutoSizeColumns()
         self.tplListWidget.SortBy(0, ascending=False)
         self.tplListWidget.SetFont(font)
-              
-        self.commentTxtCtrl= wx.TextCtrl(panel,style=wx.TE_MULTILINE)
+
+        tabLogSizer = wx.BoxSizer()
+        self.commentTxtCtrl= wx.TextCtrl(tabLog,style=wx.TE_MULTILINE)
         self.commentTxtCtrl.SetFont(font)
+        tabLogSizer.Add(self.commentTxtCtrl,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        tabLog.SetSizer(tabLogSizer)
+        
+        tabSelectedListSizer= wx.BoxSizer()
+        self.selectedListWidget = ObjectListView(tabSelectedList,wx.ID_ANY, style=wx.LC_REPORT) 
+        cols=[ ColumnDefn("Tpl. Start","left",130,"tplstart",minimumWidth=20),
+               ColumnDefn("Tpl. Id",   "left",155,"tplid",   minimumWidth=20),
+               ColumnDefn("Target",   "left",65, "target",  minimumWidth=20),
+               ColumnDefn("Flux L",   "left",55, "fluxL",  minimumWidth=20),      
+               ColumnDefn("Flux N",   "left",55, "fluxN", minimumWidth=20),                                                     
+               ColumnDefn("nFiles",    "left",35, "nbFiles", minimumWidth=20),                         
+               ColumnDefn("nExp",     "left",35, "nexp",    minimumWidth=20)]
+        self.selectedListWidget.SetColumns(cols)   
+        self.selectedListWidget.AutoSizeColumns()
+        self.selectedListWidget.SortBy(0, ascending=False)
+        self.selectedListWidget.SetFont(font)
+        tabSelectedListSizer.Add(self.selectedListWidget,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        tabSelectedList.SetSizer(tabSelectedListSizer)
+
         self.fileListWidget =  ObjectListView(panel,wx.ID_ANY, style=wx.LC_REPORT)
         cols2=[ColumnDefn("Date",       "left",140,"date",      minimumWidth=20),
                ColumnDefn("File name",  "left",240,"filename",  minimumWidth=20),
@@ -327,26 +526,30 @@ class mat_logger(wx.Dialog):
         self.fileListWidget.AutoSizeColumns()
         self.fileListWidget.SortBy(0, ascending=False)
         self.fileListWidget.SetFont(font)
-		
-		
-        self.updateBut    = wx.Button(panel,label="Update",style=wx.BU_EXACTFIT)
-        self.exportCSVBut = wx.Button(panel,label="Export Excel",style=wx.BU_EXACTFIT)
-        self.byebyeBut    = wx.Button(panel,label="Exit",style=wx.BU_EXACTFIT)
-               
-        vbox2.Add(self.fileListWidget, proportion=3, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
-        vbox2.Add(self.commentTxtCtrl, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
         
-		
+        self.updateBut    = wx.Button(panel,label="Update",style=wx.BU_EXACTFIT)
+        self.exportCSVBut = wx.Button(panel,label="Export Excel",style=wx.BU_EXACTFIT)       
+        self.byebyeBut    = wx.Button(panel,label="Exit",style=wx.BU_EXACTFIT)
+     
+               
+        vbox2.Add(self.fileListWidget, proportion=30, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
+        #vbox2.Add(self.commentTxtCtrl, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
+        vbox2.Add(tabs, proportion=14, flag= wx.ALL|wx.EXPAND,border=5)
+            
         hbox.Add(self.tplListWidget,  proportion=67, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)  
-        hbox.Add(vbox2,               proportion=90,flag=wx.LEFT|wx.RIGHT|wx.EXPAND);
-                
-        hbox2.Add(self.updateBut,    proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
-        hbox2.Add(self.exportCSVBut, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
-        hbox2.Add(self.byebyeBut,    proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        hbox.Add(vbox2,               proportion=90,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+               
+        hbox2.Add(self.updateBut,         proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
+        hbox2.Add(self.exportCSVBut,      proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)       
+        hbox2.Add(self.byebyeBut,         proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)  
 
+        
+        
         vbox.Add(hbox,proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         vbox.Add(hbox2,              proportion=0.1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
 
+        
+        
         panel.SetSizer(vbox)
          
         self.Bind(wx.EVT_LIST_ITEM_SELECTED,   self.tplSelected,   self.tplListWidget)
@@ -354,10 +557,14 @@ class mat_logger(wx.Dialog):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED,   self.byebye,        self.byebyeBut)
         self.Bind(wx.EVT_TEXT,                 self.commentChanged,self.commentTxtCtrl)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.fileListRightClicked,self.fileListWidget)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.tplListRightClicked,self.tplListWidget)       
         self.exportCSVBut.Bind(wx.EVT_BUTTON,  self.exportCSVClicked)
         self.updateBut.Bind(wx.EVT_BUTTON,     self.updateClicked)
+        self.tabPipeline.reduceSelectedBut.Bind(wx.EVT_BUTTON,     self.reduceSelectedClicked)
+        self.tabPipeline.resetSelection.Bind(wx.EVT_BUTTON,     self.resetSelectionClicked)
         self.byebyeBut.Bind(wx.EVT_BUTTON,     self.byebye)
-      
+        tabs.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.tabChanged)
+     
         if cleanLog==False:
             if os.path.isfile(self.logfilename):
                 print "log file exist for {0} ... loading".format(self.logfilename)
@@ -369,7 +576,15 @@ class mat_logger(wx.Dialog):
                 print "No log file for {0} ...".format(self.date)
                          
         self.getInfosFromNight()
-
+        self.Show()
+        
+        # But solve a sizing problem only found on linux (but I don't know why)
+        self.tabPipeline.Hide()
+        self.tabPipeline.Show()        
+#------------------------------------------------------------------------------                
+    def tabChanged(self,event):
+        print("Tab changed")
+    
 #------------------------------------------------------------------------------                
     def exportCSVClicked(self,event):
         print("Saving csv file to "+self.csvfilename)
@@ -429,13 +644,23 @@ class mat_logger(wx.Dialog):
       
 
         xl.save(self.excelfilename)
-          
+        os.chmod(self.excelfilename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | 
+                                   stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH )
+ 
+         
+#------------------------------------------------------------------------------                
+    def tplListRightClicked(self,event):
+        menu = wx.Menu()
+        m1   = menu.Append( 0, "Add to selection" )
+        menu.Bind(wx.EVT_MENU,self.addToSelection,m1) 
+         
+        self.tplListWidget.PopupMenu( menu, event.GetPoint())
+        
 #------------------------------------------------------------------------------                
     def fileListRightClicked(self,event):
         menu = wx.Menu()
         m1   = menu.Append( 0, "Show Header" )
         menu.Bind(wx.EVT_MENU,self.showHeader,m1)
-        #wx.EVT_MENU( menu, 0, self.showHeader)
         m2   = menu.Append( 1, "Show RAW DATA")
         menu.Bind(wx.EVT_MENU,self.showRawData,m2)
         m3   = menu.Append( 2, "Plot Flux vs Time")
@@ -447,15 +672,10 @@ class mat_logger(wx.Dialog):
         m6   = menu.Append( 5, "Plot Acquisition")
         menu.Bind(wx.EVT_MENU,self.plotacq,m6)
         m7   = menu.Append( 6, "Copy files")
-        menu.Bind(wx.EVT_MENU,self.copyFiles,m7) 
-        m8   = menu.Append( 8, "Reduce data")
-        menu.Bind(wx.EVT_MENU,self.reduceData,m8)             
-        #wx.EVT_MENU( menu, 1, self.showRawData)
+        menu.Bind(wx.EVT_MENU,self.copyFiles,m7)              
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
         
 #---------cd /data/Tools/python---------------------------------------------------------------------
-
-
     def showHeader(self,event):
 
         itemNum  = self.fileListWidget.GetNextSelected(-1)            
@@ -513,7 +733,7 @@ class mat_logger(wx.Dialog):
 
 
 #------------------------------------------------------------------------------
-                
+               
     def plotRmnrecOpd(self,event):
         itemNum  = self.fileListWidget.GetNextSelected(-1)            
         idx      = self.fileListWidget.GetItem(itemNum).GetData()
@@ -522,9 +742,7 @@ class mat_logger(wx.Dialog):
 
         print("Plotting RMNREC OPD for file "+ filename+"...")
         mat_plotRmnrecOpd(filename,removeAvg=False,relative=False)
-
-
-        
+     
 #------------------------------------------------------------------------------
 
 
@@ -546,47 +764,34 @@ class mat_logger(wx.Dialog):
             shutil.copy(os.getcwd()+"/"+filei,path)
 
 
+
+
 #------------------------------------------------------------------------------
 
-
-    def reduceData(self,event):
-        
-        dialog=wx.DirDialog(self,"Choose an output directory")
-        if dialog.ShowModal() == wx.ID_CANCEL:
-            return
-        path = dialog.GetPath()
-        
-        l = self.fileListWidget.GetObjects()
-        selectedFiles=[]
-        itemNum  = self.fileListWidget.GetNextSelected(-1)
-        while itemNum!=-1:
-            idx = self.fileListWidget.GetItem(itemNum).GetData()
-            selectedFiles.append(l[idx].filename)
-            itemNum  = self.fileListWidget.GetNextSelected(itemNum)      
-        
-        now=datetime.now().strftime("%H%M%S")
-        os.mkdir(dir0+"/"+now)
-        for filei in selectedFiles:
-            shutil.copy(os.getcwd()+"/"+filei,dir0+"/"+now)
-            
-
-        
-
-        command=("automaticPipeline.py --dirRaw={0} --dirResult={1} --nbCore=2;"
-                "rm {0} -fr;"
-                "cd {1};"
-                "mat_tidyup_oifits.py {1}".format(os.getcwd()+"/"+now,path))
-        
-        print(command)
-
-        subprocess.Popen(['xterm','-hold','-e',command])
+    def addToSelection(self,event):
+        tpl = self.tplListWidget.GetObjects()  
+        itemNum  = self.tplListWidget.GetNextSelected(-1)
+        while (itemNum!=-1):
+            print(itemNum)
+            idx = self.tplListWidget.GetItem(itemNum).GetData()
+            if not(tpl[idx] in self.selectedTpl):
+                self.selectedTpl.append(tpl[idx])               
+            itemNum  = self.tplListWidget.GetNextSelected(itemNum)
+        self.selectedListWidget.SetObjects(self.selectedTpl)  
 #------------------------------------------------------------------------------
 
     def saveData(self):
-        pik = open(self.logfilename, 'wb')
-        pickle.dump(self.tplList, pik, pickle.HIGHEST_PROTOCOL)
-        pickle.dump(self.tplListObj, pik, pickle.HIGHEST_PROTOCOL)
-        pickle.dump(self.fileList, pik, pickle.HIGHEST_PROTOCOL)
+        try :
+            pik = open(self.logfilename, 'wb')
+            os.chmod(self.logfilename, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | 
+                                       stat.S_IWGRP | stat.S_IROTH | stat.S_IWOTH )
+
+           
+            pickle.dump(self.tplList, pik, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.tplListObj, pik, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.fileList, pik, pickle.HIGHEST_PROTOCOL)
+        except:
+            print("Unable to write {0}".format(self.logfilename))
         
 #------------------------------------------------------------------------------
         
@@ -594,6 +799,68 @@ class mat_logger(wx.Dialog):
         self.getInfosFromNight()
         self.tplListWidget.SortBy(0, ascending=False)
         
+#------------------------------------------------------------------------------
+        
+    def reduceSelectedClicked(self,event):       
+        addText=""
+        
+        dirResult = self.tabPipeline.dirResultCtrl.GetValue()
+        if dirResult == "":        
+            dialog=wx.DirDialog(self,"Choose the output directory")
+            if dialog.ShowModal() == wx.ID_CANCEL:
+                return       
+            dirResult = dialog.GetPath()+"/"
+
+        dirCalib = self.tabPipeline.dirCalibCtrl.GetValue()
+        if dirCalib != "":        
+                addText+="--dirCalib={0} ".format(dirCalib)      
+            
+            
+        nbCore=self.tabPipeline.nbCoreCtrl.GetValue()
+       
+        skipL=self.tabPipeline.skipLCtrl.GetValue()
+        if skipL==True:
+            addText+="--skipL "
+            
+        skipN=self.tabPipeline.skipNCtrl.GetValue()
+        if skipN==True:
+            addText+="--skipN "            
+        
+        paramL = self.tabPipeline.paramLCtrl.GetValue()
+        if paramL != "":        
+                addText+="--paramL={0} ".format(paramL)      
+        
+        paramN = self.tabPipeline.paramNCtrl.GetValue()
+        if paramN != "":        
+                addText+="--paramN={0} ".format(paramN)    
+                
+                
+        selection=[]
+        for tpli in self.selectedTpl:
+            selection.extend([os.getcwd()+"/"+f.filename for f in tpli.listOfFiles])
+        command=("automaticPipeline.py --filesRaw=\"{0}\" --dirResult={1} --nbCore={2} {3};"
+                 "cd {1}; mat_tidyup_oifits.py {1}".format(selection,dirResult,nbCore,addText))
+        
+        time=datetime.now().strftime("%Y%m%d%H%M%S")
+        filename="{0}/mat_reductionScript_{1}.csh".format(dirResult,time)
+        logname="{0}/mat_reductionlog_{1}.txt".format(dirResult,time)
+        f=open(filename,"w")
+        f.write(command)
+        f.close()
+        
+    
+        subprocess.Popen(['nohup', 'csh', filename], stdout=open(logname, 'w'),stderr=open('/dev/null', 'w'),preexec_fn=os.setpgrp )
+        mat_showReductionLog(self,logname)
+           
+        #cd subprocess.Popen(['xterm','-hold','-e',command])
+        
+        
+#------------------------------------------------------------------------------
+        
+    def resetSelectionClicked(self,event):       
+        self.selectedTpl=[]
+        self.selectedListWidget.SetObjects(self.selectedTpl)  
+              
 #------------------------------------------------------------------------------
         
     def byebye(self,event):
@@ -779,8 +1046,8 @@ if __name__ == '__main__':
         pass
     
     # Save a backup pkl file, just in case something happens
-    saveBackup()
-    autoUpdate()
+    #saveBackup()
+    #autoUpdate()
     
     openLogger = mat_logger(None,dir0)
     openLogger.Show()
