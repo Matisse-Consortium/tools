@@ -173,7 +173,8 @@ if __name__ == '__main__':
 
     BX, BY, TARG = get_UVs(files)
     plot_UV(BX, BY, TARG)
-
+    plt.show();
+    
     openFileDialog.Destroy()
     app.MainLoop()
     app.Destroy()
