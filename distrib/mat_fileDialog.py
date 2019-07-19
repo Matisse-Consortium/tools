@@ -228,7 +228,7 @@ keywords.append(fileViewerKeyword(
     headerkeyword= "HIERARCH ESO TPL START",
     name="TPL Start Date"))
 
-print(keywords)
+#print(keywords)
 
 ###############################################################################
 
