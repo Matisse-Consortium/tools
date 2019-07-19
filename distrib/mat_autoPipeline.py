@@ -43,6 +43,7 @@ from astropy.io import fits
 from astropy.io.fits import getheader
 import matplotlib.pyplot as plt
 import sys
+import argparse
 import os
 import glob
 import shutil
@@ -52,6 +53,8 @@ from libAutoPipeline import *
 from multiprocessing.pool import Pool
 from functools import partial
 #import pdb
+
+#------------------------------------------------------------------------------
 
 # Run esorex recipes
 def runEsorex(cmd):
@@ -69,8 +72,7 @@ def runEsorex(cmd):
     val  = item[1].split("=")
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
 
-
-
+#------------------------------------------------------------------------------
 
 def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0,filesRaw=[]):
 	tplidsel    = ""
@@ -455,78 +457,82 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 
 		break
 
+
+
+
+            
 if __name__ == '__main__':
-    listArg = sys.argv
-    name_file = []
+    print("Starting...")
 
-    # Initialize variables
-    dirRaw      = ""
-    dirCalib  = ""
-    dirResult   = ""
-    tplidsel    = ""
-    tplstartsel = ""
-    resol    = ""
-    nbCore      = 0
-    paramN = ""
-    paramL = ""
-    maxIter  = 0
-    skipL         = 0
-    skipN         = 0
-    overwrite     = 0
-    filesRaw    = []
-    listArg     = sys.argv
+    #--------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='Automatic MATISSE pipeline implementation, allowing one to reduce entire nights of raw data into oifits files.')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('dirRaw', default="",  \
+    help='The path to the directory containing your raw data.')
 
+    #--------------------------------------------------------------------------
+    parser.add_argument('--dirCalib', default="",  \
+    help='Calibration Map Path')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--dirResult', default="", \
+    help='Results Path (default is current directory)')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--nbCore', default=0, \
+    help='Number Of Cores (default 1)')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--tplID', default="",  \
+    help='template ID')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--tplSTART', default="",  \
+    help='template start')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--overwrite', default=0,  \
+    help='overwrite existing files')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--skipL', default=0,  \
+    help='skip L band data')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--skipN', default=0,  \
+    help='skip N band data')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--resol', default="",  \
+                        help='reduce only a given spectral resolution. Can be any of LOW, MED or HIGH')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--maxIter', default=0,  \
+                        help='Maximum Number of Iteration (default 1)')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--paramN', default="",  \
+                        help='recipes parameters for N band (default /useOpdMod=TRUE)')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--paramL', default="",  \
+                        help='recipes parameters for LM band (default /useOpdMod=FALSE)')
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--filesRaw', default=[], \
+                        help='Specify a set of files to reduce')
 
-    for elt in listArg:
-        if ('--help' in elt):
-	    print("Usage: python automaticPipeline.py --dirRaw=RawDataPath [--dirCalib=CalibrationMapPath] [--dirResult=ResultsPath [current direectory]] [--nbCore=NumberOfCores  [1]] [--tplID=template ID []] [--tplSTART=template start []] [--overwrite] [--skipL] [--	skipN] [--resol=[LR/MR/HR]] [--maxIter=MaximumNumberIteration [1]] [--paramN=mat_raw_estimates recipes parameters for N band [useOpdMod=TRUE]] [--paramL=mat_raw_estimates recipes parameters for LM band [useOpdMod=FALSE]]" )
-	    print("     Example : python automaticPipeline.py --dirRaw=/data/2018-05-19 --skipN --resol=LR --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
-	    sys.exit(0)
+    #--------------------------------------------------------------------------
 
-    # Parse arguments of the command line
-    for elt in listArg:
-        if ('--dirRaw' in elt):
-	        item=elt.split('=')
-	        dirRaw=item[1]
-        elif ('--dirCalib' in elt):
-	        item=elt.split('=')
-	        dirCalib=item[1]
-        elif ('--dirResult' in elt):
-	        item=elt.split('=')
-	        dirResult=item[1]
-        elif ('--nbCore' in elt):
-	        item   = elt.split('=')
-	        nbCore = int(item[1])
-        elif ('--resol' in elt):
-	        item     = elt.split('=')
-	        resol = item[1]
-        elif ('--tplID' in elt):
-	        item     = elt.split('=')
-	        tplidsel = item[1]
-        elif ('--tplSTART' in elt):
-	        item        = elt.split('=')
-	        tplstartsel = item[1]
-        elif ('--paramN' in elt):
-	        item   = elt.split('N=')
-	        val    = item[1].replace('/',' --')
-	        paramN=val
-        elif ('--paramL' in elt):
-	        item   = elt.split('L=')
-	        val    = item[1].replace('/',' --')
-	        paramL=val
-        elif ('--filesRaw' in elt):
-	        item=elt.split('=')
-	        filesRaw= item[1].strip("[]").replace("'","").replace(" ","").split(",")
-        if ('--overwrite' in elt):
-	        overwrite=1
-        if ('--maxIter' in elt):
-	        item   = elt.split('=')
-	        maxIter=int(item[1])
-        if ('--skipL' in elt):
-	        skipL=1
-        if ('--skipN' in elt):
-	        skipN=1
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_autoPipeline.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+	print("\n     Example : python mat_autoPipeline.py --dirRaw=/data/2018-05-19 --skipN --resol=LOW --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
+	sys.exit(0)
 
-    print(filesRaw)
+    print(args.filesRaw)
 
-    mat_autoPipeline(dirRaw,dirResult,dirCalib,nbCore,resol,paramL,paramN,overwrite,maxIter,skipL,skipN,filesRaw)
+    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN,args.filesRaw)

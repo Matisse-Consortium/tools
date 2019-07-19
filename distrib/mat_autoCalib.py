@@ -39,35 +39,16 @@
   knowledge of the CeCILL license and that you accept its terms.
 """
 
-from subprocess import call 
+from   subprocess import call 
 import argparse
 import glob
 import os
+import sys
 import numpy as np
 from astropy.io import fits
 
+
 #------------------------------------------------------------------------------
-#------------ Set up the argument parser for command line arguments -----------
-#---- This really shouldn't take many options besides the config file ---------
-#---- and the input and output directories for data ---------------------------
-#------------------------------------------------------------------------------
-parser = argparse.ArgumentParser(description='Wrapper to run the calibration steps of the MATISSE DRL.')
-
-parser.add_argument('-o', '--out_dir', dest='out_dir', metavar='Output Directory', type=str, default='./CALIBRATED', \
-    help='The path to the directory you want results to be stored in (defaults to current directory).')
-#-------------------------------------------------------------------------
-#--- The SOF should contain TARGET_RAW_INT and CALIB_RAW_INT -------------
-#-------------------------------------------------------------------------
-#parser.add_argument('sof', type=str, help='The filepath containing your sof file. REQUIRED. Should contain TARGET_RAW_INT and CALIB_RAW_INT files.')
-parser.add_argument('--in_dir', dest='in_dir', metavar='Working Directory', type=str, default='.', \
-    help='The path to the directory containing your oifits data.')
-
-
-parser.add_argument('--timespan', dest='timespan', metavar='Time span of calibrators', type=str, default='.', \
-    help='The time search interval for selecting calibrators around the science star')
-
-args = parser.parse_args()
-
 
 def make_sof(input_dir, output_dir, timespan=1./24.):
 
@@ -143,30 +124,57 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
          #   continue
     return SOFFILE
 
-outdir = args.out_dir
+#------------------------------------------------------------------------------
 
-if not os.path.exists(outdir):
-    os.makedirs(outdir)
+if __name__ == '__main__':
+    print("Starting...")
+    
+    #--------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='Wrapper to run the calibration steps of the MATISSE DRS on a given directory containong raw OIFITS files.')
 
-#---------------------------------------------------------------------------
-#---- Make the SOF files ---------------------------------------------------
-targsof = make_sof(args.in_dir, args.out_dir)
+    #--------------------------------------------------------------------------
+    parser.add_argument('in_dir', metavar='in_dir', type=str, \
+    help='The path to the directory containing your oifits data.', default=None)
 
+    #--------------------------------------------------------------------------
+    parser.add_argument('-o', '--out_dir', dest='out_dir', metavar='Out Dir', type=str, default='./CALIBRATED', \
+    help='The path to the directory you want results to be stored in (defaults to current directory).')
 
-#--------------------------------------------------------------------------
-#----- Run the Recipes ----------------------------------------------------
-for isof in targsof:
-    print 'Running mat_cal_oifits on sof:%s'%(isof)
-    call("esorex --output-dir=%s mat_cal_oifits %s"%(outdir,isof), shell=True)
+    #--------------------------------------------------------------------------
+    #parser.add_argument('-i', '--in_dir', dest='in_dir', metavar='Working Directory', type=str, \
+    #help='The path to the directory containing your oifits data.')
 
-    name, ext = os.path.splitext(isof)
-    #print(name)
+    #--------------------------------------------------------------------------
+    parser.add_argument('--timespan', dest='timespan', metavar='Timespan of calibs', type=str, default='.', \
+    help='The time search interval for selecting calibrators around the science star')
+    #--------------------------------------------------------------------------
 
-    # Rename files
-    resultFiles = glob.glob(outdir+'/TARGET_CAL_INT_????.fits')
-    #print(resultFiles)
-    for idx,fi in enumerate(resultFiles):
-        print("renaming",fi, name+"_"+str(idx+1)+'.fits')
-        os.rename(fi, name+"_"+str(idx)+'.fits')
-    #except:
-     #   print("WARNING: No product!")
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_autoCalib.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+	sys.exit(0)
+
+    if not os.path.exists(args.out_dir):
+        os.makedirs(args.out_dir)
+        
+    #----------------------------------------------------------------------
+    #---- Make the SOF files ----------------------------------------------
+    targsof = make_sof(args.in_dir, args.out_dir)
+    
+    #--------------------------------------------------------------------------
+    #----- Run the Recipes ----------------------------------------------------
+    for isof in targsof:
+        print 'Running mat_cal_oifits on sof:%s'%(isof)
+        call("esorex --output-dir=%s mat_cal_oifits %s"%(args.out_dir,isof), shell=True)
+
+        name, ext = os.path.splitext(isof)
+        #print(name)
+        
+        # Rename files
+        resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits')
+        #print(resultFiles)
+        for idx,fi in enumerate(resultFiles):
+            print("renaming",fi, name+"_"+str(idx+1)+'.fits')
+            os.rename(fi, name+"_"+str(idx)+'.fits')
