@@ -351,7 +351,7 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
 def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     plot_errorbars=True, correct_polynom=False,
                     timeVertOffset=0, stdevRange=False, normRange=False,
-                    stdevTime=False):
+                    stdevTime=False,subplotList=None,colorList=None):
    # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
 
     sta_index_cal = []
@@ -364,7 +364,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     time   = dic[key]["TIME"];
 
     if correct_polynom:
-        print("Correct a polynom")
+        #print("Correct a polynom")
         if normRange:
             l = normRange[0]
             h = normRange[1]
@@ -386,26 +386,31 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
         sta_index_cal.append(sta_index)
 
     # Get the unique station indices from the data
-    print("Get the unique station indices from the data")
+    #print("Get the unique station indices from the data")
     sta_indices = np.unique(sta_index_cal, axis=0)
     if key == 'VIS' or key == 'VIS2' or key == 'TF2':
         n_max_config = np.nanmax([6, sta_indices.shape[0]])
         n_plot_rows = 3
     elif key == 'FLUX':
-        n_max_config = 1#np.nanmax([4, sta_indices.shape[0]])
+        n_max_config = 4#np.nanmax([4, sta_indices.shape[0]])
         n_plot_rows = 2
     elif key == 'T3':
         n_max_config = np.nanmax([4, sta_indices.shape[0]])
         n_plot_rows = 2
 
-    print(n_max_config)
+    #print(n_max_config)
 
-    fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
-    axs1 = axs1.ravel()
+    if not(subplotList):
+        fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
+        axs1 = axs1.ravel()
+    else:
+        axs1 = subplotList
 
     #print datae
     #print datae.shape
-    print("Plotting...")
+    #print("Plotting...")
+    npl=int(len(data)/n_max_config)
+    #print(npl)
     for i in range(int(len(data)/n_max_config)):
 
         label = datatype
@@ -425,19 +430,23 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     elif key == 'TF2':
                         label = 'TF'
 
-            print(i)
-            print(idx)
-            print(np.shape(data))
-            axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j)
-            axs1[j].set_ylabel(label)
-            axs1[j].set_xlabel(r"$\lambda\ (\mu\mathrm{m}$)")
-            print(np.shape(data))
-            if stdevRange:
-                if datatype == 'CFLUX':
-                    off = 1.05;
-                else:
-                    off = 0.5;
-                axs1[j].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. in continuum"+str(round(np.std(data[idx, stdevRange[0]:stdevRange[1]]),3)))
+            #print(i)
+            #print(idx)
+            #print(np.shape(data))
+            if not(colorList):
+                axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j)
+            else:
+                axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j,color=colorList[j],alpha=1-float(i)/float(npl))
+            if not(subplotList):
+                axs1[j].set_ylabel(label)
+                axs1[j].set_xlabel(r"$\lambda\ (\mu\mathrm{m}$)")
+                #print(np.shape(data))
+                if stdevRange:
+                    if datatype == 'CFLUX':
+                        off = 1.05;
+                    else:
+                        off = 0.5;
+                    axs1[j].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. in continuum"+str(round(np.std(data[idx, stdevRange[0]:stdevRange[1]]),3)))
             #print("st. dev.",np.std(data[idx, normrange[0]:normrange[1]]))
 
             if plot_errorbars == True:
@@ -445,16 +454,15 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     yerr=datae[idx, :],
                     ecolor = 'grey', alpha = 0.25, capsize = 0.5,elinewidth = 1)
 
-
         if stdevTime == True:
             dat = np.reshape(data,[int(len(data)/n_max_config),n_max_config,nbWlen])
             std = np.std(dat,2)
             if stdevRange:
                 axs1[j].text(wl[stdevRange[1]] * 1e6, timeVertOffset*j+off, "st. dev. vs. time"+str(round(np.mean(np.std(dat[:,i, stdevRange[0]:stdevRange[1]],axis=0),3))))
 
-    if datatype == 'VIS2' or datatype == 'TF2' or datatype == 'CFLUX':
+    if (datatype == 'VIS2' or datatype == 'TF2' or datatype == 'CFLUX') and not(subplotList):
         plt.ylim([-0.1,1.1+timeVertOffset*(n_max_config-1)*1.1])
-    else:
+    elif not(subplotList):
         try:
             mn = np.nanmin(data);
             if mn > 0:
@@ -470,8 +478,9 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
             datatype = 'VIS'
         elif datatype == 'TF2':
             datatype = 'TF'
-    fig1.suptitle(datatype+' vs. wavelength')
-    plt.show()
+    if not(subplotList):
+        fig1.suptitle(datatype+' vs. wavelength')
+        plt.show()
 
 
 ###############################################################################
@@ -1192,7 +1201,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                 print("Wavelength out of range.")
 
         sta_names = dic['STA_NAME']
-     
+
         target_names_cal = np.array(target_names_cal)
         V2_BCD_arr_cal   = np.array(V2_BCD_arr_cal)
         V2_MJD_arr_cal   = np.array(V2_MJD_arr_cal)
@@ -1230,7 +1239,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
 
         print(V2_MJD_arr_cal)
         print(V2_MJD_arr)
-        
+
         if len(V2_sta_index_cal) > 0:
             sta_indices = np.unique(V2_sta_index_cal, axis=0)
         elif len(V2_sta_index) > 0:

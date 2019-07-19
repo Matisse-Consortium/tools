@@ -2,7 +2,7 @@
 """
 Created on Fri May 11 05:35:18 2018
 
-@author: 
+@author:
 """
 
 
@@ -29,19 +29,19 @@ import scipy.optimize as opt
 def gaussian(center_x, center_y, width_x, width_y,height,background):
     width_x = float(width_x)
     width_y = float(width_y)
-    return lambda x,y: height*np.exp( -(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2)+background 
+    return lambda x,y: height*np.exp( -(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2)+background
 
 def file_is_empty(path):
     return os.stat(path).st_size==0
 
-def mat_acq_plot(filename):
+def mat_showAcq(filename):
     sky=[]
     target=[]
     undy=[]
     compteursky=0
     compteurtarget=0
     compteurundy=0
-    
+
     hdu=fits.open(filename)
     TorS=hdu['IMAGING_DATA'].data['TARTYP']
     detecteur=hdu[0].header['HIERARCH ESO DET CHIP NAME']
@@ -53,7 +53,7 @@ def mat_acq_plot(filename):
         DLy=4.92
         tolx=4
         toly=1
-        
+
     else:
         DLx=31.5
         DLy=7.87
@@ -65,11 +65,11 @@ def mat_acq_plot(filename):
             compteursky=compteursky+1
         elif TorS[j] == 'T':
             target=np.append(target,int(j))
-            compteurtarget=compteurtarget+1     
+            compteurtarget=compteurtarget+1
         else:
             undy=np.append(undy,int(j))
             compteurundy=compteurundy+1
-   
+
     sky=list(sky)
     target=list(target)
     undy=list(undy)
@@ -81,14 +81,14 @@ def mat_acq_plot(filename):
     csky=list(np.append(-1,csky[0]))
     ctarget=list(np.append(-1,ctarget[0]))
 
-            
+
     if len(csky)!=len(ctarget):
         del sky[-1:]
     if ctarget[-1:]!=target[-1:]:
         ctarget=np.append(ctarget,len(np.diff(target)))
-    
- 
-    
+
+
+
     if detecteur == 'HAWAII-2RG':
         m9x=(75.10-1)*a
         m9y=(11.85-1)*b
@@ -107,12 +107,12 @@ def mat_acq_plot(filename):
         m12y=(108.99-1)*b
         m13x=(38.26-1)*a
         m13y=(109.02-1)*b
-        
 
 
-        
+
+
     for i in range(len(csky)-1):
-    
+
         vecsky=sky[csky[i]+1:csky[i+1]+1]
         vectarget=target[ctarget[i]+1:ctarget[i+1]+1]
         frame09=hdu['IMAGING_DATA'].data['DATA9'][vectarget,:,:].astype(float)
@@ -123,14 +123,14 @@ def mat_acq_plot(filename):
         sky10=hdu['IMAGING_DATA'].data['DATA10'][vecsky,:,:].astype(float)
         sky12=hdu['IMAGING_DATA'].data['DATA12'][vecsky,:,:].astype(float)
         sky13=hdu['IMAGING_DATA'].data['DATA13'][vecsky,:,:].astype(float)
-        
-        
+
+
         img9=np.mean(frame09,axis=0)-np.mean(sky09,axis=0)
         img10=np.mean(frame10,axis=0)-np.mean(sky10,axis=0)
         img12=np.mean(frame12,axis=0)-np.mean(sky12,axis=0)
         img13=np.mean(frame13,axis=0)-np.mean(sky13,axis=0)
-    
-    
+
+
         if detecteur=='HAWAII-2RG':
             params9 = (11,72,1,4,img9.max(),1e4)
             params10 = (11,72,1,4,img10.max(),1e4)
@@ -141,27 +141,27 @@ def mat_acq_plot(filename):
             params10 = (109,40,1,4,img10.max(),1e4)
             params12 = (109,40,1,4,img12.max(),1e4)
             params13 = (109,40,1,4,img13.max(),1e4)
-            
+
         errorfunction9 = lambda p: np.ravel(gaussian(*p)(*np.indices(img9.shape)) - img9)
         params9, success9 = opt.leastsq(errorfunction9, params9)
         g9 = gaussian(*params9)
         im9=g9(*np.indices(np.shape(img9)))
-        
+
         errorfunction10 = lambda p: np.ravel(gaussian(*p)(*np.indices(img10.shape)) - img10)
         params10, success10 = opt.leastsq(errorfunction10, params10)
         g10 = gaussian(*params10)
         im10=g10(*np.indices(np.shape(img10)))
-        
+
         errorfunction12 = lambda p: np.ravel(gaussian(*p)(*np.indices(img12.shape)) - img12)
         params12, success12 = opt.leastsq(errorfunction12, params12)
         g12 = gaussian(*params12)
         im12=g12(*np.indices(np.shape(img12)))
-        
+
         errorfunction13 = lambda p: np.ravel(gaussian(*p)(*np.indices(img13.shape)) - img13)
         params13, success13 = opt.leastsq(errorfunction13, params13)
         g13 = gaussian(*params13)
         im13=g13(*np.indices(np.shape(img13)))
-        
+
         b9x=params9[1]*a
         b9y=params9[0]*b
         b10x=params10[1]*a
@@ -170,17 +170,17 @@ def mat_acq_plot(filename):
         b12y= params12[0]*b
         b13x=params13[1]*a
         b13y=params13[0]*b
-    
+
         print('barycentre au cycle:'+str(i))
         print(b9x,b9y)
         print(b10x,b10y)
         print(b12x,b12y)
         print(b13x,b13y)
 
-            
+
         plt.figure(1,figsize=(15,7))
         plt.subplot(2,2,1)
-        
+
         plt.scatter(b9x*a,b9y*b ,marker='o',color="blue")
         plt.text(b9x*a,b9y*b , str(i), color="red", fontsize=12)
         axes=plt.gca()
@@ -189,8 +189,8 @@ def mat_acq_plot(filename):
         plt.xlim(m9x-DLx*a/2-2*a,m9x+DLx*a/2+2*a)
         plt.ylim(m9y-DLy*b/2-2*b ,m9y+DLy*b/2+2*b)
         plt.ylabel('IP3,T2')
-    
-        
+
+
         plt.subplot(2,2,2)
         plt.scatter(b10x*a,b10y*b ,marker='o',color="blue")
         plt.text(b10x*a,b10y*b , str(i), color="red", fontsize=12)
@@ -200,7 +200,7 @@ def mat_acq_plot(filename):
         plt.xlim(m10x-DLx*a/2-2*a,m10x+DLx*a/2+2*a)
         plt.ylim(m10y-DLy*b/2-2*b,m10y+DLy*b/2+2*b)
         plt.ylabel(' IP1,T1')
-        
+
         plt.subplot(2,2,3)
         plt.scatter(b12x*a,b12y*b ,marker='o',color="blue")
         plt.text(b12x*a,b12y*b , str(i), color="red", fontsize=12)
@@ -210,7 +210,7 @@ def mat_acq_plot(filename):
         plt.xlim(m12x-DLx*a/2-2*a,m12x+DLx*a/2+2*a)
         plt.ylim(m12y-DLy*b/2-2*b,m12y+DLy*b/2+2*b)
         plt.ylabel(' IP5,T3')
-        
+
         plt.subplot(2,2,4)
         plt.scatter(b13x*a,b13y*b ,marker='o',color="blue")
         plt.text(b13x*a,b13y*b , str(i), color="red", fontsize=12)
@@ -220,13 +220,13 @@ def mat_acq_plot(filename):
         plt.xlim(m13x-DLx*a/2-2*a,m13x+DLx*a/2+2*a)
         plt.ylim(m13y-DLy*b/2-2*b,m13y+DLy*b/2+2*b)
         plt.ylabel(' IP7,T4')
-        
-    
-    
-    
-    
-        
-        
+
+
+
+
+
+
+
     plt.show()
 
 if  __name__== '__main__' :
@@ -234,7 +234,7 @@ if  __name__== '__main__' :
 
     arg=sys.argv
     filename=arg[1]
-    mat_acq_plot(filename)
+    mat_showAcq(filename)
 
 
 

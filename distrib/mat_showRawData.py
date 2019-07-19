@@ -15,7 +15,7 @@ import astropy.io.fits as fits
 from mat_fileDialog import mat_FileDialog
 import wx
 
-class mat_show_rawdata():
+class mat_showRawData():
     def __init__(self,filename):
         # Open fits file
         self.data = fits.open(filename)
@@ -147,6 +147,6 @@ if __name__ == '__main__':
             filename = openFileDialog.GetPaths()[0]
             print(filename)
         openFileDialog.Destroy()
-    mat_show_rawdata(filename)
+    mat_showRawData(filename)
     app.MainLoop()
     app.Destroy()

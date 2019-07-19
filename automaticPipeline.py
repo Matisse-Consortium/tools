@@ -76,7 +76,6 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	tplidsel    = ""
 	tplstartsel = ""
 
-    
 
 	# Print meaningful error messages if something is wrong in the command line
 	print(" ")
@@ -136,7 +135,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		    if resol != "":
 		        if disperser != resol:
 		            continue
-		        
+
 		    # Go through all 4 cases. First case: tplid and tplstart given by user
 		    if (tplidsel != "" and tplstartsel != ""):
 		        if (tplid == tplidsel and tplstart == tplstartsel):
@@ -160,7 +159,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		            listRawSorted.append(filename)
 		            allhdrSorted.append(hdr)
 		            listRes.append(disperser)
-		            
+
 		if skipN == 0 and chip == 'AQUARIUS':
 		    # Append low resolution stuff in the front of the list
 		    disperser = hdr['HIERARCH ESO INS DIN NAME']
@@ -168,7 +167,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		    if resol != "":
 		        if disperser != resol:
 		            continue
-		        
+
 		    # Go through all 4 cases. First case: tplid and tplstart given by user
 		    if (tplidsel != "" and tplstartsel != ""):
 		        if (tplid == tplidsel and tplstart == tplstartsel):
@@ -339,7 +338,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		    rbname    = elt["recipes"]+"."+elt["tplstart"]
 		    sofname   = os.path.join(repIter,rbname+".sof").replace(':',':')
 		    outputDir = os.path.join(repIter,rbname+".rb").replace(':','_')
-		    
+
 		    if overwritei == 0:
 		        print("\nTesting if last reduction went through...")
 		        if glob.glob(os.path.join(outputDir, "*_RAW_INT_*.fits")) or glob.glob(os.path.join(outputDir, "IM_BASIC.fits")):
@@ -426,7 +425,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		    cptStatusZero+=1
 		cpt+=1
 	    print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
-	    
+
 	    if (listCmdEsorex != [] and iterNumber <= maxIter):
 		# Create a process pool with a maximum of 10 worker processes
 		pool = Pool(processes=nbCore)
@@ -459,7 +458,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 if __name__ == '__main__':
     listArg = sys.argv
     name_file = []
-   
+
     # Initialize variables
     dirRaw      = ""
     dirCalib  = ""
@@ -476,7 +475,7 @@ if __name__ == '__main__':
     overwrite     = 0
     filesRaw    = []
     listArg     = sys.argv
- 
+
 
     for elt in listArg:
         if ('--help' in elt):
@@ -527,7 +526,7 @@ if __name__ == '__main__':
 	        skipL=1
         if ('--skipN' in elt):
 	        skipN=1
-	  
+
     print(filesRaw)
 
     mat_autoPipeline(dirRaw,dirResult,dirCalib,nbCore,resol,paramL,paramN,overwrite,maxIter,skipL,skipN,filesRaw)

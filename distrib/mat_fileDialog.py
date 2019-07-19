@@ -80,7 +80,7 @@ import os
 from   ObjectListView import ObjectListView, ColumnDefn, Filter
 from   astropy.io import fits
 import subprocess
-from   mat_fitsHeaderViewer import mat_fitsHeaderViewer
+from   mat_showFitsHeader import mat_showFitsHeader
 import distutils.spawn
 import fnmatch
 import sys
@@ -710,7 +710,7 @@ class mat_FileDialog(wx.Dialog):
         for filei in self.path:
              if filei.endswith('.fits'):
                  print((self.dir+'/'+filei))
-                 mat_fitsHeaderViewer(self.dirTree.GetPath()+'/'+filei)
+                 mat_showFitsHeader(self.dirTree.GetPath()+'/'+filei)
 
     def showRawData(self,event):
         print(("show RAW_DATA {0}".format(self.GetPaths())))

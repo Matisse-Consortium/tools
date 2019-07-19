@@ -77,25 +77,3 @@ class changeKeys(wx.Frame):
 
 
 
-dir = "c:/DATA/WR104/"
-
-app = wx.App()
-changeKeys(None, "test:")
-app.MainLoop()
-app.Destroy()
-
-#----------------------------------------------------------------------
-# Run the program
-#if __name__ == "__main__":
-#    app = wx.App()
-
-#    changeKeys(None, "test:")
-
-    #time.sleep(10)
-
-    #openFileDialog = mat_FileDialog(None, 'Select a directory',dir)
-    #if openFileDialog.ShowModal() == wx.ID_OK:
-    #    print(openFileDialog.GetPaths())
-
-#    app.MainLoop()
-#    app.Destroy()
