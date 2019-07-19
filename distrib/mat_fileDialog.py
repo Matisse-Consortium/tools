@@ -80,7 +80,7 @@ import os
 from   ObjectListView import ObjectListView, ColumnDefn, Filter
 from   astropy.io import fits
 import subprocess
-from   fitsheaderviewer import fitsHeaderViewer
+from   mat_fitsHeaderViewer import mat_fitsHeaderViewer
 import distutils.spawn
 import fnmatch
 import sys
@@ -135,7 +135,7 @@ class fileViewerKeyword:
             res = "SIPHOT";
         elif(res == "INTER"):
             res = "HISENS";
-            
+
         return res
 
     def __str__(self):
@@ -155,7 +155,7 @@ class fileViewerKeyword:
 
 ###############################################################################
 
-dict_keys = ['DATE-OBS', 'INSTRUME','OBJECT', 
+dict_keys = ['DATE-OBS', 'INSTRUME','OBJECT',
              'HIERARCH ESO OBS TARG NAME',
              'HIERARCH ESO DET CHIP NAME',
              'HIERARCH ESO DET CHIP TYPE',
@@ -248,7 +248,7 @@ class identifyFile(object):
 
         if fnmatch.fnmatch(filename,"*.fits*"):
             #filename.endswith(".fits"):
-            try:                      
+            try:
                 tmp_header  = fits.getheader( self.folder+"/"+self.filename)
                 self.header = tmp_header.fromkeys(dict_keys)
                 for ky in dict_keys:
@@ -259,7 +259,7 @@ class identifyFile(object):
 
                 #print(self.tmp_header['DATE-OBS'])
                 #print(self.header['DATE-OBS'])
-                
+
                 #self.header=self.readFitsHeader( self.folder+"/"+self.filename)
                 #print(self.header)
             except:
@@ -307,7 +307,7 @@ matisseColor={
 
 # Sky files
 "SKY_RAW"        :wx.Colour(64,255,255),
-    
+
 # Files with fringes (observations)
 "TARGET_RAW"     :wx.Colour(154,255,136),
 "CALIB_RAW"      :wx.Colour(154,255,136),
@@ -405,7 +405,7 @@ class dirButtons(wx.BoxSizer):
         newDir= ''.join([diri+"/" for diri in self.dirs[0:i+1]])
         if self.updateFunction:
             self.updateFunction(newDir)
-            
+
 ###############################################################################
 
 class mat_FileDialog(wx.Dialog):
@@ -442,7 +442,7 @@ class mat_FileDialog(wx.Dialog):
         hbox.Add(self.dirButtons)
         vbox.Add(hbox, proportion=0.1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=10)
         vbox.AddSpacer(10)
-        
+
 
         # File browser with side panel
         splitter     = wx.SplitterWindow(panel)
@@ -451,7 +451,7 @@ class mat_FileDialog(wx.Dialog):
         self.dirButtons.updateFunction=self.dirTree.SetPath
         if self.dir:
             self.dirTree.SetPath(self.dir)
-            
+
         # List of files with colours (right panel)
         self.fileList = ObjectListView(splitter,wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.fileList.AddNamedImages("Directory",    wx.ArtProvider.GetBitmap(wx.ART_FOLDER, wx.ART_OTHER, wx.Size(16,16)))
@@ -520,7 +520,7 @@ class mat_FileDialog(wx.Dialog):
                     txtcol=wx.BLACK
                 else:
                     txtcol=wx.WHITE
-                    
+
             except:
                 txtcol=wx.BLACK
                 bkgcol=matisseColor["UNKNOWN"]
@@ -623,7 +623,7 @@ class mat_FileDialog(wx.Dialog):
                    if Append:
                        matisseFileList.append(matFile)
                    if matFile.isFits:
-                       fitsInDir = True 
+                       fitsInDir = True
 
            if fitsInDir == True:
                #save matisseFileList in file
@@ -686,7 +686,7 @@ class mat_FileDialog(wx.Dialog):
         wx.EVT_MENU(menu, 4, self.copyListToClipboard)
 
         self.fileList.PopupMenu( menu, event.GetPoint())
-        
+
     def okClicked(self,event):
         self.EndModal(wx.ID_OK)
 
@@ -710,7 +710,7 @@ class mat_FileDialog(wx.Dialog):
         for filei in self.path:
              if filei.endswith('.fits'):
                  print((self.dir+'/'+filei))
-                 fitsHeaderViewer(self.dirTree.GetPath()+'/'+filei)
+                 mat_fitsHeaderViewer(self.dirTree.GetPath()+'/'+filei)
 
     def showRawData(self,event):
         print(("show RAW_DATA {0}".format(self.GetPaths())))
