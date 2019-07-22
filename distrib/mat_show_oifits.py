@@ -400,6 +400,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
 
     #print(n_max_config)
 
+
     if not(subplotList):
         fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
         axs1 = axs1.ravel()
@@ -709,8 +710,13 @@ useStations=True,xlog=False,ylog=False):
 # show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2",
 # datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
 #
-def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",
-datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
+def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
+                    datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True, sciColor='red',calColor='blue'):
+    print("Starting show_oi_vs_time...")
+    
+
+
+    
     # check if list is not empty:
     if list_of_dicts:
         target_names_cal = []
@@ -812,8 +818,18 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
             MJD_range = [0.0, 1.0]
         text_width_MJD = (MJD_range[1] - MJD_range[0]) / 20.0
 
-        fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
-        axs1 = axs1.ravel()
+        
+        if not(subplotList):
+            fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
+            axs1 = axs1.ravel()
+        else:
+            axs1 = subplotList
+
+
+    
+
+
+        
         for i in range(n_max_config):
             # print i
             if datatype == 'DPHI' or datatype == 'CLOS':
@@ -831,12 +847,12 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                                     label = 'TF' + ' cal'
                                 axs1[i].errorbar(MJD_arr_cal[idxst], np.sqrt(arr_cal[idxst]),
                                                  yerr=0.5 * err_arr_cal[idxst] / np.sqrt(arr_cal[idxst]),
-                                                 fmt='o', color='blue', elinewidth=1.0,
+                                                 fmt='o', color=calColor, elinewidth=1.0,
                                                  label=label)
                         else:
                             axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst],
                                              yerr=err_arr_cal[idxst],
-                                             fmt='o', color='blue', elinewidth=1.0,
+                                             fmt='o', color=calColor, elinewidth=1.0,
                                              label=label)
                     else:
                         if showvis == True:
@@ -846,11 +862,11 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                                 elif key == 'TF2':
                                     label = 'TF' + ' sci'
                                 axs1[i].errorbar(MJD_arr_cal[idxst], np.sqrt(arr_cal[idxst]),
-                                                 fmt='o', color='blue', elinewidth=1.0,
+                                                 fmt='o', color=calColor, elinewidth=1.0,
                                                  label=label)
                         else:
                             axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst],
-                                             fmt='o', color='blue', elinewidth=1.0,
+                                             fmt='o', color=calColor, elinewidth=1.0,
                                              label=label)
                     if i in range(2):
                         text_tag_flag = 1
@@ -880,11 +896,11 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                                     label = 'TF' + ' sci'
                                 axs1[i].errorbar(MJD_arr_sci[idxst], np.sqrt(arr_sci[idxst]),
                                                  yerr=0.5 * err_arr_sci[idxst] / np.sqrt(arr_sci[idxst]),
-                                                 fmt='o', color='red', elinewidth=1.0,
+                                                 fmt='o', color=sciColor, elinewidth=1.0,
                                                  label=label)
                         else:
                             axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst], yerr=err_arr_sci[idxst],
-                                                 fmt='o', color='red', elinewidth=1.0,
+                                                 fmt='o', color=sciColor, elinewidth=1.0,
                                                  label=label)
                     else:
                         if showvis == True:
@@ -894,11 +910,11 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                                 elif key == 'TF2':
                                     label = 'TF' + ' sci'
                                 axs1[i].errorbar(MJD_arr_sci[idxst], np.sqrt(arr_sci[idxst]),
-                                                 fmt='o', color='red', elinewidth=1.0,
+                                                 fmt='o', color=sciColor, elinewidth=1.0,
                                                  label=label)
                         else:
                             axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst],
-                                         fmt='o', color='red', elinewidth=1.0,
+                                         fmt='o', color=sciColor, elinewidth=1.0,
                                          label=label)
                     if i in range(2):
                         text_tag_flag = 1
@@ -962,8 +978,11 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
         #     plt.setp(axs1[i].get_yticklabels(), visible=False)
         #     y_axis = axs1[i].axes.get_yaxis()
         #     y_axis.get_label().set_visible(False)
-        plt.tight_layout()
-        plt.show()
+        if not(subplotList):
+            plt.tight_layout()
+        if not(subplotList):
+            plt.show()
+        
 
 ###############################################################################
 # showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)
