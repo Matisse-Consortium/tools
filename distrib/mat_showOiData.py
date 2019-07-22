@@ -253,8 +253,8 @@ if __name__ == '__main__':
         if merged:
             pdf.savefig(fig)
             plt.clf()
-    if not(pdf or merged):
-        plt.show()
+   	if not(pdf or merged):
+            plt.show(block=False)
 
     if merged:
         pdf.close()
