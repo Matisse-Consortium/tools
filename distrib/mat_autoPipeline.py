@@ -74,19 +74,20 @@ def runEsorex(cmd):
 
 #------------------------------------------------------------------------------
 
-def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0,filesRaw=[]):
+def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0):
 	tplidsel    = ""
 	tplstartsel = ""
 
-
+	for i in range(10):
+		print("*****************************************")
+		print(type(nbCore))
 	# Print meaningful error messages if something is wrong in the command line
-	print(" ")
 	print("------------------------------------------------------------------------")
-	if (dirRaw == "" and filesRaw==[]):
-	    print("ERROR : You have to specifiy a Raw Data Directory with --dirRaw=DirectoryPath or a list of raw files with --filesRaw=[...]")
+	if (dirRaw == ""):
+	    print("ERROR : You have to specifiy a Raw Data Directory or a list of raw file")
 	    sys.exit(0)
 	else:
-	    print('%-40s' % ("Raw Data Directory:",),dirRaw)
+	    print('%-40s' % ("Raw Data Directory or file list:",),dirRaw)
 	if (dirCalib==""):
 	    dirCalib="/data/CalibMap"
 	    print("Info: Calibration Directory not specified. We use the default directory")
@@ -105,16 +106,17 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	print('%-40s' % ("Maximum Number of Iteration:",),maxIter)
 
 	print("------------------------------------------------------------------------")
-	if filesRaw==[]:
+	if  not("[" in dirRaw):
 	    listRaw = glob.glob(dirRaw+"/MATIS*.fits")
+	    print("Raw directory given")
 	else:
-	    listRaw = filesRaw
-
+	    print("List of raw files given")
+	    listRaw = eval(dirRaw)
 	if (dirCalib != ""):
 	    listArchive = glob.glob(dirCalib+"/*.fits")
 	else:
 	    listArchive =[]
-
+	print(listRaw)
 	# Sort listRaw using template ID and template start
 	print("Sorting files according to constraints...")
 	allhdr        = []
@@ -460,13 +462,13 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 
 
 
-            
+
 if __name__ == '__main__':
     print("Starting...")
 
     #--------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description='Automatic MATISSE pipeline implementation, allowing one to reduce entire nights of raw data into oifits files.')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('dirRaw', default="",  \
     help='The path to the directory containing your raw data.')
@@ -474,54 +476,50 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('--dirCalib', default="",  \
     help='Calibration Map Path')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--dirResult', default="", \
     help='Results Path (default is current directory)')
-    
+
     #--------------------------------------------------------------------------
-    parser.add_argument('--nbCore', default=0, \
+    parser.add_argument('--nbCore', default=0,type=int, \
     help='Number Of Cores (default 1)')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--tplID', default="",  \
     help='template ID')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--tplSTART', default="",  \
     help='template start')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--overwrite', default=0,  \
     help='overwrite existing files')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--skipL', default=0,  \
     help='skip L band data')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--skipN', default=0,  \
     help='skip N band data')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--resol', default="",  \
                         help='reduce only a given spectral resolution. Can be any of LOW, MED or HIGH')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--maxIter', default=0,  \
                         help='Maximum Number of Iteration (default 1)')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--paramN', default="",  \
                         help='recipes parameters for N band (default /useOpdMod=TRUE)')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--paramL', default="",  \
                         help='recipes parameters for LM band (default /useOpdMod=FALSE)')
-    
-    #--------------------------------------------------------------------------
-    parser.add_argument('--filesRaw', default=[], \
-                        help='Specify a set of files to reduce')
 
     #--------------------------------------------------------------------------
 
@@ -530,9 +528,9 @@ if __name__ == '__main__':
     except:
         print("\n\033[93mRunning mat_autoPipeline.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-	print("\n     Example : python mat_autoPipeline.py --dirRaw=/data/2018-05-19 --skipN --resol=LOW --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
-	sys.exit(0)
-
-    print(args.filesRaw)
-
-    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN,args.filesRaw)
+        print("\n     Example : python mat_autoPipeline.py --dirRaw=/data/2018-05-19 --skipN --resol=LOW --nbCores=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
+        sys.exit(0)
+	for i in range(10):
+		print("*****************************************")
+		print(type(args.nbCore))
+    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN)
