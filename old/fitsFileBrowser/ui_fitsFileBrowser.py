@@ -1,0 +1,97 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'fitsFileBrowser.ui'
+#
+# Created: Wed Dec 07 15:59:25 2016
+#      by: pyside-uic 0.2.15 running on PySide 1.2.4
+#
+# WARNING! All changes made in this file will be lost!
+
+from PySide import QtCore, QtGui
+
+class Ui_FitsFileBrowser(object):
+    def setupUi(self, FitsFileBrowser):
+        FitsFileBrowser.setObjectName("FitsFileBrowser")
+        FitsFileBrowser.resize(1276, 825)
+        self.centralwidget = QtGui.QWidget(FitsFileBrowser)
+        self.centralwidget.setObjectName("centralwidget")
+        self.gridLayout = QtGui.QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName("gridLayout")
+        self.verticalLayout = QtGui.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.splitter = QtGui.QSplitter(self.centralwidget)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setOpaqueResize(True)
+        self.splitter.setHandleWidth(10)
+        self.splitter.setObjectName("splitter")
+        self.dirView = QtGui.QTreeView(self.splitter)
+        self.dirView.setObjectName("dirView")
+        self.fileView = QtGui.QTableView(self.splitter)
+        self.fileView.setShowGrid(False)
+        self.fileView.setGridStyle(QtCore.Qt.NoPen)
+        self.fileView.setSortingEnabled(True)
+        self.fileView.setCornerButtonEnabled(False)
+        self.fileView.setObjectName("fileView")
+        self.fileView.verticalHeader().setVisible(False)
+        self.verticalLayout.addWidget(self.splitter)
+        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
+        FitsFileBrowser.setCentralWidget(self.centralwidget)
+        self.statusbar = QtGui.QStatusBar(FitsFileBrowser)
+        self.statusbar.setObjectName("statusbar")
+        FitsFileBrowser.setStatusBar(self.statusbar)
+        self.toolBar = QtGui.QToolBar(FitsFileBrowser)
+        self.toolBar.setMovable(False)
+        self.toolBar.setIconSize(QtCore.QSize(48, 48))
+        self.toolBar.setObjectName("toolBar")
+        FitsFileBrowser.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        self.actionFilter = QtGui.QAction(FitsFileBrowser)
+        self.actionFilter.setCheckable(True)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/filter_data.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionFilter.setIcon(icon)
+        self.actionFilter.setObjectName("actionFilter")
+        self.actionEditFilter = QtGui.QAction(FitsFileBrowser)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap(":/icons/filter_tool.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionEditFilter.setIcon(icon1)
+        self.actionEditFilter.setObjectName("actionEditFilter")
+        self.actionViewHeader = QtGui.QAction(FitsFileBrowser)
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap(":/icons/view_header.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionViewHeader.setIcon(icon2)
+        self.actionViewHeader.setObjectName("actionViewHeader")
+        self.actionViewData = QtGui.QAction(FitsFileBrowser)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/icons/view_data.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionViewData.setIcon(icon3)
+        self.actionViewData.setObjectName("actionViewData")
+        self.actionOpenFile = QtGui.QAction(FitsFileBrowser)
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap(":/icons/open_data.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionOpenFile.setIcon(icon4)
+        self.actionOpenFile.setObjectName("actionOpenFile")
+        self.toolBar.addAction(self.actionEditFilter)
+        self.toolBar.addAction(self.actionFilter)
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(self.actionViewHeader)
+        self.toolBar.addAction(self.actionViewData)
+        self.toolBar.addAction(self.actionOpenFile)
+        self.toolBar.addSeparator()
+
+        self.retranslateUi(FitsFileBrowser)
+        QtCore.QMetaObject.connectSlotsByName(FitsFileBrowser)
+
+    def retranslateUi(self, FitsFileBrowser):
+        FitsFileBrowser.setWindowTitle(QtGui.QApplication.translate("FitsFileBrowser", "Fits File Browser", None, QtGui.QApplication.UnicodeUTF8))
+        self.toolBar.setWindowTitle(QtGui.QApplication.translate("FitsFileBrowser", "toolBar", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionFilter.setText(QtGui.QApplication.translate("FitsFileBrowser", "Filter Files", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionFilter.setToolTip(QtGui.QApplication.translate("FitsFileBrowser", "Filter files", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionEditFilter.setText(QtGui.QApplication.translate("FitsFileBrowser", "Edit Filter", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionEditFilter.setToolTip(QtGui.QApplication.translate("FitsFileBrowser", "Edit filtering rules", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionViewHeader.setText(QtGui.QApplication.translate("FitsFileBrowser", "View Header", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionViewHeader.setToolTip(QtGui.QApplication.translate("FitsFileBrowser", "View fits primary header", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionViewData.setText(QtGui.QApplication.translate("FitsFileBrowser", "View Data", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOpenFile.setText(QtGui.QApplication.translate("FitsFileBrowser", "Open File", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOpenFile.setToolTip(QtGui.QApplication.translate("FitsFileBrowser", "Open File", None, QtGui.QApplication.UnicodeUTF8))
+
+import ressource_FitsFileBrowser

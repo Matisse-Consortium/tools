@@ -1,0 +1,22 @@
+Metadata-Version: 1.1
+Name: mat-tools
+Version: 0.1
+Summary: A package to help reducing MATISSE/VLTI data in python
+Home-page: https://gitlab.oca.eu/MATISSE/tools
+Author: F. Millour, P. Berio, A. Meilland, J. Varga
+Author-email: florentin.millour@oca.eu
+License: UNKNOWN
+Description-Content-Type: text/markdown
+Description: # MATISSE python tools
+        
+        This is a set of python scripts used for the MATISSE commissionning.
+        They allow one to reduce and visualize data from MATISSE.
+        Use it at your own risks!
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: CEA CNRS Inria Logiciel Libre License, version 2.1 (CeCILL-2.1)
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Classifier: Topic :: Scientific/Engineering :: Physics
