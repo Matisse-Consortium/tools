@@ -60,7 +60,7 @@ from   mat_fileDialog import identifyFile
 from   astropy.io import fits as fits
 import os
 import glob
-import robust
+import libRobust as robust
 #from astroquery.simbad import Simbad
 from astropy import coordinates
 from os.path import expanduser

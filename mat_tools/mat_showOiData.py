@@ -270,10 +270,11 @@ if __name__ == '__main__':
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
+            plf.close(fig)
             print("saving to {0}".format(pdfname))
         if merged:
             pdf.savefig(fig)
-            plt.clf()
+            plt.close(fig)
    	if not(pdf or merged):
             plt.show(block=False)
 
