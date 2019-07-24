@@ -199,8 +199,27 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
     fig.text(0.485,0.01,"$\lambda$ ($\mu$m)",horizontalalignment='center',verticalalignment='center')
     fig.text(0.785,0.01,"$\lambda$ ($\mu$m)",horizontalalignment='center',verticalalignment='center')
 
+    wlmin=np.min(dic['WLEN'])*1e6
+    wlmax=np.min(dic['WLEN'])*1e6
+    if dic['BAND']=="LM":
+        band=""
+        if wlmin<4.2:
+            band+="L"
+        if wlmax>4.5:
+            band+="M"
+    else:
+        band="N"
+
     filename=filename.split("/")[-1]
-    fig.text(0.01,0.97,filename)
+
+    fig.text(0.02,0.95,filename,fontsize=18)
+    fig.text(0.03,0.92,"BAND = {0}".format(band))
+    fig.text(0.03,0.90,"DISP = {0}".format(dic['DISP']))
+    fig.text(0.03,0.88,"DIT = {0}s".format(dic['DIT']))
+    fig.text(0.03,0.86,"BCD = {0}-{1}".format(dic['BCD1NAME'],dic['BCD2NAME']))
+
+
+
 
     telconf=""
     for el in dic['STA_NAME']:
@@ -213,9 +232,9 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
     seeing="{0:.2f}".format(dic['SEEING'])
     coherence="{0:.2f}".format(1000*dic['TAU0'])
     airmass="{0:.2f}".format(dic['HDR']['HIERARCH ESO ISS AIRM START'])
-    fig.text(0.71,0.92,"Seeing={0}\"".format(seeing))
-    fig.text(0.71,0.90,"Coherence={0}ms".format(coherence))
-    fig.text(0.71,0.88,"Airmass={0}".format(airmass))
+    fig.text(0.71,0.92,"Seeing = {0}\"".format(seeing))
+    fig.text(0.71,0.90,"Coherence = {0}ms".format(coherence))
+    fig.text(0.71,0.88,"Airmass = {0}".format(airmass))
 
     return fig
 
@@ -270,13 +289,14 @@ if __name__ == '__main__':
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
-            plf.close(fig)
+            plt.close(fig)
             print("saving to {0}".format(pdfname))
         if merged:
             pdf.savefig(fig)
             plt.close(fig)
+
    	if not(pdf or merged):
-            plt.show(block=False)
+            plt.show()
 
     if merged:
         pdf.close()
