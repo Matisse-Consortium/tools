@@ -41,7 +41,7 @@ class mat_showRawData():
 
         self.tartype_axe =  plt.axes([0.1, 0.10, 0.8, 0.05] )
         plt.xticks([]), plt.yticks([])
-        plt.tight_layout()
+        #plt.tight_layout()
         plt.imshow(img,extent=[0,255,0,10])
         self.tartype_axe.set_ylim((0,10))
         self.tartype_axe.set_xlim((0,255))
