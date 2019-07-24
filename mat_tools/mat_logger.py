@@ -845,7 +845,7 @@ class mat_logger(wx.Dialog):
         selection=[]
         for tpli in self.selectedTpl:
             selection.extend([os.getcwd()+"/"+f.filename for f in tpli.listOfFiles])
-        command=("mat_autoPipeline.py --filesRaw=\"{0}\" --dirResult={1} --nbCore={2} {3};"
+        command=("mat_autoPipeline.py \"{0}\" --dirResult={1} --nbCore={2} {3};"
                  "cd {1};mat_tidyupOiFits.py .;mat_tidyupCalibMap.py .".format(selection,dirResult,nbCore,addText))
 
         time=datetime.now().strftime("%Y%m%d%H%M%S")
