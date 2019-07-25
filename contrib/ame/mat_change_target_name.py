@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from astropy.io import fits
 import os
 import glob
@@ -7,7 +10,7 @@ import sys
 arg=sys.argv
 
 if (arg[1]=="--help" or arg[1]== "-h"):
-    print "mat_change_target_catergory.py script to switch between SCI and CAL"
+    print "mat_change_target_name.py script to change target name on MATISSE raw files"
     print "Usage : dir currentname newname"
 
 else:   
@@ -18,10 +21,18 @@ else:
     
 
 os.chdir(dir)
-for file in glob.glob("*.fits"):    
+for file in glob.glob("*.fits"): 
+    print(file)   
     d=fits.open(file,mode='update')
-    if (d['OI_TARGET'].data['TARGET'][0]).strip()==currentname:    
+    try:
+	print(d[0].header['ESO OBS TARG NAME'].strip())
+    except:
+	pass
+    if d[0].header['ESO OBS TARG NAME'].strip()==currentname:    
         print("changing tarname of {0} to {1}".format(file,newname))
-        d['OI_TARGET'].data['TARGET'][0]= newname
+        d[0].header['ESO OBS TARG NAME']= newname
         d.flush()
     d.close()
+
+
+
