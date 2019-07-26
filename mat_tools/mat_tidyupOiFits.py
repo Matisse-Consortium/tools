@@ -1,14 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 16 19:38:46 2018
+This file is part of the Matisse pipeline GUI series
+Copyright (C) 2017- Observatoire de la Côte d'Azur
 
+Created on Fri Mar 16 19:38:46 2018
 @author: fmillour
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software.
+
+You can use, modify and/ or redistribute the software under the terms
+of the CeCILL license as circulated by CEA, CNRS and INRIA at the
+following URL "http://www.cecill.info". You have a copy of the licence
+in the LICENCE.md file.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
 """
 
 import os
 import wx
 import sys
+import argparse
+from tqdm import tqdm
+from tqdm import trange
+import colorama
 from astropy.io import fits
 from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
@@ -36,91 +53,112 @@ def removeSpaces(string):
 def change_oifitsFile_name(oifits):
     direc = os.path.dirname(oifits)
 
-    print("looking if the file is a MATISSE oifits")
+    #print("looking if the file is a MATISSE oifits")
     # First check this is indeed an oifits file
     try:
         hdu     = fits.getheader(oifits)
-        if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
-            print('yay let\'s do it!')
+        if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or\
+           hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
+            #print('yay let\'s do it!')
 
             try:
                 targ = hdu['HIERARCH ESO OBS TARG NAME']
             except:
                 targ = hdu['OBJECT']
 
+            chipType = hdu['HIERARCH ESO DET CHIP TYPE'];
+            if chipType == 'IR-LM':
+                resol = hdu['HIERARCH ESO INS DIL NAME'];
+            elif chipType == 'IR-N':
+                resol = hdu['HIERARCH ESO INS DIN NAME'];
+                            
             newName = os.path.join(direc,
                                 hdu['HIERARCH ESO TPL START'].replace(':','') +
                                 '_' + targ.replace(" ","") +
-                                '_' + hdu['HIERARCH ESO DET CHIP TYPE'] +
+                                '_' + chipType +
+                                '_' + resol +
                                 '_' + hdu['HIERARCH ESO INS BCD1 NAME'] +
                                 '_'+hdu['HIERARCH ESO INS BCD2 NAME'] +
                                   '.fits');
 
-            print("renaming "+oifits+" into " +newName)
+            #print("renaming "+os.path.basename(oifits)+" into " +os.path.basename(newName))
             #copyfile(src, dst)
             os.rename(oifits, newName)
     except:
-        print("Not a fits file!")
+        do_nothing = 1;
+        #print("Not a fits file!")
 
 ###############################################################################
 
 if __name__ == '__main__':
-    # Get command line arguments
-    listArg   = sys.argv
-    name_file = []
-    for elt in listArg:
-        if ('--help' in elt):
-            print( "Usage: mat_show_rawdata.py [--dir=start directory]")
-            sys.exit(0)
-        elif len(listArg) == 2:
-            name_file = sys.argv[1]
-            print(name_file)
+    print("Starting mat_tidyupOiFits...")
 
-    app = wx.App()
-    if not name_file:
-        print("No input name given, running file selector...")
-        openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
-        if openFileDialog.ShowModal() == wx.ID_OK:
-            name_file = openFileDialog.GetPaths()[0]
-            print( name_file)
-        openFileDialog.Destroy()
-    app.MainLoop()
-    app.Destroy()
+    #--------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='A small utility tool to gather all MATISSE oifits files in a single directory.')
 
-    if os.path.isfile(name_file):
-        print("Reading file "+name_file+"...")
-        dic = change_oifitsFile_name(name_file)
+    #--------------------------------------------------------------------------
+    parser.add_argument('oiFits', default="",  \
+    help='The path to the file or directory containing your oifits data.')
+    
 
-    elif os.path.isdir(name_file):
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_tidyupOiFits.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+        print("\n     Example : python mat_tidyupOiFits.py /data/2018-05-19_OIFITS")
+        sys.exit(0)
+        
+    if os.path.isfile(args.oiFits):
+        print("Reading file "+args.oiFits+"...")
+        dic = change_oifitsFile_name(args.oiFits)
+
+    elif os.path.isdir(args.oiFits):
         cwd = os.getcwd()
         # Generate a new directory name: The directory where the fits files are + the extension _OIFITS
-        newdir = os.path.join(cwd, os.path.basename(os.path.abspath(name_file))+"_OIFITS");
+        newdir = os.path.join(cwd, os.path.basename(os.path.abspath(args.oiFits))+"_OIFITS");
         try:
             print(newdir+" already exists...")
             os.stat(newdir)
         except:
             print("Creating directory "+newdir)
             os.mkdir(newdir)
-        print("Listing files in directory")
-
-        print(os.path.join(name_file,"*.fits*"))
-        for root,subfolders,files in os.walk(name_file):
+            
+        print("Oifits files will be copied in that directory.")
+        
+        filecounter = 0
+        allfiles = [];
+        for root,subfolders,files in os.walk(args.oiFits):
             for fil in files:
-                matchfilestoavoid = ["TARGET_CAL_0","OBJ_CORR_FLUX_0","OI_OPDWVPO_","PHOT_BEAMS_","CALIB_CAL_0","RAW_DPHASE_","matis_eop","nrjReal","DSPtarget","nrjImag","fringePeak","BSreal","BSimag"]
-                #print(fil)
-                #print(fnmatch(fil, 'CALIB_CAL_0*'))
-                if fil.endswith('fits') and not fnmatch(fil, "TARGET_CAL_0*") and not fnmatch(fil,"OBJ_CORR_FLUX_0*") and not fnmatch(fil,"OI_OPDWVPO_*") and not fnmatch(fil,"PHOT_BEAMS_*") and not fnmatch(fil,"CALIB_CAL_0*") and not fnmatch(fil,"RAW_DPHASE_*") and not fnmatch(fil,"matis_eop*") and not fnmatch(fil,"nrjReal*") and not fnmatch(fil,"nrjImag*") and not fnmatch(fil,"fringePeak*") and not fnmatch(fil,"BSreal*") and not fnmatch(fil, "BSimag*") :
-                    try:
-                        hdu    = fits.getheader(os.path.join(root,fil))
-                        if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
-                            print('Found an oifits file. Copying it...')
-                            print(fil)
-                            fil = os.path.basename(fil)
-
-                            copyfile(os.path.join(root,fil),
-                                     os.path.join(newdir,fil))
-                            change_oifitsFile_name(os.path.join(newdir,fil))
-                    except:
-                        print("Not a fits file!")
+                allfiles.append(os.path.join(root,fil))
+                filecounter += 1;
+        
+        #print(os.path.join(args.oiFits,"*.fits*"))
+        for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
+            matchfilestoavoid = ["TARGET_CAL_0*","OBJ_CORR_FLUX_0*",
+                                 "OI_OPDWVPO_*","PHOT_BEAMS_*",
+                                 "CALIB_CAL_0*","RAW_DPHASE_*",
+                                 "matis_eop*","nrjReal*",
+                                 "DSPtarget*","nrjImag*",
+                                 "fringePeak*","BSreal*","BSimag*"]
+            
+            fifil = os.path.basename(fil)
+            
+            if fifil.endswith('fits'):
+                for i in matchfilestoavoid:
+                    if fnmatch(fifil, i):
+                        break;
+                
+                try:
+                    hdu    = fits.getheader(fil)
+                    if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or\
+                       hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
+                        
+                        copyfile(fil,
+                                 os.path.join(newdir,fifil))
+                        change_oifitsFile_name(os.path.join(newdir,fifil))
+                except:
+                    do_nothing = 1;
+                    #print("Not a fits file!")
 
 print("I made my job!")
