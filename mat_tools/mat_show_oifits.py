@@ -183,6 +183,7 @@ def open_oi(oi_file):
         dic['VIS']['VISAMPERR'] = hdu['OI_VIS'].data['VISAMPERR']
         dic['VIS']['DPHI']      = hdu['OI_VIS'].data['VISPHI']
         dic['VIS']['DPHIERR']   = hdu['OI_VIS'].data['VISPHIERR']
+        dic['VIS']['FLAG']   = hdu['OI_VIS'].data['FLAG']
         try:
             dic['VIS']['CFLUX']    = hdu['OI_VIS'].data['CFXAMP']
             dic['VIS']['CFLUXERR'] = hdu['OI_VIS'].data['CFXAMPERR']
@@ -205,6 +206,7 @@ def open_oi(oi_file):
         dic['VIS2']['U']         = hdu['OI_VIS2'].data['UCOORD']
         dic['VIS2']['V']         = hdu['OI_VIS2'].data['VCOORD']
         dic['VIS2']['TIME']      = hdu['OI_VIS2'].data['MJD']
+        dic['VIS2']['FLAG']   = hdu['OI_VIS2'].data['FLAG']
         if dic['VIS2']['TIME'][0] < 50000:
             print("WARNING: incoherent MJD, picking it up from header")
             print(np.shape(hdu['OI_VIS2'].data['MJD']))
@@ -238,6 +240,7 @@ def open_oi(oi_file):
         dic['T3']['U2']        = hdu['OI_T3'].data['U2COORD']
         dic['T3']['V2']        = hdu['OI_T3'].data['V2COORD']
         dic['T3']['TIME']      = hdu['OI_T3'].data['MJD']
+        dic['T3']['FLAG']   = hdu['OI_T3'].data['FLAG']
         if dic['T3']['TIME'][0] < 50000:
             dic['T3']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['T3']['STA_INDEX'] = hdu['OI_T3'].data['STA_INDEX']
@@ -249,6 +252,7 @@ def open_oi(oi_file):
         dic['FLUX']['FLUX']      = hdu['OI_FLUX'].data['FLUXDATA']
         dic['FLUX']['FLUXERR']   = hdu['OI_FLUX'].data['FLUXERR']
         dic['FLUX']['TIME']      = hdu['OI_FLUX'].data['MJD']
+        dic['FLUX']['FLAG']      = hdu['OI_FLUX'].data['FLAG']
         if dic['FLUX']['TIME'][0] < 50000:
             dic['FLUX']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['FLUX']['STA_INDEX'] = hdu['OI_FLUX'].data['STA_INDEX']
@@ -351,7 +355,7 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
 def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     plot_errorbars=True, correct_polynom=False,
                     timeVertOffset=0, stdevRange=False, normRange=False,
-                    stdevTime=False,subplotList=None,colorList=None):
+                    stdevTime=False,subplotList=None,colorList=None,useFlag=False):
    # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
 
     sta_index_cal = []
@@ -360,6 +364,17 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     wl     = dic['WLEN'];
     nbWlen = len(wl)
     data   = dic[key][datatype];
+    flag   = dic[key]['FLAG']
+
+    flag   = dic[key]['FLAG']
+
+    idxGood=[]
+    for i in range(np.shape(flag)[0]):
+        if useFlag:
+            idxGood.append(np.where(np.logical_not(flag[i]))[0])
+        else:
+            idxGood.append(np.arange(np.size(flag[i])))
+
     datae  = dic[key][datatype + "ERR"];
     time   = dic[key]["TIME"];
 
@@ -431,13 +446,11 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     elif key == 'TF2':
                         label = 'TF'
 
-            #print(i)
-            #print(idx)
-            #print(np.shape(data))
+
             if not(colorList):
-                axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j)
+                axs1[j].plot(wl[idxGood[idx]] * 1e6, data[idx, idxGood[idx]]+timeVertOffset*j)
             else:
-                axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j,color=colorList[j],alpha=1-float(i)/float(npl))
+                axs1[j].plot(wl[idxGood[idx]] * 1e6, data[idx, idxGood[idx]]+timeVertOffset*j,color=colorList[j],alpha=1-float(i)/float(npl))
             if not(subplotList):
                 axs1[j].set_ylabel(label)
                 axs1[j].set_xlabel(r"$\lambda\ (\mu\mathrm{m}$)")
@@ -713,10 +726,10 @@ useStations=True,xlog=False,ylog=False):
 def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
                     datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True, sciColor='red',calColor='blue'):
     print("Starting show_oi_vs_time...")
-    
 
 
-    
+
+
     # check if list is not empty:
     if list_of_dicts:
         target_names_cal = []
@@ -818,7 +831,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
             MJD_range = [0.0, 1.0]
         text_width_MJD = (MJD_range[1] - MJD_range[0]) / 20.0
 
-        
+
         if not(subplotList):
             fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
             axs1 = axs1.ravel()
@@ -826,10 +839,10 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
             axs1 = subplotList
 
 
-    
 
 
-        
+
+
         for i in range(n_max_config):
             # print i
             if datatype == 'DPHI' or datatype == 'CLOS':
@@ -982,7 +995,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
             plt.tight_layout()
         if not(subplotList):
             plt.show()
-        
+
 
 ###############################################################################
 # showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)

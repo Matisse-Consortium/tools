@@ -118,7 +118,10 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
             plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
         pltv2.append(plts['VIS2_{0}'.format(i)])
     msoi.show_oi_vs_wlen(dic,key='VIS2',datatype="VIS2",plot_errorbars=showErr,subplotList=pltv2,colorList=cols)
+
         #plts['VIS2_{0}'.format(i)].plot(wl,v2[i,:],color=cols[i])
+
+
     pltphi=[]
     for i in range(6):
         if i==0:
@@ -186,6 +189,18 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
     plts['CP_0'].set_ylim(mincp,maxcp)
 
 
+    for i in range(6):
+        tel1=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['VIS2']['STA_INDEX'][i,0])[0]][0]
+        tel2=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['VIS2']['STA_INDEX'][i,1])[0]][0]
+        txt="{0}-{1}".format(tel1,tel2)
+        plts["VIS2_{0}".format(i)].text(1.01,0.5,txt,transform=plts["VIS2_{0}".format(i)].transAxes,rotation=90,verticalAlignment='center')
+
+    for i in range(4):
+        tel1=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,0])[0]][0]
+        tel2=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,1])[0]][0]
+        tel3=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,2])[0]][0]
+        txt="{0}-{1}-{2}".format(tel1,tel2,tel3)
+        plts["CP_{0}".format(i)].text(1.01,0.5,txt,transform=plts["CP_{0}".format(i)].transAxes,rotation=90,verticalAlignment='center')
 
 
     if not(corrFlux):
