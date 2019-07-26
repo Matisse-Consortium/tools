@@ -23,5 +23,5 @@ setuptools.setup(
         "Topic :: Scientific/Engineering :: Astronomy",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    install_requires=['objectlistview','astropy','wxpython']
+    install_requires=['objectlistview','astropy','wxpython','tqdm']
 )
