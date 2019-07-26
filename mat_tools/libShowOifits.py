@@ -1,63 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  $Id: $
-
   This file is part of the Matisse pipeline GUI series
   Copyright (C) 2017- Observatoire de la Côte d'Azur
 
   Created on Sat Mar 17 06:39:49 2018
-  @author: fmillour
-  fmillour@oca.eu
+  @author: fmillour, jvarga, ame
+
+  Please contact florentin.millour@oca.eu for any question
 
   This software is a computer program whose purpose is to show oifits
   files from the MATISSE instrument.
+ 
+  This software is governed by the CeCILL license under French law and
+  abiding by the rules of distribution of free software. 
 
-  This software is governed by the CeCILL  license under French law and
-  abiding by the rules of distribution of free software.  You can  use,
-  modify and/ or redistribute the software under the terms of the CeCILL
-  license as circulated by CEA, CNRS and INRIA at the following URL
-  "http://www.cecill.info".
-
-  As a counterpart to the access to the source code and  rights to copy,
-  modify and redistribute granted by the license, users are provided only
-  with a limited warranty  and the software's author,  the holder of the
-  economic rights,  and the successive licensors  have only  limited
-  liability.
-
-  In this respect, the user's attention is drawn to the risks associated
-  with loading,  using,  modifying and/or developing or reproducing the
-  software by the user in light of its specific status of free software,
-  that may mean  that it is complicated to manipulate,  and  that  also
-  therefore means  that it is reserved for developers  and  experienced
-  professionals having in-depth computer knowledge. Users are therefore
-  encouraged to load and test the software's suitability as regards their
-  requirements in conditions enabling the security of their systems and/or
-  data to be ensured and,  more generally, to use and operate it in the
-  same conditions as regards security.
+  You can use, modify and/ or redistribute the software under the
+  terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
+  the following URL "http://www.cecill.info". You have a copy of the
+  licence in the LICENCE.md file.
 
   The fact that you are presently reading this means that you have had
   knowledge of the CeCILL license and that you accept its terms.
 
-  Changelog:
-  2018-03-23: new functions: oi_data_select_frame, filter_oi_list, open_oi_dir,
-              show_vis2_tf2_vs_time, show_oi_vs_time (jvarga)
-  2018-03-26: new GUI interface ready: oi_data_select_frame (jvarga)
-  2018-04-04: updated GUI and extended functionality: input file/folder
-              textbox, filter for target name, more bands (JHK) available
-              (for e.g. AMBER data), plot with or without errorbars, plot V or
-              V2 (jvarga)
 """
 
 import math
 import numpy as np
 from   matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
-from   astropy.io import fits as fitscp
+from   astropy.io import fits as fits
 import glob
 import libRobust as robust
 from astroquery.simbad import Simbad
 from astropy import coordinates
+from astropy.io import fits
 from os.path import expanduser
 from matplotlib.ticker import *
 
@@ -178,6 +155,7 @@ def open_oi(oi_file):
         dic['VIS']['VISAMPERR'] = hdu['OI_VIS'].data['VISAMPERR']
         dic['VIS']['DPHI']      = hdu['OI_VIS'].data['VISPHI']
         dic['VIS']['DPHIERR']   = hdu['OI_VIS'].data['VISPHIERR']
+        dic['VIS']['FLAG']   = hdu['OI_VIS'].data['FLAG']
         try:
             dic['VIS']['CFLUX']    = hdu['OI_VIS'].data['CFXAMP']
             dic['VIS']['CFLUXERR'] = hdu['OI_VIS'].data['CFXAMPERR']
@@ -200,6 +178,7 @@ def open_oi(oi_file):
         dic['VIS2']['U']         = hdu['OI_VIS2'].data['UCOORD']
         dic['VIS2']['V']         = hdu['OI_VIS2'].data['VCOORD']
         dic['VIS2']['TIME']      = hdu['OI_VIS2'].data['MJD']
+        dic['VIS2']['FLAG']   = hdu['OI_VIS2'].data['FLAG']
         if dic['VIS2']['TIME'][0] < 50000:
             print("WARNING: incoherent MJD, picking it up from header")
             print(np.shape(hdu['OI_VIS2'].data['MJD']))
@@ -233,6 +212,7 @@ def open_oi(oi_file):
         dic['T3']['U2']        = hdu['OI_T3'].data['U2COORD']
         dic['T3']['V2']        = hdu['OI_T3'].data['V2COORD']
         dic['T3']['TIME']      = hdu['OI_T3'].data['MJD']
+        dic['T3']['FLAG']   = hdu['OI_T3'].data['FLAG']
         if dic['T3']['TIME'][0] < 50000:
             dic['T3']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['T3']['STA_INDEX'] = hdu['OI_T3'].data['STA_INDEX']
@@ -244,6 +224,7 @@ def open_oi(oi_file):
         dic['FLUX']['FLUX']      = hdu['OI_FLUX'].data['FLUXDATA']
         dic['FLUX']['FLUXERR']   = hdu['OI_FLUX'].data['FLUXERR']
         dic['FLUX']['TIME']      = hdu['OI_FLUX'].data['MJD']
+        dic['FLUX']['FLAG']      = hdu['OI_FLUX'].data['FLAG']
         if dic['FLUX']['TIME'][0] < 50000:
             dic['FLUX']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['FLUX']['STA_INDEX'] = hdu['OI_FLUX'].data['STA_INDEX']
@@ -346,7 +327,7 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
 def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     plot_errorbars=True, correct_polynom=False,
                     timeVertOffset=0, stdevRange=False, normRange=False,
-                    stdevTime=False,subplotList=None,colorList=None):
+                    stdevTime=False,subplotList=None,colorList=None,useFlag=False):
    # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
 
     sta_index_cal = []
@@ -355,6 +336,17 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     wl     = dic['WLEN'];
     nbWlen = len(wl)
     data   = dic[key][datatype];
+    flag   = dic[key]['FLAG']
+
+    flag   = dic[key]['FLAG']
+
+    idxGood=[]
+    for i in range(np.shape(flag)[0]):
+        if useFlag:
+            idxGood.append(np.where(np.logical_not(flag[i]))[0])
+        else:
+            idxGood.append(np.arange(np.size(flag[i])))
+
     datae  = dic[key][datatype + "ERR"];
     time   = dic[key]["TIME"];
 
@@ -429,9 +421,9 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
             #print(idx)
             #print(np.shape(data))
             if not(colorList):
-                axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j)
+                axs1[j].plot(wl[idxGood[idx]] * 1e6, data[idx, idxGood[idx]]+timeVertOffset*j)
             else:
-                axs1[j].plot(wl * 1e6, data[idx, :]+timeVertOffset*j,color=colorList[j],alpha=1-float(i)/float(npl))
+                axs1[j].plot(wl[idxGood[idx]] * 1e6, data[idx, idxGood[idx]]+timeVertOffset*j,color=colorList[j],alpha=1-float(i)/float(npl))
             if not(subplotList):
                 axs1[j].set_ylabel(label)
                 axs1[j].set_xlabel(r"$\lambda\ (\mu\mathrm{m}$)")
@@ -704,10 +696,19 @@ useStations=True,xlog=False,ylog=False):
 # show_oi_vs_time(filtered_list_of_dicts, [3.5, 3.95], key="VIS2",
 # datatype='VIS2') #[3.5, 3.95] [10.2,10.9]
 #
-def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",
-datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
+def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
+                    datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True, sciColor='red',calColor='blue'):
+    print("Starting show_oi_vs_time...")
+
+
+
+
     # check if list is not empty:
     if list_of_dicts:
+        V2_cal_colors = np.array(['palegoldenrod', 'khaki', 'navajowhite', 'moccasin'])
+        V2_colors     = np.array(['red', 'orange', 'salmon', 'pink'])
+        TF2_colors    = np.array(['darkseagreen', 'yellowgreen', 'olivedrab', 'darkkhaki'])
+        
         target_names_cal = []
         MJD_arr_cal      = []
         arr_cal          = []
@@ -780,12 +781,18 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
         arr_cal          = np.array(arr_cal)
         err_arr_cal      = np.array(err_arr_cal)
         sta_index_cal    = np.array(sta_index_cal)
+        if showvis == True:
+            arr_cal     = np.sqrt(arr_cal);
+            err_arr_cal = 0.5 * err_arr_cal / np.sqrt(arr_cal)
 
         target_names_sci = np.array(target_names_sci)
         MJD_arr_sci      = np.array(MJD_arr_sci)
         arr_sci          = np.array(arr_sci)
         err_arr_sci      = np.array(err_arr_sci)
         sta_index_sci    = np.array(sta_index_sci)
+        if showvis == True:
+            arr_sci     = np.sqrt(arr_sci);
+            err_arr_sci = 0.5 * err_arr_sci / np.sqrt(arr_sci)
 
         sta_indices = np.unique(sta_index_cal, axis=0)
         if key == 'VIS' or key == 'VIS2' or key == 'TF2':
@@ -797,8 +804,10 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
         # print sta_indices.shape
 
         if len(MJD_arr_cal) > 0 and len(MJD_arr_sci) > 0:
-            MJD_range = [np.nanmin([np.nanmin(MJD_arr_cal), np.nanmin(MJD_arr_sci)]),
-                         np.nanmax([np.nanmax(MJD_arr_cal), np.nanmax(MJD_arr_sci)])]
+            MJD_range = [np.nanmin([np.nanmin(MJD_arr_cal),
+                                    np.nanmin(MJD_arr_sci)]),
+                         np.nanmax([np.nanmax(MJD_arr_cal),
+                                    np.nanmax(MJD_arr_sci)])]
         elif len(MJD_arr_sci) > 0:
             MJD_range = [np.nanmin(MJD_arr_sci), np.nanmax(MJD_arr_sci)]
         elif len(MJD_arr_cal) > 0:
@@ -807,8 +816,12 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
             MJD_range = [0.0, 1.0]
         text_width_MJD = (MJD_range[1] - MJD_range[0]) / 20.0
 
-        fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
-        axs1 = axs1.ravel()
+        if not(subplotList):
+            fig1, axs1 = plt.subplots(n_plot_rows, 2, figsize=(15, 16), sharex=True, sharey=True)
+            axs1 = axs1.ravel()
+        else:
+            axs1 = subplotList
+
         for i in range(n_max_config):
             # print i
             if datatype == 'DPHI' or datatype == 'CLOS':
@@ -817,36 +830,26 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                 idxst = np.all(sta_index_cal == sta_indices[i], axis=1)
                 if len(arr_cal[idxst]) > 0:
                     label = datatype +' cal'
+                    if showvis == True:
+                        if key == 'VIS2' or key == 'TF2':
+                            if key == 'VIS2':
+                                label = 'VIS' + ' cal'
+                            elif key == 'TF2':
+                                label = 'TF' + ' cal'
+                    
                     if plot_errorbars == True:
-                        if showvis == True:
-                            if key == 'VIS2' or key == 'TF2':
-                                if key == 'VIS2':
-                                    label = 'VIS' + ' cal'
-                                elif key == 'TF2':
-                                    label = 'TF' + ' cal'
-                                axs1[i].errorbar(MJD_arr_cal[idxst], np.sqrt(arr_cal[idxst]),
-                                                 yerr=0.5 * err_arr_cal[idxst] / np.sqrt(arr_cal[idxst]),
-                                                 fmt='o', color='blue', elinewidth=1.0,
-                                                 label=label)
-                        else:
-                            axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst],
-                                             yerr=err_arr_cal[idxst],
-                                             fmt='o', color='blue', elinewidth=1.0,
-                                             label=label)
+                        axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst],yerr=err_arr_cal[idxst], fmt='o', color=calColor, elinewidth=1.0, label=label)
+                        
+                        if key ==  'TF2':
+                            ### Plot an interpolation of transfer function
+                            z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],3)
+                            p = np.poly1d(z)
+                            x = (np.max(MJD_arr_cal[idxst])-np.min(MJD_arr_cal[idxst]))*np.arange(100)/100.
+                            axs1[i].plot(np.min(MJD_arr_cal[idxst])+x,p(x),color='gray')
+                                
                     else:
-                        if showvis == True:
-                            if key == 'VIS2' or key == 'TF2':
-                                if key == 'VIS2':
-                                    label = 'VIS' + ' sci'
-                                elif key == 'TF2':
-                                    label = 'TF' + ' sci'
-                                axs1[i].errorbar(MJD_arr_cal[idxst], np.sqrt(arr_cal[idxst]),
-                                                 fmt='o', color='blue', elinewidth=1.0,
-                                                 label=label)
-                        else:
-                            axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst],
-                                             fmt='o', color='blue', elinewidth=1.0,
-                                             label=label)
+                        axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst], fmt='o', color=calColor, elinewidth=1.0, label=label)
+                        
                     if i in range(2):
                         text_tag_flag = 1
                         prev_text_MJD = 0.0
@@ -866,35 +869,17 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                 label = datatype +' sci'
                 idxst = np.all(sta_index_sci == sta_indices[i], axis=1)
                 if len(arr_sci[idxst]) > 0:
+                    if showvis == True:
+                        if key == 'VIS2' or key == 'TF2':
+                            if key == 'VIS2':
+                                label = 'VIS' + ' sci'
+                            elif key == 'TF2':
+                                label = 'TF' + ' sci'
+                                    
                     if plot_errorbars == True:
-                        if showvis == True:
-                            if key == 'VIS2' or key == 'TF2':
-                                if key == 'VIS2':
-                                    label = 'VIS' + ' sci'
-                                elif key == 'TF2':
-                                    label = 'TF' + ' sci'
-                                axs1[i].errorbar(MJD_arr_sci[idxst], np.sqrt(arr_sci[idxst]),
-                                                 yerr=0.5 * err_arr_sci[idxst] / np.sqrt(arr_sci[idxst]),
-                                                 fmt='o', color='red', elinewidth=1.0,
-                                                 label=label)
-                        else:
-                            axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst], yerr=err_arr_sci[idxst],
-                                                 fmt='o', color='red', elinewidth=1.0,
-                                                 label=label)
+                        axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst], yerr=err_arr_sci[idxst], fmt='o', color=sciColor, elinewidth=1.0, label=label)
                     else:
-                        if showvis == True:
-                            if key == 'VIS2' or key == 'TF2':
-                                if key == 'VIS2':
-                                    label = 'VIS' + ' sci'
-                                elif key == 'TF2':
-                                    label = 'TF' + ' sci'
-                                axs1[i].errorbar(MJD_arr_sci[idxst], np.sqrt(arr_sci[idxst]),
-                                                 fmt='o', color='red', elinewidth=1.0,
-                                                 label=label)
-                        else:
-                            axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst],
-                                         fmt='o', color='red', elinewidth=1.0,
-                                         label=label)
+                        axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst], fmt='o', color=sciColor, elinewidth=1.0, label=label)
                     if i in range(2):
                         text_tag_flag = 1
                         prev_text_MJD = 0.0
@@ -904,8 +889,10 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
                                 text_tag_flag = 1
                             if text_tag_flag == 1 or (prev_target_name != target_names_sci[idxst][j]):
                                 ymin, ymax = axs1[i + 0].get_ylim()
-                                axs1[i].text(MJD_arr_sci[idxst][j], ymax*1.05, target_names_sci[idxst][j].replace('_', ' '),
-                                             rotation=90, va='bottom', color='darkred')
+                                axs1[i].text(MJD_arr_sci[idxst][j], ymax*1.05,
+                                             target_names_sci[idxst][j].replace('_', ' '),
+                                             rotation=90, va='bottom',
+                                             color='darkred')
                                 text_tag_flag = 0
                                 prev_text_MJD = MJD_arr_sci[idxst][j]
                                 prev_target_name = target_names_sci[idxst][j]
@@ -957,8 +944,10 @@ datatype="VIS2",showvis=False,plot_errorbars=True,useStations=True):
         #     plt.setp(axs1[i].get_yticklabels(), visible=False)
         #     y_axis = axs1[i].axes.get_yaxis()
         #     y_axis.get_label().set_visible(False)
-        plt.tight_layout()
-        plt.show()
+        if not(subplotList):
+            plt.tight_layout()
+        if not(subplotList):
+            plt.show()
 
 ###############################################################################
 # showvis: if True, plot visibilities (V) instead of V^2: V is calculated from V^2 (not from the VISAMP table)
