@@ -1,41 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-  $Id$
+This file is part of the Matisse pipeline GUI series
+Copyright (C) 2017- Observatoire de la Côte d'Azur
 
-  This file is part of the Matisse pipeline GUI series
-  Copyright (C) 2017- Observatoire de la Côte d'Azur
+Created in 2016
+@author: pbe, fmi
 
-  Created in 2016
-  @author: pbe, fmi
+Automatic MATISSE pipeline !
 
-  Automatic MATISSE pipeline !
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software.
 
-  This software is governed by the CeCILL  license under French law and
-  abiding by the rules of distribution of free software.  You can  use,
-  modify and/ or redistribute the software under the terms of the CeCILL
-  license as circulated by CEA, CNRS and INRIA at the following URL
-  "http://www.cecill.info".
+You can use, modify and/ or redistribute the software under the terms
+of the CeCILL license as circulated by CEA, CNRS and INRIA at the
+following URL "http://www.cecill.info". You have a copy of the licence
+in the LICENCE.md file.
 
-  As a counterpart to the access to the source code and  rights to copy,
-  modify and redistribute granted by the license, users are provided only
-  with a limited warranty  and the software's author,  the holder of the
-  economic rights,  and the successive licensors  have only  limited
-  liability.
-
-  In this respect, the user's attention is drawn to the risks associated
-  with loading,  using,  modifying and/or developing or reproducing the
-  software by the user in light of its specific status of free software,
-  that may mean  that it is complicated to manipulate,  and  that  also
-  therefore means  that it is reserved for developers  and  experienced
-  professionals having in-depth computer knowledge. Users are therefore
-  encouraged to load and test the software's suitability as regards their
-  requirements in conditions enabling the security of their systems and/or
-  data to be ensured and,  more generally, to use and operate it in the
-  same conditions as regards security.
-
-  The fact that you are presently reading this means that you have had
-  knowledge of the CeCILL license and that you accept its terms.
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
 """
 
 import numpy as np
@@ -401,7 +384,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		        print("outputDir "+outputDir+" does not exist. Creating it...\n")
 		        os.mkdir(outputDir)
 
-		    cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param']+" "+sofname+"%"+resol;
+		    cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param'].replace("/"," --")+" "+sofname+"%"+resol;
 
 		    if (iterNumber > 1):
 		        sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
@@ -495,15 +478,15 @@ if __name__ == '__main__':
 
     #--------------------------------------------------------------------------
     parser.add_argument('--overwrite', default=0,  \
-    help='overwrite existing files')
+    help='overwrite existing files', action='store_true')
 
     #--------------------------------------------------------------------------
     parser.add_argument('--skipL', default=0,  \
-    help='skip L band data')
+    help='skip L band data', action='store_true')
 
     #--------------------------------------------------------------------------
     parser.add_argument('--skipN', default=0,  \
-    help='skip N band data')
+    help='skip N band data', action='store_true')
 
     #--------------------------------------------------------------------------
     parser.add_argument('--resol', default="",  \
@@ -528,7 +511,7 @@ if __name__ == '__main__':
     except:
         print("\n\033[93mRunning mat_autoPipeline.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-        print("\n     Example : python mat_autoPipeline.py --dirRaw=/data/2018-05-19 --skipN --resol=LOW --nbCores=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
+        print("\n     Example : python mat_autoPipeline.py /data/2018-05-19 --skipN --resol=LOW --nbCores=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
 	for i in range(10):
 		print("*****************************************")
