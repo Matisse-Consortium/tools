@@ -71,6 +71,15 @@ def change_oifitsFile_name(oifits):
                 resol = hdu['HIERARCH ESO INS DIL NAME'];
             elif chipType == 'IR-N':
                 resol = hdu['HIERARCH ESO INS DIN NAME'];
+            try:
+                chop = hdu['HIERARCH ESO ISS CHOP ST']
+            except:
+                chop = 'F'
+            if (chop == 'F'):
+                chopMode='noChop'
+            else:
+                chopMode='Chop'
+
                             
             newName = os.path.join(direc,
                                 hdu['HIERARCH ESO TPL START'].replace(':','') +
@@ -78,7 +87,8 @@ def change_oifitsFile_name(oifits):
                                 '_' + chipType +
                                 '_' + resol +
                                 '_' + hdu['HIERARCH ESO INS BCD1 NAME'] +
-                                '_'+hdu['HIERARCH ESO INS BCD2 NAME'] +
+                                '_' + hdu['HIERARCH ESO INS BCD2 NAME'] +
+                                '_' + chopMode +
                                   '.fits');
 
             #print("renaming "+os.path.basename(oifits)+" into " +os.path.basename(newName))
