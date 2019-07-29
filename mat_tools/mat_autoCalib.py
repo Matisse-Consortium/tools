@@ -44,6 +44,7 @@ import argparse
 import glob
 import os
 import sys
+from tqdm import tqdm
 import numpy as np
 from astropy.io import fits
 
@@ -55,24 +56,24 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
     SOFFILE = [];
 
     files =  glob.glob(input_dir+'/*.fits')
-    print input_dir#, files
+    #print input_dir#, files
 
     DIC = []
     # First read all files
-    print("Reading all files keywords...")
+    print("Scanning files in "+input_dir+" ...")
+    #print("Reading all files keywords...")
     for f in files:
         hdr     = fits.open(f)[0].header
         dic = {'hdr': hdr}
         DIC.append(dic)
         #try:
-    print("Scanning files...")
     for i,f in enumerate(files):
             hdri = DIC[i]['hdr']
             obstype = hdri['ESO PRO CATG']
 
             if obstype == 'TARGET_RAW_INT':
                 #print("\nFound a TARGET file! Working on it...")
-                print("Working on", f)
+                #print("Working on", f)
                 mjd  = hdri['MJD-OBS']
                 bcd1 = hdri['ESO INS BCD1 NAME']
                 bcd2 = hdri['ESO INS BCD2 NAME']
@@ -114,7 +115,7 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
                                 calcount+=1
 
                 soffile.close()
-                print("Found",calcount,"suitable calibrators")
+                #print("Found",calcount,"suitable calibrators")
 
             fmat = obstype[:-1]
             if 'RAW_INT' not in fmat:
@@ -165,9 +166,9 @@ if __name__ == '__main__':
     
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------
-    for isof in targsof:
-        print 'Running mat_cal_oifits on sof:%s'%(isof)
-        call("esorex --output-dir=%s mat_cal_oifits %s"%(args.out_dir,isof), shell=True)
+    for isof in tqdm(targsof, unit=" files", unit_scale=False, desc="Calibrating..."):
+        #print 'Running mat_cal_oifits on sof:%s'%(isof)
+        call("esorex --output-dir=%s mat_cal_oifits %s>log.log"%(args.out_dir,isof), shell=True)
 
         name, ext = os.path.splitext(isof)
         #print(name)
@@ -176,5 +177,5 @@ if __name__ == '__main__':
         resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits')
         #print(resultFiles)
         for idx,fi in enumerate(resultFiles):
-            print("renaming",fi, name+"_"+str(idx+1)+'.fits')
+            #print("renaming",fi, name+"_"+str(idx+1)+'.fits')
             os.rename(fi, name+"_"+str(idx)+'.fits')
