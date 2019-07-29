@@ -158,9 +158,9 @@ if __name__ == '__main__':
     
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------
-    for isof in tqdm(targsof, unit=" files", unit_scale=False, desc="Calibrating..."):
+    for isof in tqdm(targsof, unit="file", unit_scale=False, desc="Calibrating"):
         #print 'Running mat_cal_oifits on sof:%s'%(isof)
-        call("esorex --output-dir=%s mat_cal_oifits %s>log.log"%(args.out_dir,isof), shell=True)
+        call("esorex --output-dir=%s mat_cal_oifits %s >> log.log"%(args.out_dir,isof), shell=True)
 
         # Create a process pool with a maximum of 10 worker processes
 	#pool = Pool(processes=8)
@@ -176,3 +176,9 @@ if __name__ == '__main__':
         for idx,fi in enumerate(resultFiles):
             #print("renaming",fi, name+"_"+str(idx+1)+'.fits')
             os.rename(fi, name+"_"+str(idx)+'.fits')
+
+    # cleanup intermediate files
+    os.remove("CAL_CPHASE.fits")
+    os.remove("CAL_DPHASE.fits")
+    os.remove("CAL_VIS.fits")
+    #os.remove("CALIBRATED/*.sof")
