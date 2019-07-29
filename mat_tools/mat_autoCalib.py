@@ -92,13 +92,12 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
                         chipc = hdrj['ESO DET CHIP NAME']
                         ditc  = hdrj['ESO DET SEQ1 DIT']
                         try:
-                            chopc = hdri['ESO ISS CHOP ST']
+                            chopc = hdrj['ESO ISS CHOP ST']
                         except:
                             chopc = 'F'
                             print("error")
                         dif = mjd - mjdc
                         absdif = np.abs(dif)
-
                         if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
                             if absdif < timespan:
                                 #print(fcal)
