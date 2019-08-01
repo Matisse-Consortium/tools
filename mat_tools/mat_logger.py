@@ -1052,6 +1052,7 @@ if __name__ == '__main__':
     except:
         pass
 
+    os.chdir(dir0)
     # Save a backup pkl file, just in case something happens
     #saveBackup()
     #autoUpdate()
