@@ -11,9 +11,9 @@
 
   This software is a computer program whose purpose is to show oifits
   files from the MATISSE instrument.
- 
+
   This software is governed by the CeCILL license under French law and
-  abiding by the rules of distribution of free software. 
+  abiding by the rules of distribution of free software.
 
   You can use, modify and/ or redistribute the software under the
   terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
@@ -235,7 +235,7 @@ def open_oi(oi_file):
 
 ###############################################################################
 
-def show_oi_vs_freq(dic, log=False,showvis=False):
+def show_oi_vs_freq(dic, log=False,showvis=False, subplotV2=None, subplotCP=None):
     wl    = dic['WLEN'];
     vis2  = dic['VIS2']['VIS2'];
     vis2e = dic['VIS2']['VIS2ERR'];
@@ -248,10 +248,15 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
     u2    = dic['T3']['U2'];
     v2    = dic['T3']['V2'];
 
-    plt.figure(figsize=(9, 6))
-    G = gridspec.GridSpec(2, 1)
+    if not(subplotV2 and subplotCP):
+        plt.figure(figsize=(9, 6))
+        G = gridspec.GridSpec(2, 1)
+        axes_v2 = plt.subplot(G[0, :])
+        axes_cp = plt.subplot(G[1, :])
+    else:
+        axes_v2 = subplotV2
+        axes_cp = subplotCP
 
-    axes_v2 = plt.subplot(G[0, :])
 
     # Visibility
     # Plot all data first
@@ -263,7 +268,7 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
                 axes_v2.semilogy(freq, vis2[i, :], color='lightgray')
             else:
                 axes_v2.semilogy(freq, np.sqrt(vis2[i, :]), color='lightgray')
-            plt.ylim([1e-4, 1.1])
+            axes_v2.set_ylim([1e-4, 1.1])
         else:
             if showvis == True:
                 axes_v2.plot(freq, np.sqrt(vis2[i, :]), color='lightgray')
@@ -280,7 +285,7 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
                 axes_v2.semilogy(freq[test], np.sqrt(vis2[i, test]))
             else:
                 axes_v2.semilogy(freq[test], vis2[i, test])
-            plt.ylim([1e-4, 1.1])
+            axes_v2.ylim([1e-4, 1.1])
         else:
             if showvis == True:
                 axes_v2.plot(freq[test], np.sqrt(vis2[i, test]))
@@ -288,17 +293,16 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
                 axes_v2.plot(freq[test], vis2[i, test])
 
     plt.ylim([-0.1, 1.1])
+
     if showvis == True:
-        plt.ylabel('V')
-        axes_v2.set_title('Visibilities vs frequencies')
+        axes_v2.set_ylabel('V')
     else:
-        plt.ylabel('V2')
-        axes_v2.set_title('Squared visibilities vs frequencies')
-    # plt.xlabel('Spatial Frequency (B/$\lambda$)')
+        axes_v2.set_ylabel('V$^2$')
+           # plt.xlabel('Spatial Frequency (B/$\lambda$)')
 
     # Closure phase
     # Plot all data first
-    axes_cp = plt.subplot(G[1, :])
+
     for i, j in enumerate(u1):
         r1 = np.sqrt(u1[i] ** 2 + v1[i] ** 2);
         r2 = np.sqrt(u2[i] ** 2 + v2[i] ** 2);
@@ -315,12 +319,12 @@ def show_oi_vs_freq(dic, log=False,showvis=False):
         test = np.absolute(cpe[i, :]) < 180 / math.pi / 3
         axes_cp.plot(freq[test], cp[i, test])
 
-    plt.ylim([-200, 200])
-    axes_cp.set_title('Closure phase vs frequencies')
-    plt.ylabel('Closure phase')
-    plt.xlabel('Spatial Frequency (B/$\lambda$)')
+    axes_cp.set_ylim([-200, 200])
+    axes_cp.set_ylabel('Closure phase ($^o$)')
+    axes_cp.set_xlabel('B/$\lambda$ (cycles/rad)')
 
-    plt.show()
+    if not(subplotV2 and subplotCP):
+        plt.show()
 
 ###############################################################################
 
@@ -708,7 +712,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
         V2_cal_colors = np.array(['palegoldenrod', 'khaki', 'navajowhite', 'moccasin'])
         V2_colors     = np.array(['red', 'orange', 'salmon', 'pink'])
         TF2_colors    = np.array(['darkseagreen', 'yellowgreen', 'olivedrab', 'darkkhaki'])
-        
+
         target_names_cal = []
         MJD_arr_cal      = []
         arr_cal          = []
@@ -836,20 +840,20 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
                                 label = 'VIS' + ' cal'
                             elif key == 'TF2':
                                 label = 'TF' + ' cal'
-                    
+
                     if plot_errorbars == True:
                         axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst],yerr=err_arr_cal[idxst], fmt='o', color=calColor, elinewidth=1.0, label=label)
-                        
+
                         if key ==  'TF2':
                             ### Plot an interpolation of transfer function
                             z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],3)
                             p = np.poly1d(z)
                             x = (np.max(MJD_arr_cal[idxst])-np.min(MJD_arr_cal[idxst]))*np.arange(100)/100.
                             axs1[i].plot(np.min(MJD_arr_cal[idxst])+x,p(x),color='gray')
-                                
+
                     else:
                         axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst], fmt='o', color=calColor, elinewidth=1.0, label=label)
-                        
+
                     if i in range(2):
                         text_tag_flag = 1
                         prev_text_MJD = 0.0
@@ -875,7 +879,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
                                 label = 'VIS' + ' sci'
                             elif key == 'TF2':
                                 label = 'TF' + ' sci'
-                                    
+
                     if plot_errorbars == True:
                         axs1[i].errorbar(MJD_arr_sci[idxst], arr_sci[idxst], yerr=err_arr_sci[idxst], fmt='o', color=sciColor, elinewidth=1.0, label=label)
                     else:

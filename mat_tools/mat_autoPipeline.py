@@ -61,9 +61,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	tplidsel    = ""
 	tplstartsel = ""
 
-	for i in range(10):
-		print("*****************************************")
-		print(type(nbCore))
+
 	# Print meaningful error messages if something is wrong in the command line
 	print("------------------------------------------------------------------------")
 	if (dirRaw == ""):
@@ -513,7 +511,4 @@ if __name__ == '__main__':
         parser.print_help()
         print("\n     Example : python mat_autoPipeline.py /data/2018-05-19 --skipN --resol=LOW --nbCores=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
-	for i in range(10):
-		print("*****************************************")
-		print(type(args.nbCore))
     mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN)
