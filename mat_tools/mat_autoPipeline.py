@@ -57,9 +57,7 @@ def runEsorex(cmd):
 
 #------------------------------------------------------------------------------
 
-def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0):
-	tplidsel    = ""
-	tplstartsel = ""
+def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0, tplstartsel="", tplidsel=""):
 
 
 	# Print meaningful error messages if something is wrong in the command line
@@ -511,4 +509,5 @@ if __name__ == '__main__':
         parser.print_help()
         print("\n     Example : python mat_autoPipeline.py /data/2018-05-19 --skipN --resol=LOW --nbCores=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
-    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN)
+        
+    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN, args.tplSTART, args.tplID)
