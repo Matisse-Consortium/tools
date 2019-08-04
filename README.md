@@ -4,7 +4,9 @@
 The MATISSE python tools are an addition to the [standard data reduction software](http://www.eso.org/sci/software/pipelines/matisse/matisse-pipe-recipes.html) that is distributed separately by ESO. These scripts were developped for the MATISSE commissionning and may be of some use for general users to reduce and visualize data from [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html). However, please note that they should be used at your own risks!
 
 ### Quick install:
-`pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/master/tools-master.tar`
+`pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/master/tools-<version>.tar`
+
+`<version>` can be `master` or `0.1`
 
 ### Quick use:
 1. `mat_autoPipeline.py <raw data directory>`
