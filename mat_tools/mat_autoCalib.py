@@ -21,7 +21,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 """
 
-from   subprocess import call 
+from   subprocess import call
 import argparse
 import glob
 import os
@@ -121,7 +121,7 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
 
 if __name__ == '__main__':
     print("Starting...")
-    
+
     #--------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description='Wrapper to run the calibration steps of the MATISSE DRS on a given directory containong raw OIFITS files.')
 
@@ -151,11 +151,11 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
-        
+
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
-    targsof = make_sof(args.in_dir, args.out_dir)
-    
+    targsof = make_sof(args.in_dir, args.out_dir,timespan=args.timespan)
+
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------
     for isof in tqdm(targsof, unit="file", unit_scale=False, desc="Calibrating"):
@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
         name, ext = os.path.splitext(isof)
         #print(name)
-        
+
         # Rename files
         resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits')
         #print(resultFiles)
@@ -178,7 +178,10 @@ if __name__ == '__main__':
             os.rename(fi, name+"_"+str(idx)+'.fits')
 
     # cleanup intermediate files
-    os.remove("CAL_CPHASE.fits")
-    os.remove("CAL_DPHASE.fits")
-    os.remove("CAL_VIS.fits")
+    try :
+        os.remove("CAL_CPHASE.fits")
+        os.remove("CAL_DPHASE.fits")
+        os.remove("CAL_VIS.fits")
+    except:
+        pass
     #os.remove("CALIBRATED/*.sof")
