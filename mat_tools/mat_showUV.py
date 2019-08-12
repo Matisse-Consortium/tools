@@ -1,12 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec  6 22:22:19 2018
+This file is part of the Matisse pipeline GUI series
+Copyright (C) 2017- Observatoire de la Côte d'Azur
 
+Created on Thu Dec  6 22:22:19 2018
 @author: fmillour
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software.
+
+You can use, modify and/ or redistribute the software under the terms
+of the CeCILL license as circulated by CEA, CNRS and INRIA at the
+following URL "http://www.cecill.info". You have a copy of the licence
+in the LICENCE.md file.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
 """
 
 import wx
+import argparse
 import sys
 import glob
 import numpy as np
@@ -115,58 +129,61 @@ def get_UVs(files):
 
 ###############################################################################
 
-def plot_UV(BX, BY, TARG, marker='o', markersize=6, color="red"):
-    plt.axis('equal')
+def plot_UV(BX, BY, TARG, marker='o', markersize=4, color="red"):
 
     uniques = set(TARG)
     print(uniques)
-    nwin = int(np.sqrt(len(uniques)))
+    if len(uniques) < 4:
+        nwiny = len(uniques)
+        nwinx = 1
+    else:
+        nwin = int(np.sqrt(len(uniques)))
+        nwiny = nwin;
+        nwinx = nwin+1;
 
     for i,base in enumerate(BX):
         for j,uni in enumerate(uniques):
             if uni == TARG[i/6]:
                 idx = j
 
-        ax = plt.subplot(nwin,nwin+1,idx+1)
-        plt.axis('equal')
-        aruni = np.array(list(uniques))
-        print(aruni)
-        ax.set_title(aruni[idx])
-        print(aruni[idx])
+        #print(idx)
+        try:
+            ax = plt.subplot(nwinx,nwiny,idx+1)
+            ax.axis('equal')
+            aruni = np.array(list(uniques))
+            #print(aruni)
+            ax.set_title(aruni[idx])
+            #print(aruni[idx])
+            
+            ax.plot( base, BY[i], marker=marker, markersize=markersize,   color=color)
+            ax.plot(-base,-BY[i], marker='o',    markersize=markersize-2, color=color)
+        except:
+            print("ouille !")
 
-        plt.plot( base, BY[i], marker=marker, markersize=markersize,   color=color)
-        plt.plot(-base,-BY[i], marker='o',    markersize=markersize-3, color=color)
-
-    plt.plot(0,0, marker='+', markersize=markersize, color=color)
+    ax.plot(0,0, marker='+', markersize=markersize, color=color)
 
 ###############################################################################
 
 if __name__ == '__main__':
-    listArg = sys.argv
-    for elt in listArg:
-        if ('--help' in elt):
-            print ("Usage: mat_fileDialog.py [--dir=start directory]")
-            sys.exit(0)
+    print("Starting...")
+    
+    #--------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='(u,v) plane plot.')
+    #--------------------------------------------------------------------------
+    parser.add_argument('in_dir', metavar='in_dir', type=str, \
+    help='The path to the directory containing your oifits data.', default=None)
+    #--------------------------------------------------------------------------
 
-    repBase = []
-    for elt in listArg:
-        if ('--dir' in elt):
-            item=elt.split('=')
-            repBase=item[1]
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_autoCalib.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+	sys.exit(0)
 
-    print(repBase)
+    ########################################################################
 
-    app = wx.App()
-
-    openFileDialog = mat_FileDialog(None, 'Select a directory','')
-    if openFileDialog.ShowModal() == wx.ID_OK:
-        directory = openFileDialog.GetPaths()
-        print(directory)
-
-
-###############################################################################
-
-    files = glob.glob(directory[0]+"/*.fits*")
+    files = glob.glob(args.in_dir+"/*.fits*")
 
     plt.figure(1)
     plt.clf();
@@ -175,6 +192,3 @@ if __name__ == '__main__':
     plot_UV(BX, BY, TARG)
     plt.show();
     
-    openFileDialog.Destroy()
-    app.MainLoop()
-    app.Destroy()
