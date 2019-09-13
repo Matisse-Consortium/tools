@@ -60,7 +60,6 @@ def removeDoubleParamater(p):
     listP=p.split(' ')
     paramName=[]
     paramsNew=''
-    print listP
     for elt in listP:
         idx=elt.find("=")
         if (elt[0:idx] not in paramName and elt != ''):
@@ -279,7 +278,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		        if (paramN == ""):
 		            elt["param"]    = param
 		        else:
-		            elt["param"]    = paramN
+		            elt["param"]    = paramN + " " + param
 		    else:
 		        if (paramL == ""):
 		            elt["param"]    = param
@@ -288,7 +287,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		else:
 		    elt["param"]    = param
 		elt["tplstart"] = keyTplStartCurrent
-
+                
 	# Fill the list of calib in the Reduction Blocks List from dirCalib
 	    print("listing calibrations in the reduction blocks...")
 	    for elt in listRedBlocks:
