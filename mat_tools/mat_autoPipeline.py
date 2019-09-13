@@ -56,6 +56,17 @@ def runEsorex(cmd):
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
 
 #------------------------------------------------------------------------------
+def removeDoubleParamater(p):
+    listP=p.split(' ')
+    paramName=[]
+    paramsNew=''
+    print listP
+    for elt in listP:
+        idx=elt.find("=")
+        if (elt[0:idx] not in paramName and elt != ''):
+            paramName.append(elt[0:idx])
+            paramsNew = paramsNew + " " + elt
+    return paramsNew
 
 def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0, tplstartsel="", tplidsel=""):
 
@@ -273,7 +284,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		        if (paramL == ""):
 		            elt["param"]    = param
 		        else:
-		            elt["param"]    = paramL
+		            elt["param"]    = paramL + " " + param
 		else:
 		    elt["param"]    = param
 		elt["tplstart"] = keyTplStartCurrent
@@ -380,8 +391,11 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		        print("outputDir "+outputDir+" does not exist. Creating it...\n")
 		        os.mkdir(outputDir)
 
-		    cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param'].replace("/"," --")+" "+sofname+"%"+resol;
-
+                    listNewParams=removeDoubleParamater(elt['param'].replace("/"," --"))
+                        
+		    #cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param'].replace("/"," --")+" "+sofname+"%"+resol;
+                    cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+listNewParams+" "+sofname+"%"+resol;
+  
 		    if (iterNumber > 1):
 		        sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
 		        if (os.path.exists(sofnamePrev)):
