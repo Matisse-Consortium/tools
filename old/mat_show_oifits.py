@@ -71,15 +71,15 @@ home = expanduser("~")
 ###############################################################################
 
 def resolve_target(dic):
-    try:
-        ra  = str(dic['HDR']["RA"])
-        dec = str(dic['HDR']["DEC"])
-        c = coordinates.SkyCoord(ra, dec, unit=('deg','deg'), frame='icrs')
-        result_table = Simbad.query_region(c)
-        resolvedTarg = result_table['MAIN_ID'][0]
-    except:
+#    try:
+#        ra  = str(dic['HDR']["RA"])
+#        dec = str(dic['HDR']["DEC"])
+#        c = coordinates.SkyCoord(ra, dec, unit=('deg','deg'), frame='icrs')
+#        result_table = Simbad.query_region(c)
+#        resolvedTarg = result_table['MAIN_ID'][0]
+#    except:
         resolvedTarg = dic['TARGET']
-    return resolvedTarg;
+        return resolvedTarg;
 
 ###############################################################################
 
