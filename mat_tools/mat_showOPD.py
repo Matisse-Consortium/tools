@@ -69,19 +69,23 @@ def mat_show_opd(input_path="",output_path=""):
     hdu_list = fits.open(abs_path, mode='update')
 
     #extract data from file
-    mjd = hdu_list['OI_OPD'].data['MJD']
-    opd = hdu_list['OI_OPD'].data['OPD']
+    time = np.array(hdu_list['OPD'].data['TIME'])
+    time=time-time[0]
+    opd = hdu_list['OPD'].data['OPD']
     opd = np.array(opd)
-    N_tot = len(opd)
+    print(opd)
+    N_tot = np.size(opd)
+    print(N_tot)
+    print(N_tot/n_baselines)
     opd = np.reshape(opd,[N_tot/n_baselines,n_baselines])
-    mjd = np.reshape(mjd,[N_tot/n_baselines,n_baselines])
 
+    #mjd = np.reshape(mjd,[N_tot/n_baselines,n_baselines])
     #make OPD plot
     fig1, (ax1) = plt.subplots(1, 1, sharey=False, figsize=(10, 8))
     for j in range(n_baselines):
-        ax1.plot(mjd[:,j], opd[:,j], '-', color=colors[j], lw=1.5, alpha=0.6, label=('%d' % (j + 1)))
-    ax1.set_xlabel(r'$\mathrm{MJD}$')
-    ax1.set_ylabel(r"${\mathrm{OPD}}$")
+        ax1.plot(time[:], opd[:,j], '-', color=colors[j], lw=1.5, alpha=0.6, label=('%d' % (j + 1)))
+    ax1.set_xlabel(r'$\mathrm{time}$ (s)')
+    ax1.set_ylabel(r"${\mathrm{OPD}}$ ($\mu$m)")
     ax1.set_title(r"$\mathrm{"+ input_filename.split('.')[0].replace('_','\_') +"}$") #replace(r"\",r"\")
     leg = ax1.legend(loc='best') #loc='upper left')
     leg.get_frame().set_alpha(0.5)
