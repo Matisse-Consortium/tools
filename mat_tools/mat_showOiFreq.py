@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
             for idic in filtered_list_of_dicts:
                 msoi.show_oi_vs_freq(idic, log=args.log,showvis=args.showvis, subplotV2=plts['VIS2'], subplotCP=plts['CP'])
-
+            plts['VIS2'].set_ylim(-0.1,1.1)
 
             if args.pdf and not(args.mergedpdf):
                 pdfname = dir0 + "/" + target + "_"+ band + "_plot_freq.pdf"
