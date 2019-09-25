@@ -110,7 +110,7 @@ class mat_logData():
         seeing = " "
         tau0 = " "
         wl0=" "
-        if self.tplid=="MATISSE_img_acq" or self.tplid=="MATISSE_img_acq_ft" :
+        if (self.tplid=="MATISSE_img_acq") or (self.tplid=="MATISSE_img_acq_ft") :
             tpltype="ACQ"
             isImageAcq="F"
             isFringeSearch="F"
@@ -936,9 +936,9 @@ class mat_logger(wx.Dialog):
 # Colour of text for tpl list
     def setRowColorTpl(self,listItem, data):
 
-        if data.tplid == "MATISSE_hyb_obs":
+        if data.tplid == "MATISSE_hyb_obs" or data.tplid == "MATISSE_hse_obs":
                 txtcol=wx.Colour(116,196,147)
-        elif data.tplid == "MATISSE_img_acq":
+        elif data.tplid == "MATISSE_img_acq" or data.tplid == "MATISSE_img_acq_ft":
                 txtcol=wx.Colour(116,147,196)
         else:
                 txtcol=wx.Colour(155,155,155)
