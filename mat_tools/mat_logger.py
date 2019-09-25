@@ -1000,6 +1000,7 @@ class autoUpdate(object):
 ###############################################################################
 
 if __name__ == '__main__':
+    print "boooooooooooooo"
     dir0=[];
     # Scan the command line arguments
     listArg = sys.argv
