@@ -110,7 +110,7 @@ class mat_logData():
         seeing = " "
         tau0 = " "
         wl0=" "
-        if self.tplid=="MATISSE_img_acq":
+        if self.tplid=="MATISSE_img_acq" or self.tplid=="MATISSE_img_acq_ft" :
             tpltype="ACQ"
             isImageAcq="F"
             isFringeSearch="F"
@@ -131,7 +131,7 @@ class mat_logData():
                         din = f.disp
                 if f.dprtype == "STD":
                     isImageAcq = "T"
-        elif self.tplid == "MATISSE_hyb_obs":
+        elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" :
             tpltype="OBS"
 
             isPhotometry = "F"
