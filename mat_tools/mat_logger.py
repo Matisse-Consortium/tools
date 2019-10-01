@@ -111,7 +111,10 @@ class mat_logData():
         tau0 = " "
         wl0=" "
         if (self.tplid=="MATISSE_img_acq") or (self.tplid=="MATISSE_img_acq_ft") :
-            tpltype="ACQ"
+            if (self.tplid=="MATISSE_img_acq"):
+                tpltype="ACQ"
+            else:
+                tpltype="ACQ-FT"               
             isImageAcq="F"
             isFringeSearch="F"
             for f in self.listOfFiles:
@@ -132,7 +135,10 @@ class mat_logData():
                 if f.dprtype == "STD":
                     isImageAcq = "T"
         elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" :
-            tpltype="OBS"
+            if  self.tplid == "MATISSE_hyb_obs" :
+                tpltype="OBS-HYB"
+            else:
+                tpltype="OBS-HSE"                
 
             isPhotometry = "F"
             for f in self.listOfFiles:
@@ -603,9 +609,9 @@ class mat_logger(wx.Dialog):
 
 
                 sheet.append(xlobj2)
-                if xlobj2[3]=="ACQ":
+                if xlobj2[3][0:3]=="ACQ":
                      color = "8ce4ba"
-                elif xlobj2[3]=="OBS":
+                elif xlobj2[3][0:3]=="OBS":
                     color = "8db4e2"
                 if tplListObji.isok == False:
                     color = "c86432"
