@@ -506,12 +506,12 @@ if __name__ == '__main__':
                         help='Maximum Number of Iteration (default 1)')
 
     #--------------------------------------------------------------------------
-    parser.add_argument('--paramN', default="",  \
-                        help='recipes parameters for N band (default /useOpdMod=TRUE)')
+    parser.add_argument('--paramN', default="/replaceTel=3/useOpdMod=TRUE",  \
+                        help='recipes parameters for N band (default /replaceTel=3/useOpdMod=TRUE)')
 
     #--------------------------------------------------------------------------
-    parser.add_argument('--paramL', default="",  \
-                        help='recipes parameters for LM band (default /useOpdMod=FALSE)')
+    parser.add_argument('--paramL', default="/tartyp=57/useOpdMod=FALSE",  \
+                        help='recipes parameters for LM band (default /tartyp=57/useOpdMod=FALSE)')
 
     #--------------------------------------------------------------------------
 
