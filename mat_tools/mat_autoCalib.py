@@ -150,9 +150,9 @@ if __name__ == '__main__':
 	sys.exit(0)
 
     if args.out_dir == None:
-        args.out_dir = os.path.join(os.path.dirname(path),"_CALIBRATED")
+        args.out_dir = os.path.dirname(args.in_dir) + "_CALIBRATED"
         
-    if not os.path.exists(args.in_dir):
+    if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 
     #----------------------------------------------------------------------
