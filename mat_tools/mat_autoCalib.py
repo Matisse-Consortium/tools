@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+\#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -130,7 +130,7 @@ if __name__ == '__main__':
     help='The path to the directory containing your oifits data.', default=None)
 
     #--------------------------------------------------------------------------
-    parser.add_argument('-o', '--out_dir', dest='out_dir', metavar='Out Dir', type=str, default='./CALIBRATED', \
+    parser.add_argument('-o', '--out_dir', dest='out_dir', metavar='Out Dir', type=str, default=None, \
     help='The path to the directory you want results to be stored in (defaults to current directory).')
 
     #--------------------------------------------------------------------------
@@ -149,7 +149,10 @@ if __name__ == '__main__':
         parser.print_help()
 	sys.exit(0)
 
-    if not os.path.exists(args.out_dir):
+    if args.out_dir == None:
+        args.out_dir = os.path.join(os.path.dirname(path),"_CALIBRATED")
+        
+    if not os.path.exists(args.in_dir):
         os.makedirs(args.out_dir)
 
     #----------------------------------------------------------------------
