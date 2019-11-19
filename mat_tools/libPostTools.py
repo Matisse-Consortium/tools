@@ -17,7 +17,7 @@ BCD=[[0,1,2,3,4,5],  #OUT-OUT (0)
 
 BCDsign=[[1,1,1,1,1,1],   #OUT-OUT (0)
          [1,-1,1,1,1,1],  #OUT-IN  (1)
-         [-1,-1,1,1,1,1], #IN-OUT  (2) => Pourquoi?
+         [-1,1,1,1,1,1], #IN-OUT  (2) => Pourquoi?
          [-1,-1,1,1,1,1]] #IN-IN  (3)
 
 BCDcp=[[0, 1, 2, 3], #OUT-OUT (0)
@@ -126,7 +126,7 @@ def mat_mergeOifits(oifitsList):
     #mean of the square of visamp and visphi to compute the std
 
     viscompl=temp.data["VISAMP"]*np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
-
+    expvisphi=np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
     #visamp2=temp.data["VISAMP"]**2
     #visphi2=temp.data["VISPHI"]**2
 
@@ -143,15 +143,14 @@ def mat_mergeOifits(oifitsList):
                 #visamp2 = (visamp2*norm + data[ifile]["OI_VIS"].data["VISAMP"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                 #visphi2 = (visphi2*norm + data[ifile]["OI_VIS"].data["VISPHI"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                 visampi =data[ifile]["OI_VIS"].data["VISAMP"][imod*nBmin:(imod+1)*nBmin,:]
-                visphii =data[ifile]["OI_VIS"].data["VISPHI"][imod*nBmin:(imod+1)*nBmin,:]
+                visphii =np.deg2rad(data[ifile]["OI_VIS"].data["VISPHI"][imod*nBmin:(imod+1)*nBmin,:])
                 viscompl = (viscompl*norm + visampi*np.exp(np.complex(0,1)*visphii))/(norm+1)
-
+                expvisphi +=  np.exp(np.complex(0,1)*visphii)
                 norm+=1
     temp.data["VISAMP"]=np.abs(viscompl)
-    temp.data["VISPHI"]=np.rad2deg(np.angle(viscompl))
+    temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
     temp.data["VISPHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
     temp.data["VISAMPERR"]/=np.sqrt(norm)  # no better estimation than that for now
-
     #temp.data["VISAMPERR"]=np.sqrt(np.abs(visamp2- temp.data["VISAMP"]**2))/np.sqrt(norm)
     #temp.data["VISPHIERR"]=np.sqrt(np.abs(visphi2- temp.data["VISPHI"]**2))/np.sqrt(norm)
 
@@ -275,7 +274,7 @@ def mat_removeBCD(oifits,saveFits=False):
 #=============================================================================
 
 
-def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="MERGED"):
+def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED"):
     data=[]
     currentDir= os.path.abspath("./")
     if type(something)==type(""):
@@ -313,10 +312,10 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="MERGED"):
                 mergedi=mat_mergeOifits(datai)
                 mergedData.append(mergedi)
                 if save:
-                    if not(os.path.exists(currentDir+"/"+dirOut)):
-                        os.mkdir(currentDir+"/"+dirOut)
+                    if not(os.path.exists(dirOut)):
+                        os.mkdir(dirOut)
 
-                    fileout=currentDir+"/"+dirOut+"/"+os.path.basename(sortedData[itpl][idxi[0]].filename()).replace("_OUT","").replace("_IN","").replace("_noChop","").replace("_Chop","")
+                    fileout=dirOut+"/"+os.path.basename(sortedData[itpl][idxi[0]].filename()).replace("_OUT","").replace("_IN","").replace("_noChop","").replace("_Chop","")
                     if verbose:
                         print("Saving merged file to {0}".format(fileout))
                     mergedi.writeto(fileout,overwrite=True)
