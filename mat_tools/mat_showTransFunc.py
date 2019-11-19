@@ -40,7 +40,8 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('in_dir', metavar='in_dir', type=str, \
     help='The path to the directory containing your oifits data.', default=None)
-
+    parser.add_argument('wlmin',  type=float, help='Minimum wavelength', default=3.5)
+    parser.add_argument('wlmax',  type=float, help='Maximum wavelength', default=4.2)
     try:
         args = parser.parse_args()
     except:
@@ -79,10 +80,10 @@ if __name__ == '__main__':
         
     print("plotting...")        
     #####################################################
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
     
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
     
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[3.5,3.95],key="T3", datatype="CLOS",subplotList=pltcp)
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],key="T3", datatype="CLOS",subplotList=pltcp)
     
     plt.show()

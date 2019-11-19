@@ -130,7 +130,7 @@ if __name__ == '__main__':
     help='The path to the directory containing your oifits data.', default=None)
 
     #--------------------------------------------------------------------------
-    parser.add_argument('-o', '--out_dir', dest='out_dir', metavar='Out Dir', type=str, default='./CALIBRATED', \
+    parser.add_argument('-o', '--out_dir', dest='out_dir', metavar='Out Dir', type=str, default=None, \
     help='The path to the directory you want results to be stored in (defaults to current directory).')
 
     #--------------------------------------------------------------------------
@@ -149,6 +149,9 @@ if __name__ == '__main__':
         parser.print_help()
 	sys.exit(0)
 
+    if args.out_dir == None:
+        args.out_dir = os.path.dirname(args.in_dir) + "_CALIBRATED"
+        
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 

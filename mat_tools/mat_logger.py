@@ -110,8 +110,11 @@ class mat_logData():
         seeing = " "
         tau0 = " "
         wl0=" "
-        if self.tplid=="MATISSE_img_acq":
-            tpltype="ACQ"
+        if (self.tplid=="MATISSE_img_acq") or (self.tplid=="MATISSE_img_acq_ft") :
+            if (self.tplid=="MATISSE_img_acq"):
+                tpltype="ACQ"
+            else:
+                tpltype="ACQ-FT"               
             isImageAcq="F"
             isFringeSearch="F"
             for f in self.listOfFiles:
@@ -131,8 +134,11 @@ class mat_logData():
                         din = f.disp
                 if f.dprtype == "STD":
                     isImageAcq = "T"
-        elif self.tplid == "MATISSE_hyb_obs":
-            tpltype="OBS"
+        elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" :
+            if  self.tplid == "MATISSE_hyb_obs" :
+                tpltype="OBS-HYB"
+            else:
+                tpltype="OBS-HSE"                
 
             isPhotometry = "F"
             for f in self.listOfFiles:
@@ -603,9 +609,9 @@ class mat_logger(wx.Dialog):
 
 
                 sheet.append(xlobj2)
-                if xlobj2[3]=="ACQ":
+                if xlobj2[3][0:3]=="ACQ":
                      color = "8ce4ba"
-                elif xlobj2[3]=="OBS":
+                elif xlobj2[3][0:3]=="OBS":
                     color = "8db4e2"
                 if tplListObji.isok == False:
                     color = "c86432"
@@ -936,9 +942,9 @@ class mat_logger(wx.Dialog):
 # Colour of text for tpl list
     def setRowColorTpl(self,listItem, data):
 
-        if data.tplid == "MATISSE_hyb_obs":
+        if data.tplid == "MATISSE_hyb_obs" or data.tplid == "MATISSE_hse_obs":
                 txtcol=wx.Colour(116,196,147)
-        elif data.tplid == "MATISSE_img_acq":
+        elif data.tplid == "MATISSE_img_acq" or data.tplid == "MATISSE_img_acq_ft":
                 txtcol=wx.Colour(116,147,196)
         else:
                 txtcol=wx.Colour(155,155,155)
@@ -1000,6 +1006,7 @@ class autoUpdate(object):
 ###############################################################################
 
 if __name__ == '__main__':
+    print "boooooooooooooo"
     dir0=[];
     # Scan the command line arguments
     listArg = sys.argv
