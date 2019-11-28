@@ -270,7 +270,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		hdr = elt["input"][0][2]
 		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
 		action        = matisseAction(hdr,elt["input"][0][1])
-		recipes,param = matisseRecipes(action,hdr['HIERARCH ESO DET CHIP NAME'])
+		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], hdr['TELESCOP'])
 		elt["action"]   = action
 		elt["recipes"]  = recipes
 		if action=="ACTION_MAT_RAW_ESTIMATES":
@@ -506,12 +506,12 @@ if __name__ == '__main__':
                         help='Maximum Number of Iteration (default 1)')
 
     #--------------------------------------------------------------------------
-    parser.add_argument('--paramN', default="/replaceTel=3/useOpdMod=TRUE",  \
-                        help='recipes parameters for N band (default /replaceTel=3/useOpdMod=TRUE)')
+    parser.add_argument('--paramN', default="/useOpdMod=TRUE",  \
+                        help='recipes parameters for N band (default /useOpdMod=TRUE for the UTs, and /replaceTel=3/useOpdMod=TRUE for the ATs)')
 
     #--------------------------------------------------------------------------
     parser.add_argument('--paramL', default="/tartyp=57/useOpdMod=FALSE",  \
-                        help='recipes parameters for LM band (default /tartyp=57/useOpdMod=FALSE)')
+                        help='recipes parameters for LM band (default /tartyp=57/useOpdMod=FALSE/compensate=[pb,nl,if,rb,bp,od]/hampelFilterKernel=10)')
 
     #--------------------------------------------------------------------------
 
