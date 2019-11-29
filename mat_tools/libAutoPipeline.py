@@ -1,40 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-  $Id$
+This file is part of the Matisse pipeline GUI series
+Copyright (C) 2017- Observatoire de la Côte d'Azur
 
-  This file is part of the Matisse pipeline GUI series
-  Copyright (C) 2017- Observatoire de la Côte d'Azur
-  
-  Created in 2016
-  @author: pbe
+Created in 2016
+@author: pbe, fmillour, ame
 
-  Automatic MATISSE pipeline library !
+Automatic MATISSE pipeline library !
 
-  This software is governed by the CeCILL  license under French law and
-  abiding by the rules of distribution of free software.  You can  use, 
-  modify and/ or redistribute the software under the terms of the CeCILL
-  license as circulated by CEA, CNRS and INRIA at the following URL
-  "http://www.cecill.info". 
+Please contact florentin.millour@oca.eu for any question
 
-  As a counterpart to the access to the source code and  rights to copy,
-  modify and redistribute granted by the license, users are provided only
-  with a limited warranty  and the software's author,  the holder of the
-  economic rights,  and the successive licensors  have only  limited
-  liability. 
+This software is a computer program whose purpose is to show oifits
+files from the MATISSE instrument.
 
-  In this respect, the user's attention is drawn to the risks associated
-  with loading,  using,  modifying and/or developing or reproducing the
-  software by the user in light of its specific status of free software,
-  that may mean  that it is complicated to manipulate,  and  that  also
-  therefore means  that it is reserved for developers  and  experienced
-  professionals having in-depth computer knowledge. Users are therefore
-  encouraged to load and test the software's suitability as regards their
-  requirements in conditions enabling the security of their systems and/or 
-  data to be ensured and,  more generally, to use and operate it in the 
-  same conditions as regards security.
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. 
 
-  The fact that you are presently reading this means that you have had
-  knowledge of the CeCILL license and that you accept its terms.
+You can use, modify and/ or redistribute the software under the
+terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
+the following URL "http://www.cecill.info". You have a copy of the
+licence in the LICENCE.md file.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
 """
 
 import numpy as np
@@ -647,7 +635,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     return [res,0]
 
-def matisseRecipes(action,det):
+def matisseRecipes(action,det, tel):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
         return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
@@ -665,10 +653,12 @@ def matisseRecipes(action,det):
         return ["mat_est_kappa",""]
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
-    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS"):
+    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel=="ESO-VLTI-A1234"):
+        return ["mat_raw_estimates","--useOpdMod=TRUE --replaceTel=3"]
+    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel!="ESO-VLTI-A1234"):
         return ["mat_raw_estimates","--useOpdMod=TRUE"]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
-        return ["mat_raw_estimates","--useOpdMod=FALSE --compensate=[pb,nl,if,rb,bp,od]"]   
+        return ["mat_raw_estimates","--useOpdMod=FALSE --tartyp=57 --compensate=[pb,nl,if,rb,bp,od] --hampelFilterKernel=10"]   
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
