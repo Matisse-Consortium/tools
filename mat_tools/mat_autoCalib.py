@@ -37,7 +37,6 @@ from multiprocessing.pool import Pool
 def make_sof(input_dir, output_dir, timespan=0.04):
 
     SOFFILE = [];
-    
     files =  glob.glob(input_dir+'/*.fits')
     #print input_dir#, files
 
