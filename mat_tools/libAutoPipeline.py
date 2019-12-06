@@ -297,7 +297,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="OBS_FLATFIELD" and 
                 (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
-                 (keyDetSeq1DitCalib==keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period) and 
+                 (abs(keyDetSeq1DitCalib - keyDetSeq1Dit) < 0.001 or keyDetSeq1DitCalib==keyDetSeq1Period) and 
                  ((keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-FAST-SPEED") or
                   (keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-SLOW-SPEED" and
                    keyDetMtrh2==keyDetMtrh2Calib and keyDetMtrs2==keyDetMtrs2Calib) or
@@ -345,8 +345,11 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsDilId   ==keyInsDilIdCalib and
-                   keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsDilId == keyInsDilIdCalib and
+                   keyInsFilId == keyInsFilIdCalib and
+                   keyDetChipName =="HAWAII-2RG" and keyInsDilId == "HIGH+") or
+                  (keyInsDilId == keyInsDilIdCalib and
+                   keyDetChipName =="HAWAII-2RG" and keyInsDilId != "HIGH+") or
                   (keyInsDinId   ==keyInsDinIdCalib and
                    keyDetChipName=="AQUARIUS")))):
                 idx=-1
@@ -367,8 +370,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1           
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-#                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+#                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0
@@ -510,8 +513,11 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
                  ((keyInsDilId    == keyInsDilIdCalib and
-                   keyDetChipName == "HAWAII-2RG") or 
-                  (keyInsDinId    == keyInsDinIdCalib and
+                   keyDetChipName == "HAWAII-2RG" and keyInsDilId != "HIGH+") or 
+                 (keyInsDilId    == keyInsDilIdCalib and
+                   keyInsFilId    == keyInsFilIdCalib and
+                   keyDetChipName == "HAWAII-2RG" and keyInsDilId == "HIGH+") or
+                (keyInsDinId    == keyInsDinIdCalib and
                    keyDetChipName == "AQUARIUS")))):
                 idx=-1
                 cpt=0
@@ -648,9 +654,7 @@ def matisseRecipes(action,det, tel):
     if (action=="ACTION_MAT_EST_FLAT"):
         return ["mat_est_flat","--obsflat_type=det"]
     if (action=="ACTION_MAT_EST_SHIFT"):
-        return ["mat_est_shift",""]
-    if (action=="ACTION_MAT_EST_KAPPA"):
-        return ["mat_est_kappa",""]
+        return ["mat_est_shift","--obsCorrection=TRUE"]
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel=="ESO-VLTI-A1234"):
