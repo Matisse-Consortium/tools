@@ -270,7 +270,11 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		hdr = elt["input"][0][2]
 		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
 		action        = matisseAction(hdr,elt["input"][0][1])
-		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], hdr['TELESCOP'])
+		if ('TELESCOP' in hdr):
+			tel = hdr['TELESCOP']
+		else:
+			tel=""
+		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel)
 		elt["action"]   = action
 		elt["recipes"]  = recipes
 		if action=="ACTION_MAT_RAW_ESTIMATES":
