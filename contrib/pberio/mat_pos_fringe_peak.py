@@ -16,7 +16,8 @@ from astropy.io import fits
 from scipy.optimize import curve_fit
 
 c=np.zeros(3,dtype=np.float)
-hdu = fits.open('/data/users/Berio/results/2018-02-10/Iter1/mat_raw_estimates.2018-02-10T00:04:06.AQUARIUS.rb/OBJ_CORR_FLUX_0001.fits')
+#hdu = fits.open('/data/users/Berio/results/2018-02-10/Iter1/mat_raw_estimates.2018-02-10T00:04:06.AQUARIUS.rb/OBJ_CORR_FLUX_0001.fits')
+hdu = fits.open('/data/users/fal/RUNE/REDUCTION/2018-12-14/Iter1/mat_raw_estimates.2018-12-14T00_22_13.HAWAII-2RG.rb/OBJ_CORR_FLUX_0001.fits')
 ftreal=hdu['OBJ_CORR_FLUX'].data['CORRFLUXREAL1']
 ftimag=hdu['OBJ_CORR_FLUX'].data['CORRFLUXIMAG1']
 corner=hdu['IMAGING_DETECTOR'].data['CORNER'][0][1]
@@ -64,8 +65,8 @@ deg=3
 coefPol=np.zeros((6,deg+1),dtype=np.float)
 vecw=np.zeros(naxis[1],dtype=np.float)
 for iWave in range(naxis[1]):
-#    if ((wave[iWave] > 2.8 and wave[iWave] <4) or (wave[iWave] > 4.4 and wave[iWave] < 5.2) ):
-    if ( (wave[iWave] > 8. and wave[iWave] < 13.) ):
+    if ((wave[iWave] > 3.0 and wave[iWave] <4.2) or (wave[iWave] > 4.4 and wave[iWave] < 5.2) ):
+#    if ( (wave[iWave] > 8. and wave[iWave] < 13.) ):
         vecw[iWave]=1.
 for iBase in range(6):
     coefPol[iBase,:]=np.polyfit(wave,posFringePeak[iBase,:],deg,w=vecw)
@@ -79,12 +80,13 @@ for iBase in range(6):
     plt.plot(wave,p(wave))
     #plt.xlim([0.05,0.15])
 
+"""    
 lam=np.zeros(naxis[1],dtype=np.float)
-x=np.arange(9)+7
-#x=np.arange(5)+2
+#x=np.arange(9)+7
+x=np.arange(5)+2
 for iWave in range(naxis[1]):
     p = np.poly1d(coefPol[5,:])
-    lam[iWave]=wave[123]*(p(wave[123])-(naxis[0]/2))/(p(wave[iWave])-(naxis[0]/2))
+    lam[iWave]=wave[23]*(p(wave[23])-(naxis[0]/2))/(p(wave[iWave])-(naxis[0]/2))
 plt.figure(10)
 plt.plot(lam,wave)
 plt.plot(x,x)
@@ -124,5 +126,5 @@ for i in range(dim):
     longu[i]=np.float(np.roots(coefHigh)[2])
 coef=np.polyfit(385+ix[0][:],longu[:],2)
 print coef
-
+"""
 plt.show()
