@@ -74,12 +74,13 @@ def findHeaderKeyword(h,key):
 ###############################################################################
 
 class mat_logData():
-    def __init__(self,tplstart,tplid,target,fluxL,fluxN,progid,nbFiles,nexp,comment,firstFileData,status):
+    def __init__(self,tplstart,tplid,target,fluxL,fluxN,ftracker,progid,nbFiles,nexp,comment,firstFileData,status):
         self.tplstart    = tplstart
         self.tplid       = tplid
         self.target      = target
         self.fluxL       = fluxL
         self.fluxN       = fluxN
+	self.ftracker	 = ftracker
         self.progid      = progid
         self.nbFiles     = nbFiles
         self.nexp        = nexp
@@ -169,8 +170,8 @@ class mat_logData():
 
 
         res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}{0} \
-              {11}{0}{12}{0}{13}{0}{14}{0}{15}{0}{16}{0}{17}{0}{18}{0}{19}{0}{20}".format(
-            delimiter, self.target,self.fluxL,self.fluxN,tpltype,self.tplstart,dil,wl0,din,modl,modn,
+              {11}{0}{12}{0}{13}{0}{14}{0}{15}{0}{16}{0}{17}{0}{18}{0}{19}{0}{20}{0}{21}".format(
+            delimiter, self.target,self.fluxL,self.fluxN,self.ftracker,tpltype,self.tplstart,dil,wl0,din,modl,modn,
             isImageAcq,isFringeSearch,isPhotometry,
             chop,self.nbFiles,self.nexp,scitype,seeing,tau0,self.comment)
         print(res)
@@ -423,7 +424,7 @@ class mat_logger(wx.Dialog):
 
     def __init__(self, parent, date):
     
-        super(mat_logger, self).__init__(parent, title="MATISSE Log of {0}".format(date), style=wx.DEFAULT_FRAME_STYLE, size=(1390, 800))
+        super(mat_logger, self).__init__(parent, title="MATISSE Log of {0}".format(date), style=wx.DEFAULT_FRAME_STYLE, size=(1450, 800))
 
         self.date = os.path.basename(os.path.realpath(date).rstrip('\\').rstrip('/'))
         print("The current directory is "+self.date)
@@ -471,6 +472,7 @@ class mat_logger(wx.Dialog):
                ColumnDefn("Target",   "left",65, "target",  minimumWidth=20),
                ColumnDefn("Flux L",   "left",55, "fluxL",  minimumWidth=20),
                ColumnDefn("Flux N",   "left",55, "fluxN", minimumWidth=20),
+               ColumnDefn("FT",       "left",55, "ftracker", minimumWidth=20),
                #ColumnDefn("PROG. ID","left",70,"progid",minimumWidth=20),
                ColumnDefn("nFiles",    "left",35, "nbFiles", minimumWidth=20),
                ColumnDefn("nExp",     "left",35, "nexp",    minimumWidth=20),
@@ -494,6 +496,7 @@ class mat_logger(wx.Dialog):
                ColumnDefn("Target",   "left",65, "target",  minimumWidth=20),
                ColumnDefn("Flux L",   "left",55, "fluxL",  minimumWidth=20),
                ColumnDefn("Flux N",   "left",55, "fluxN", minimumWidth=20),
+               ColumnDefn("FT",       "left",55, "ftracker", minimumWidth=20),
                ColumnDefn("nFiles",    "left",35, "nbFiles", minimumWidth=20),
                ColumnDefn("nExp",     "left",35, "nexp",    minimumWidth=20)]
         self.selectedListWidget.SetColumns(cols)
@@ -532,7 +535,7 @@ class mat_logger(wx.Dialog):
         #vbox2.Add(self.commentTxtCtrl, proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
         vbox2.Add(tabs, proportion=14, flag= wx.ALL|wx.EXPAND,border=5)
 
-        hbox.Add(self.tplListWidget,  proportion=67, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
+        hbox.Add(self.tplListWidget,  proportion=77, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=5)
         hbox.Add(vbox2,               proportion=90,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
 
         hbox2.Add(self.updateBut,         proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
@@ -589,7 +592,7 @@ class mat_logger(wx.Dialog):
 
         xl=Workbook()
         sheet=xl.active
-        sheet.append(["TARGET","FLUXL","FLUXN","TPLTYPE","TPLSTART","DIL","WL0","DIN","MODL",
+        sheet.append(["TARGET","FLUXL","FLUXN","FTRACKER","TPLTYPE","TPLSTART","DIL","WL0","DIN","MODL",
                     "MODN","ACQ","FS","PHOTO","CHOPPING","NFILES",
                       "NEXP","TYPE","SEEING","TAU0","COMMENT"])
         i=1
@@ -607,33 +610,32 @@ class mat_logger(wx.Dialog):
 
                 xlobj2=xlobj[0].split(";")
 
-
                 sheet.append(xlobj2)
-                if xlobj2[3][0:3]=="ACQ":
+                if (xlobj2[4][0:3]=="ACQ") or  (xlobj2[4][0:3]=="ACQ-FT"):
                      color = "8ce4ba"
-                elif xlobj2[3][0:3]=="OBS":
+                elif xlobj2[4][0:3]=="OBS":
                     color = "8db4e2"
                 if tplListObji.isok == False:
                     color = "c86432"
 
                 print("{0} =>color={1}".format(xlobj2[3],color))
 
-                for j in range(20):
+                for j in range(21):
                     cell=sheet['{0}{1}'.format(chr(65+j),i)]
                     cell.fill = PatternFill("solid",fgColor=color)
 
                 for iline in range(1,nlines):
                     i+=1
-                    xlobj2=[""]*19
+                    xlobj2=[""]*20
                     xlobj2.append(xlobj[iline])
                     sheet.append(xlobj2)
-                    for j in range(20):
+                    for j in range(21):
                         cell=sheet['{0}{1}'.format(chr(65+j),i)]
                         cell.fill = PatternFill("solid",fgColor=color)
 
 
-        colwidth=[15,6,6,8,19,6,6,6,6,6,6,6,6,6,6,6,8,8,8,100]
-        for i in range(20):
+        colwidth=[15,7,7,10,10,19,6,6,6,6,6,6,6,6,6,6,6,8,8,8,100]
+        for i in range(21):
             sheet.column_dimensions["{0}".format(chr(65+i))].width = colwidth[i]
         #csvfile.close()
 
@@ -835,7 +837,7 @@ class mat_logger(wx.Dialog):
         selection=[]
         for tpli in self.selectedTpl:
             selection.extend([os.getcwd()+"/"+f.filename for f in tpli.listOfFiles])
-        command=("mat_autoPipeline.py \"{0}\" --dirResult={1} --nbCore={2} {3};"
+        command=("mat_autoPipeline.py \"{0}\" --maxIter=4 --dirResult={1} --nbCore={2} {3};"
                  "cd {1};mat_tidyupOiFits.py .;mat_tidyupCalibMap.py .".format(selection,dirResult,nbCore,addText))
 
         time=datetime.now().strftime("%Y%m%d%H%M%S")
@@ -922,11 +924,13 @@ class mat_logger(wx.Dialog):
                             target= findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')
                             fluxL=findHeaderKeyword(h,'HIERARCH ESO SEQ TARG FLUX L')
                             fluxN=findHeaderKeyword(h,'HIERARCH ESO SEQ TARG FLUX N')
+  			    ftracker=findHeaderKeyword(h,'HIERARCH ESO DEL FT SENSOR')
+
                             progid= findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
                             tplid=findHeaderKeyword(h,'HIERARCH ESO TPL ID')
                             nexp=findHeaderKeyword(h,'HIERARCH ESO TPL NEXP')
 
-                            self.tplListObj.append(mat_logData(tplstart,tplid,target,fluxL,fluxN,progid,
+                            self.tplListObj.append(mat_logData(tplstart,tplid,target,fluxL,fluxN,ftracker,progid,
                                        1,nexp," ",mat_fileData(filei,h),"Started"))
                             self.fileList.append(filei)
                         else :

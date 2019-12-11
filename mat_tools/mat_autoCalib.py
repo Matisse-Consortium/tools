@@ -34,10 +34,9 @@ from multiprocessing.pool import Pool
 
 #------------------------------------------------------------------------------
 
-def make_sof(input_dir, output_dir, timespan=1./24.):
+def make_sof(input_dir, output_dir, timespan=0.04):
 
     SOFFILE = [];
-
     files =  glob.glob(input_dir+'/*.fits')
     #print input_dir#, files
 
@@ -80,7 +79,6 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
                 soffile = open(fname, 'w')
                 SOFFILE.append(fname)
                 soffile.write('{} \t {} \n'.format(f,obstype))
-
                 calcount = 0;
                 for j,fcal in enumerate(files):
                     if fcal != f:
@@ -99,7 +97,7 @@ def make_sof(input_dir, output_dir, timespan=1./24.):
                         dif = mjd - mjdc
                         absdif = np.abs(dif)
                         if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
-                            if absdif < timespan:
+                            if (absdif < float(timespan)):
                                 #print(fcal)
                                 #print(mjdc)
                                 #print(dif)
@@ -157,7 +155,10 @@ if __name__ == '__main__':
 
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
-    targsof = make_sof(args.in_dir, args.out_dir,timespan=args.timespan)
+    if (args.timespan=='.'):
+        targsof = make_sof(args.in_dir, args.out_dir)
+    else:
+        targsof = make_sof(args.in_dir, args.out_dir, args.timespan)
 
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------

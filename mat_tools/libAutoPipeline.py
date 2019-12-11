@@ -297,7 +297,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="OBS_FLATFIELD" and 
                 (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
-                 (keyDetSeq1DitCalib==keyDetSeq1Dit or keyDetSeq1DitCalib==keyDetSeq1Period) and 
+                 (abs(keyDetSeq1DitCalib - keyDetSeq1Dit) < 0.001 or keyDetSeq1DitCalib==keyDetSeq1Period) and 
                  ((keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-FAST-SPEED") or
                   (keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-SLOW-SPEED" and
                    keyDetMtrh2==keyDetMtrh2Calib and keyDetMtrs2==keyDetMtrs2Calib) or
@@ -345,8 +345,11 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsDilId   ==keyInsDilIdCalib and
-                   keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsDilId == keyInsDilIdCalib and
+                   keyInsFilId == keyInsFilIdCalib and
+                   keyDetChipName =="HAWAII-2RG" and keyInsDilId == "HIGH+") or
+                  (keyInsDilId == keyInsDilIdCalib and
+                   keyDetChipName =="HAWAII-2RG" and keyInsDilId != "HIGH+") or
                   (keyInsDinId   ==keyInsDinIdCalib and
                    keyDetChipName=="AQUARIUS")))):
                 idx=-1
@@ -367,8 +370,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                     nbCalib+=1           
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-#                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+#                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
                 idx=-1
                 cpt=0
@@ -510,8 +513,11 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
                  ((keyInsDilId    == keyInsDilIdCalib and
-                   keyDetChipName == "HAWAII-2RG") or 
-                  (keyInsDinId    == keyInsDinIdCalib and
+                   keyDetChipName == "HAWAII-2RG" and keyInsDilId != "HIGH+") or 
+                 (keyInsDilId    == keyInsDilIdCalib and
+                   keyInsFilId    == keyInsFilIdCalib and
+                   keyDetChipName == "HAWAII-2RG" and keyInsDilId == "HIGH+") or
+                (keyInsDinId    == keyInsDinIdCalib and
                    keyDetChipName == "AQUARIUS")))):
                 idx=-1
                 cpt=0
@@ -635,28 +641,28 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     return [res,0]
 
-def matisseRecipes(action,det):
+def matisseRecipes(action,det, tel):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
-        return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
+        return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nltype=2"]
     if (action=="ACTION_MAT_CAL_DET_FAST_SPEED"):
-        return ["mat_cal_det","--gain=2.60 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
+        return ["mat_cal_det","--gain=2.60 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nltype=2"]
     if (action=="ACTION_MAT_CAL_DET_LOW_GAIN"):
-        return ["mat_cal_det","--gain=190.0 --darklimit=100.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.02 -nt=true"]
+        return ["mat_cal_det","--gain=190.0 --darklimit=100.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.02 --nt=true --nltype=2"]
     if (action=="ACTION_MAT_CAL_DET_HIGH_GAIN"):
-        return ["mat_cal_det","--gain=20.0 --darklimit=200.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01 -nt=true"]
+        return ["mat_cal_det","--gain=20.0 --darklimit=200.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nt=true --nltype=2"]
     if (action=="ACTION_MAT_EST_FLAT"):
         return ["mat_est_flat","--obsflat_type=det"]
     if (action=="ACTION_MAT_EST_SHIFT"):
-        return ["mat_est_shift",""]
+        return ["mat_est_shift","--obsCorrection=TRUE"]
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
-    if (action=="ACTION_MAT_EST_KAPPA"):
-        return ["mat_est_kappa",""]
-    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS"):
+    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel=="ESO-VLTI-A1234"):
+        return ["mat_raw_estimates","--useOpdMod=TRUE --replaceTel=3"]
+    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel!="ESO-VLTI-A1234"):
         return ["mat_raw_estimates","--useOpdMod=TRUE"]
     if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
-        return ["mat_raw_estimates","--useOpdMod=FALSE --compensate=[pb,nl,if,rb,bp,od]"]   
+        return ["mat_raw_estimates","--useOpdMod=FALSE --tartyp=57 --compensate=[pb,nl,if,rb,bp,od] --hampelFilterKernel=10"]   
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
