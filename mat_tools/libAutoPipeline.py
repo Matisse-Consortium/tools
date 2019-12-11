@@ -644,13 +644,13 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 def matisseRecipes(action,det, tel):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
-        return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
+        return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nltype=2"]
     if (action=="ACTION_MAT_CAL_DET_FAST_SPEED"):
-        return ["mat_cal_det","--gain=2.60 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01"]
+        return ["mat_cal_det","--gain=2.60 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nltype=2"]
     if (action=="ACTION_MAT_CAL_DET_LOW_GAIN"):
-        return ["mat_cal_det","--gain=190.0 --darklimit=100.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.02 -nt=true"]
+        return ["mat_cal_det","--gain=190.0 --darklimit=100.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.02 --nt=true --nltype=2"]
     if (action=="ACTION_MAT_CAL_DET_HIGH_GAIN"):
-        return ["mat_cal_det","--gain=20.0 --darklimit=200.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 -max_rel_deviation=0.01 -nt=true"]
+        return ["mat_cal_det","--gain=20.0 --darklimit=200.0 --flatlimit=0.2 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nt=true --nltype=2"]
     if (action=="ACTION_MAT_EST_FLAT"):
         return ["mat_est_flat","--obsflat_type=det"]
     if (action=="ACTION_MAT_EST_SHIFT"):
