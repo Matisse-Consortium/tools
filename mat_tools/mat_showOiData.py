@@ -96,7 +96,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
               dic['STA_NAME'][np.where(dic['STA_INDEX'] == sti[1])[0][0]]]
              for sti in sta_index]
 
-    fig=plt.figure(figsize=(29.7*inch,21*inch))
+    fig=plt.figure(figsize=(29.7*inch,19*inch))
 
     plts={}
 
@@ -246,8 +246,12 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
 
     seeing="{0:.2f}".format(dic['SEEING'])
     coherence="{0:.2f}".format(1000*dic['TAU0'])
-    airmass="{0:.2f}".format(dic['HDR']['HIERARCH ESO ISS AIRM START'])
-    fig.text(0.71,0.92,"Seeing = {0}\"".format(seeing))
+    try:
+        airmass="{0:.2f}".format(dic['HDR']['HIERARCH ESO ISS AIRM START'])
+    except:
+        print("WARNING: No airmass. Setting it to zero")
+        airmass=0;
+        fig.text(0.71,0.92,"Seeing = {0}\"".format(seeing))
     fig.text(0.71,0.90,"Coherence = {0}ms".format(coherence))
     fig.text(0.71,0.88,"Airmass = {0}".format(airmass))
 
