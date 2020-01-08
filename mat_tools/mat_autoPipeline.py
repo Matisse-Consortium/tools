@@ -276,7 +276,11 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		    resolution = hdr['HIERARCH ESO INS DIL NAME']
                     
 		action        = matisseAction(hdr,elt["input"][0][1])
-		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], hdr['TELESCOP'], resolution)
+		if ('TELESCOP' in hdr):
+			tel = hdr['TELESCOP']
+		else:
+			tel=""
+		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel, resolution)
 		elt["action"]   = action
 		elt["recipes"]  = recipes
 		if action=="ACTION_MAT_RAW_ESTIMATES":
@@ -291,8 +295,8 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 		        else:
 		            elt["param"]    = paramL + " " + param
 		else:
-		    elt["param"] = param
-		elt["tplstart"]  = keyTplStartCurrent
+		    elt["param"]    = param
+		elt["tplstart"] = keyTplStartCurrent
                 
 	# Fill the list of calib in the Reduction Blocks List from dirCalib
 	    print("listing calibrations in the reduction blocks...")

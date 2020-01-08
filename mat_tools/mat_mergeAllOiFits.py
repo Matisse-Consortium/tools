@@ -18,6 +18,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Merging all oifits files from the same template into a single OiFits file per detector.')
     parser.add_argument('dirIn', default="",help='Input directory')
     parser.add_argument('--dirOut', default="MERGED",help='Output directory')
+    parser.add_argument('--separateChopping', default="FALSE",help='speratating chopped and non-chopped exposure for LM band')
     try:
         args = parser.parse_args()
     except:
@@ -26,7 +27,11 @@ if __name__ == '__main__':
         print("\n     Example : python mat_MergeAllOiFits.py . ")
         sys.exit(0)
 
+    if args.separateChopping=="TRUE":
+        separateChopping=True
+    else:
+        separateChopping=False
 
-    mergedData=mat_mergeByTplStart(args.dirIn,save=True,dirOut=args.dirOut)
+    mergedData=mat_mergeByTplStart(args.dirIn,save=True,dirOut=args.dirOut,separateChopping=separateChopping)
 
 
