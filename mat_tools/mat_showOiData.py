@@ -12,6 +12,7 @@ import sys
 import mat_show_oifits as msoi
 import os
 from matplotlib.backends.backend_pdf import PdfPages
+import time
 
 inch=1/2.54
 
@@ -62,14 +63,14 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
             #print(tely)
             axe.scatter(telx[0,0],tely[0,0],c=tcolor[i],s=40*symsize,zorder=3)
 
-def mat_showOiData(filename,wlRange=None,showErr=False):
-
+def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
+    start=time.time()
     try:
         dic=msoi.open_oi(filename)
     except:
         print("Unable to open {0}".format(filename))
         return
-
+    loaded=time.time()
     u=dic['VIS2']['U']
     v=dic['VIS2']['V']
     v2=dic['VIS2']['VIS2']
@@ -95,8 +96,10 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
              [dic['STA_NAME'][np.where(dic['STA_INDEX'] == sti[0])[0][0]],
               dic['STA_NAME'][np.where(dic['STA_INDEX'] == sti[1])[0][0]]]
              for sti in sta_index]
+    prepared=time.time()
 
-    fig=plt.figure(figsize=(29.7*inch,21*inch))
+    if not(fig):
+        fig=plt.figure(figsize=(29.7*inch,21*inch))
 
     plts={}
 
@@ -109,6 +112,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
     cols=['darkcyan','red','blue','darkmagenta','limegreen','y']
     colT3=['darkblue','k','darkred','darkgreen']
 
+    before_v2_plot=time.time()
     pltv2=[]
     for i in range(6):
         if i==0:
@@ -118,9 +122,8 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
             plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
         pltv2.append(plts['VIS2_{0}'.format(i)])
     msoi.show_oi_vs_wlen(dic,key='VIS2',datatype="VIS2",plot_errorbars=showErr,subplotList=pltv2,colorList=cols)
-
+    after_v2_plot=time.time()
         #plts['VIS2_{0}'.format(i)].plot(wl,v2[i,:],color=cols[i])
-
 
     pltphi=[]
     for i in range(6):
@@ -133,6 +136,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
         #plts['PHI_{0}'.format(i)].plot(wl,phi[i,:],color=cols[i])
 
     msoi.show_oi_vs_wlen(dic,key='VIS',datatype="DPHI",plot_errorbars=showErr,subplotList=pltphi,colorList=cols)
+    after_phi_plot=time.time()
 
     pltcp=[]
     for i in range(4):
@@ -143,7 +147,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
             plts['CP_{0}'.format(i)].get_xaxis().set_visible(False)
         pltcp.append(plts['CP_{0}'.format(i)])
     msoi.show_oi_vs_wlen(dic,key='T3',datatype="CLOS",plot_errorbars=showErr,subplotList=pltcp,colorList=colT3)
-
+    after_cp_plot=time.time()
 
     plts['FLUX']=fig.add_axes([0.075, 0.70, 0.22,0.15],sharex=plts['VIS2_0'])
     pltflx=[plts['FLUX']]*4
@@ -251,6 +255,10 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
     fig.text(0.71,0.90,"Coherence = {0}ms".format(coherence))
     fig.text(0.71,0.88,"Airmass = {0}".format(airmass))
 
+    end=time.time()
+    print("total={0} : loading={1}, datasetting={2}, plotsetting={3}, v2plot={4}, phiplot={5},cpplot={6}, rest={7}".format(
+            end-start,loaded-start,prepared-loaded,before_v2_plot-prepared, after_v2_plot-before_v2_plot,after_phi_plot-after_v2_plot,
+            after_cp_plot-after_phi_plot,end-after_cp_plot))
     return fig
 
 
@@ -283,7 +291,10 @@ if __name__ == '__main__':
             merged=True
 
 
-
+    if (pdf or merged):
+        fig=plt.figure(figsize=(29.7*inch,21*inch))
+    else:
+        fig=None
 
     if os.path.isdir(filename):
         os.chdir(filename)
@@ -300,16 +311,17 @@ if __name__ == '__main__':
 
 
     for filei in filename:
-        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr)
+        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig)
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
-            plt.close(fig)
+            plt.clf()
             print("saving to {0}".format(pdfname))
-        if merged:
+        elif merged:
             pdf.savefig(fig)
-            plt.close(fig)
-
+            plt.clf()
+        else:
+            fig=None
    	if not(pdf or merged):
             plt.show()
 
