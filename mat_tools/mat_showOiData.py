@@ -63,7 +63,7 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
             #print(tely)
             axe.scatter(telx[0,0],tely[0,0],c=tcolor[i],s=40*symsize,zorder=3)
 
-def mat_showOiData(filename,wlRange=None,showErr=False):
+def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
 
     try:
         dic=msoi.open_oi(filename)
@@ -146,7 +146,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
             plts['CP_{0}'.format(i)].get_xaxis().set_visible(False)
         pltcp.append(plts['CP_{0}'.format(i)])
     msoi.show_oi_vs_wlen(dic,key='T3',datatype="CLOS",plot_errorbars=showErr,subplotList=pltcp,colorList=colT3)
-  
+
 
     plts['FLUX']=fig.add_axes([0.075, 0.70, 0.22,0.15],sharex=plts['VIS2_0'])
     pltflx=[plts['FLUX']]*4
