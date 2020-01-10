@@ -80,7 +80,7 @@ class mat_logData():
         self.target      = target
         self.fluxL       = fluxL
         self.fluxN       = fluxN
-	self.ftracker	 = ftracker
+        self.ftracker	 = ftracker
         self.progid      = progid
         self.nbFiles     = nbFiles
         self.nexp        = nexp
@@ -111,11 +111,13 @@ class mat_logData():
         seeing = " "
         tau0 = " "
         wl0=" "
+        ditL="."
+        ditN="."
         if (self.tplid=="MATISSE_img_acq") or (self.tplid=="MATISSE_img_acq_ft") :
             if (self.tplid=="MATISSE_img_acq"):
                 tpltype="ACQ"
             else:
-                tpltype="ACQ-FT"               
+                tpltype="ACQ-FT"
             isImageAcq="F"
             isFringeSearch="F"
             for f in self.listOfFiles:
@@ -139,7 +141,7 @@ class mat_logData():
             if  self.tplid == "MATISSE_hyb_obs" :
                 tpltype="OBS-HYB"
             else:
-                tpltype="OBS-HSE"                
+                tpltype="OBS-HSE"
 
             isPhotometry = "F"
             for f in self.listOfFiles:
@@ -160,6 +162,11 @@ class mat_logData():
                     dil = f.disp
                 elif f.band == "N":
                     din = f.disp
+                if f.band=="L":
+                    ditL=int(float(f.dit)*1000)/1000.
+                elif f.band=="N":
+                    ditN=int(float(f.dit)*1000)/1000.
+
         else:
             tpltype="OTHER"
 
@@ -169,12 +176,13 @@ class mat_logData():
             return ""
 
 
-        res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}{0} \
-              {11}{0}{12}{0}{13}{0}{14}{0}{15}{0}{16}{0}{17}{0}{18}{0}{19}{0}{20}{0}{21}".format(
-            delimiter, self.target,self.fluxL,self.fluxN,self.ftracker,tpltype,self.tplstart,dil,wl0,din,modl,modn,
-            isImageAcq,isFringeSearch,isPhotometry,
-            chop,self.nbFiles,self.nexp,scitype,seeing,tau0,self.comment)
-        print(res)
+        res= "{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}{0}"\
+             "{11}{0}{12}{0}{13}{0}{14}{0}{15}{0}{16}{0}{17}{0}{18}{0}{19}{0}"\
+             "{20}{0}{21}{0}{22}{0}{23}".format(delimiter, self.target,self.fluxL,
+              self.fluxN,self.ftracker,tpltype,self.tplstart,dil,wl0,ditL,din,ditN,
+            modl,modn,isImageAcq,isFringeSearch,isPhotometry,chop,self.nbFiles,
+            self.nexp,scitype,seeing,tau0,self.comment)
+        #print(res)
 
 
         return res
@@ -423,7 +431,7 @@ class mat_pipelineOptions(wx.Panel):
 class mat_logger(wx.Dialog):
 
     def __init__(self, parent, date):
-    
+
         super(mat_logger, self).__init__(parent, title="MATISSE Log of {0}".format(date), style=wx.DEFAULT_FRAME_STYLE, size=(1450, 800))
 
         self.date = os.path.basename(os.path.realpath(date).rstrip('\\').rstrip('/'))
@@ -592,8 +600,8 @@ class mat_logger(wx.Dialog):
 
         xl=Workbook()
         sheet=xl.active
-        sheet.append(["TARGET","FLUXL","FLUXN","FTRACKER","TPLTYPE","TPLSTART","DIL","WL0","DIN","MODL",
-                    "MODN","ACQ","FS","PHOTO","CHOPPING","NFILES",
+        sheet.append(["TARGET","FLUXL","FLUXN","FTRACK","TPLTYPE","TPLSTART","DIL","WL0","DITL","DIN","DITN","MODL",
+                    "MODN","ACQ","FS","PHOT","CHOP","NFILES",
                       "NEXP","TYPE","SEEING","TAU0","COMMENT"])
         i=1
         newlist = sorted(self.tplListObj, key=lambda x: x.tplstart, reverse=False)
@@ -605,37 +613,38 @@ class mat_logger(wx.Dialog):
                 csvobj=tplListObji.getCSV()
                 #csvfile.write(csvobj)
                 xlobj=csvobj.split("\n")
-                print(xlobj)
+                #print(xlobj)
                 nlines=len(xlobj)
 
                 xlobj2=xlobj[0].split(";")
-
+                #print(xlobj2)
                 sheet.append(xlobj2)
                 if (xlobj2[4][0:3]=="ACQ") or  (xlobj2[4][0:3]=="ACQ-FT"):
                      color = "8ce4ba"
                 elif xlobj2[4][0:3]=="OBS":
                     color = "8db4e2"
+
                 if tplListObji.isok == False:
                     color = "c86432"
 
-                print("{0} =>color={1}".format(xlobj2[3],color))
+                #print("{0} =>color={1}".format(xlobj2[3],color))
 
-                for j in range(21):
+                for j in range(23):
                     cell=sheet['{0}{1}'.format(chr(65+j),i)]
                     cell.fill = PatternFill("solid",fgColor=color)
 
                 for iline in range(1,nlines):
                     i+=1
-                    xlobj2=[""]*20
+                    xlobj2=[""]*22
                     xlobj2.append(xlobj[iline])
                     sheet.append(xlobj2)
-                    for j in range(21):
+                    for j in range(23):
                         cell=sheet['{0}{1}'.format(chr(65+j),i)]
                         cell.fill = PatternFill("solid",fgColor=color)
 
 
-        colwidth=[15,7,7,10,10,19,6,6,6,6,6,6,6,6,6,6,6,8,8,8,100]
-        for i in range(21):
+        colwidth=[15,7,7,10,10,19,6,6,6,6,6,6,6,6,6,6,6,6,6,8,8,8,100]
+        for i in range(23):
             sheet.column_dimensions["{0}".format(chr(65+i))].width = colwidth[i]
         #csvfile.close()
 
@@ -1010,7 +1019,6 @@ class autoUpdate(object):
 ###############################################################################
 
 if __name__ == '__main__':
-    print "boooooooooooooo"
     dir0=[];
     # Scan the command line arguments
     listArg = sys.argv
