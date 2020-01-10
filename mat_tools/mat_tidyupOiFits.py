@@ -24,8 +24,8 @@ import wx
 import sys
 import argparse
 from tqdm import tqdm
-from tqdm import trange
-import colorama
+#from tqdm import trange
+#import colorama
 from astropy.io import fits
 from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
@@ -66,6 +66,12 @@ def change_oifitsFile_name(oifits):
             except:
                 targ = hdu['OBJECT']
 
+            try:
+                stationsConfig = hdu['HIERARCH ESO ISS CONF STATION1']+hdu['HIERARCH ESO ISS CONF STATION2']+hdu['HIERARCH ESO ISS CONF STATION3']+hdu['HIERARCH ESO ISS CONF STATION4']
+            except:
+                stationsConfig = 'noConf'
+                
+                
             chipType = hdu['HIERARCH ESO DET CHIP TYPE'];
             if chipType == 'IR-LM':
                 resol = hdu['HIERARCH ESO INS DIL NAME'];
@@ -84,6 +90,7 @@ def change_oifitsFile_name(oifits):
             newName = os.path.join(direc,
                                 hdu['HIERARCH ESO TPL START'].replace(':','') +
                                 '_' + targ.replace(" ","") +
+                                '_' + stationsConfig +
                                 '_' + chipType +
                                 '_' + resol +
                                 '_' + hdu['HIERARCH ESO INS BCD1 NAME'] +
@@ -96,7 +103,7 @@ def change_oifitsFile_name(oifits):
             os.rename(oifits, newName)
     except:
         do_nothing = 1;
-        #print("Not a fits file!")
+        print("AaaaAaAaAAAAAaaargh I'm dead!")
 
 ###############################################################################
 
@@ -142,9 +149,12 @@ if __name__ == '__main__':
             for fil in files:
                 allfiles.append(os.path.join(root,fil))
                 filecounter += 1;
+
+        print("Number of files to treat:",len(allfiles))
         
         #print(os.path.join(args.oiFits,"*.fits*"))
-        for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
+        #for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
+        for fil in allfiles:
             matchfilestoavoid = ["TARGET_CAL_0*","OBJ_CORR_FLUX_0*",
                                  "OI_OPDWVPO_*","PHOT_BEAMS_*",
                                  "CALIB_CAL_0*","RAW_DPHASE_*",
@@ -155,20 +165,22 @@ if __name__ == '__main__':
             fifil = os.path.basename(fil)
             
             if fifil.endswith('fits'):
+                print(fifil)
                 for i in matchfilestoavoid:
                     if fnmatch(fifil, i):
+                        print("Breeaaaaaak!")
                         break;
                 
                 try:
+                    print("copying file to the right path...")
                     hdu    = fits.getheader(fil)
                     if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or\
                        hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
-                        
                         copyfile(fil,
                                  os.path.join(newdir,fifil))
                         change_oifitsFile_name(os.path.join(newdir,fifil))
                 except:
                     do_nothing = 1;
-                    #print("Not a fits file!")
+                    print("Not a fits file!")
 
-print("I made my job!")
+    print("I made my job!")

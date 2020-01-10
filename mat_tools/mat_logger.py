@@ -46,6 +46,8 @@ from mat_showAcq import mat_showAcq
 import shutil
 from datetime import datetime
 from mat_showRawData import mat_showRawData
+import matplotlib.pyplot as plt
+from mat_showOiData import mat_showOiData
 import subprocess
 
 # Set useful paths
@@ -666,19 +668,29 @@ class mat_logger(wx.Dialog):
 #------------------------------------------------------------------------------
     def fileListRightClicked(self,event):
         menu = wx.Menu()
-        m1   = menu.Append( 0, "Show Header" )
+        idx = 0;
+        m1   = menu.Append( idx, "Show Header" )
         menu.Bind(wx.EVT_MENU,self.showHeader,m1)
-        m2   = menu.Append( 1, "Show RAW DATA")
+        idx+=1;
+        m2   = menu.Append( idx, "Show RAW DATA")
         menu.Bind(wx.EVT_MENU,self.showRawData,m2)
-        m3   = menu.Append( 2, "Plot Flux vs Time")
+        idx+=1;
+        m2b   = menu.Append( idx, "Show OI DATA")
+        menu.Bind(wx.EVT_MENU,self.showOiData,m2b)
+        idx+=1;
+        m3   = menu.Append(idx, "Plot Flux vs Time")
         menu.Bind(wx.EVT_MENU,self.plotFluxTime,m3)
-        m4   = menu.Append( 3, "Open with fv")
+        idx+=1;
+        m4   = menu.Append( idx, "Open with fv")
         menu.Bind(wx.EVT_MENU,self.openWithFv,m4)
-        m5   = menu.Append( 4, "Plot RMNREC OPD")
+        idx+=1;
+        m5   = menu.Append( idx, "Plot RMNREC OPD")
         menu.Bind(wx.EVT_MENU,self.plotRmnrecOpd,m5)
-        m6   = menu.Append( 5, "Plot Acquisition")
+        idx+=1;
+        m6   = menu.Append( idx, "Plot Acquisition")
         menu.Bind(wx.EVT_MENU,self.plotacq,m6)
-        m7   = menu.Append( 6, "Copy files")
+        idx+=1;
+        m7   = menu.Append( idx, "Copy files")
         menu.Bind(wx.EVT_MENU,self.copyFiles,m7)
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
 
@@ -704,6 +716,19 @@ class mat_logger(wx.Dialog):
         print("Plotting data  from"+dir0+filename+"...")
         #mat_show_rawdata.show_mat(dic)
         mat_showRawData(dir0+"/"+filename)
+
+#------------------------------------------------------------------------------
+
+    def showOiData(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+        #dic      = mat_show_rawdata.open_mat(dir0+"/"+filename)
+        print("Plotting data  from"+dir0+filename+"...")
+        #mat_show_rawdata.show_mat(dic)
+        mat_showOiData(dir0+"/"+filename)
+        plt.show()
 
 #------------------------------------------------------------------------------
 

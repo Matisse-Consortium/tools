@@ -267,14 +267,20 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	    # Fill the list of actions,recipes,params in the Reduction Blocks List
 	    print("listing actions in the reduction blocks...")
 	    for elt in listRedBlocks:
-		hdr = elt["input"][0][2]
-		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
+		hdr  = elt["input"][0][2]
+                chip = hdr['HIERARCH ESO DET CHIP NAME'];
+		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+chip
+                if chip == 'AQUARIUS':
+                    resolution = hdr['HIERARCH ESO INS DIN NAME']
+                if chip == 'HAWAII-2RG':
+		    resolution = hdr['HIERARCH ESO INS DIL NAME']
+                    
 		action        = matisseAction(hdr,elt["input"][0][1])
 		if ('TELESCOP' in hdr):
 			tel = hdr['TELESCOP']
 		else:
 			tel=""
-		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel)
+		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel, resolution)
 		elt["action"]   = action
 		elt["recipes"]  = recipes
 		if action=="ACTION_MAT_RAW_ESTIMATES":
@@ -504,7 +510,10 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('--resol', default="",  \
                         help='reduce only a given spectral resolution. Can be any of LOW, MED or HIGH')
-
+    #--------------------------------------------------------------------------
+    parser.add_argument('--spectralBinning', default=5,  \
+                        help='Bin spectrally the data to improve SNR')
+    
     #--------------------------------------------------------------------------
     parser.add_argument('--maxIter', default=0,  \
                         help='Maximum Number of Iteration (default 1)')
