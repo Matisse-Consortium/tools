@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import sys
 import argparse
 import os
+from tqdm import tqdm
 import glob
 import shutil
 import subprocess
@@ -105,12 +106,15 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	    listArchive = glob.glob(dirCalib+"/*.fits")
 	else:
 	    listArchive =[]
-	print(listRaw)
+	#print(listRaw)
 	# Sort listRaw using template ID and template start
 	print("Sorting files according to constraints...")
 	allhdr        = []
-	for filename in listRaw:
-	    allhdr.append(getheader(filename,0))
+	for filename in tqdm(listRaw, unit=" files", unit_scale=False, desc="Working on files"):            
+            try:
+                allhdr.append(getheader(filename,0))
+            except:
+                print("\nWARNING: corrupt file!")
 
 	listRawSorted = []
 	allhdrSorted  = []
@@ -300,7 +304,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                 
 	# Fill the list of calib in the Reduction Blocks List from dirCalib
 	    print("listing calibrations in the reduction blocks...")
-	    for elt in listRedBlocks:
+	    for elt in tqdm(listRedBlocks,unit=" block", unit_scale=False, desc="Working on"):
 		hdr          = elt["input"][0][2]
 		calib,status = matisseCalib(hdr,elt["action"],listArchive,elt['calib'])
 		elt["calib"] = calib
@@ -537,3 +541,12 @@ if __name__ == '__main__':
         sys.exit(0)
         
     mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN, args.tplSTART, args.tplID)
+
+
+
+
+
+
+
+
+
