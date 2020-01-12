@@ -175,6 +175,11 @@ def open_fits(fits_file, verbose=False):
                         print(e)
                     dic[dickeys[j]] = None
 
+        if not dic['RA']:
+                dic['RA'] = np.nan
+        if not dic['DEC']:
+                dic['DEC'] = np.nan
+ 	
         dic['DISPNAME'] = None
         if dic['DETNAME']:
             if 'L' in dic['DETNAME']:
