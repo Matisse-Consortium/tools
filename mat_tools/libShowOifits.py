@@ -489,7 +489,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
 def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2",
 datatype="TF2", xaxis="HIERARCH ESO ISS AMBI FWHM START",
 showvis=False,plot_errorbars=True,
-useStations=True,xlog=False,ylog=False):
+useStations=True,xlog=False,ylog=False,ylim=[]):
     # check if list is not empty:
     if list_of_dicts:
         target_names_cal = []
@@ -654,16 +654,19 @@ useStations=True,xlog=False,ylog=False):
             if i == 0:
                 leg = axs1[i].legend(loc='upper right')
                 leg.get_frame().set_alpha(0.5)
-            if datatype == 'VIS2' or datatype == 'TF2':
-                if ylog == True:
-                    axs1[i].set_ylim([0.3, 1.1])
-                else:
-                    axs1[i].set_ylim([-0.1, 1.1])
+            if ylim:
+                axs1[i].set_ylim(ylim)
             else:
-                try:
-                    axs1[i].set_ylim([np.nanmin([np.nanmin(arr_cal),np.nanmin(arr_sci)]), np.nanmax([np.nanmax(arr_cal),np.nanmax(arr_sci)])])
-                except:
-                    pass
+                if datatype == 'VIS2' or datatype == 'TF2':
+                    if ylog == True:
+                        axs1[i].set_ylim([0.3, 1.1])
+                    else:
+                        axs1[i].set_ylim([-0.1, 1.1])
+                else:
+                    try:
+                        axs1[i].set_ylim([np.nanmin([np.nanmin(arr_cal),np.nanmin(arr_sci)]), np.nanmax([np.nanmax(arr_cal),np.nanmax(arr_sci)])])
+                    except:
+                        pass
             ylabel = datatype
             if showvis == True:
                 if datatype == 'VIS2':
