@@ -97,7 +97,7 @@ def open_oi(oi_file):
 	catg=hdr['ESO PRO CATG']
 	if catg == "TARGET_RAW_INT":
 		target_category = "SCI"
-	else:	
+	else:
 		target_category = "CAL"
 	#target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
     except KeyError:
@@ -290,7 +290,7 @@ def show_oi_vs_freq(dic, log=False,showvis=False, subplotV2=None, subplotCP=None
                 axes_v2.semilogy(freq[test], np.sqrt(vis2[i, test]))
             else:
                 axes_v2.semilogy(freq[test], vis2[i, test])
-            axes_v2.ylim([1e-4, 1.1])
+            axes_v2.set_ylim([1e-4, 1.1])
         else:
             if showvis == True:
                 axes_v2.plot(freq[test], np.sqrt(vis2[i, test]))
