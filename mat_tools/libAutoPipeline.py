@@ -302,6 +302,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   (keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-SLOW-SPEED" and
                    keyDetMtrh2==keyDetMtrh2Calib and keyDetMtrs2==keyDetMtrs2Calib) or
                   (keyInsPinId==keyInsPinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                print "OBSFLAT"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -352,6 +353,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                    keyDetChipName =="HAWAII-2RG" and keyInsDilId != "HIGH+") or
                   (keyInsDinId   ==keyInsDinIdCalib and
                    keyDetChipName=="AQUARIUS")))):
+                print "SHIFT"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -367,12 +369,13 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
-                    nbCalib+=1           
+                    nbCalib+=1
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
-#                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
-                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+                 ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
+#                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
+                print "KAPPA"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -444,6 +447,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyTplStartCalib   =hdr['HIERARCH ESO TPL START']
                 
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
+                print "BADPIX"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -470,6 +474,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   (keyInsPinIdCalib    == "PHOTO" and
                    keyInsDinId         == keyInsDinIdCalib and
                    keyDetChipName      == "AQUARIUS")))):
+                print "OBSFLAT"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -494,6 +499,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                  (keyDetChipNameCalib    == "HAWAII-2RG" and
                   keyDetChipName         == "HAWAII-2RG" and
                   keyDetReadCurnameCalib == keyDetReadCurname))):
+                print "NONLIN"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -519,6 +525,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                    keyDetChipName == "HAWAII-2RG" and keyInsDilId == "HIGH+") or
                 (keyInsDinId    == keyInsDinIdCalib and
                    keyDetChipName == "AQUARIUS")))):
+                print"SHIFT"
                 idx=-1
                 cpt=0
                 for elt2 in res:
