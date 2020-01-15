@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import sys
 import argparse
 import os
+from tqdm import tqdm
 import glob
 import shutil
 import subprocess
@@ -105,12 +106,15 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	    listArchive = glob.glob(dirCalib+"/*.fits")
 	else:
 	    listArchive =[]
-	print(listRaw)
+	#print(listRaw)
 	# Sort listRaw using template ID and template start
 	print("Sorting files according to constraints...")
 	allhdr        = []
-	for filename in listRaw:
-	    allhdr.append(getheader(filename,0))
+	for filename in tqdm(listRaw, unit=" files", unit_scale=False, desc="Working on files"):            
+            try:
+                allhdr.append(getheader(filename,0))
+            except:
+                print("\nWARNING: corrupt file!")
 
 	listRawSorted = []
 	allhdrSorted  = []
@@ -267,14 +271,20 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 	    # Fill the list of actions,recipes,params in the Reduction Blocks List
 	    print("listing actions in the reduction blocks...")
 	    for elt in listRedBlocks:
-		hdr = elt["input"][0][2]
-		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+hdr['HIERARCH ESO DET CHIP NAME']
+		hdr  = elt["input"][0][2]
+                chip = hdr['HIERARCH ESO DET CHIP NAME'];
+		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+chip
+                if chip == 'AQUARIUS':
+                    resolution = hdr['HIERARCH ESO INS DIN NAME']
+                if chip == 'HAWAII-2RG':
+		    resolution = hdr['HIERARCH ESO INS DIL NAME']
+                    
 		action        = matisseAction(hdr,elt["input"][0][1])
 		if ('TELESCOP' in hdr):
 			tel = hdr['TELESCOP']
 		else:
 			tel=""
-		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel)
+		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel, resolution)
 		elt["action"]   = action
 		elt["recipes"]  = recipes
 		if action=="ACTION_MAT_RAW_ESTIMATES":
@@ -294,7 +304,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                 
 	# Fill the list of calib in the Reduction Blocks List from dirCalib
 	    print("listing calibrations in the reduction blocks...")
-	    for elt in listRedBlocks:
+	    for elt in tqdm(listRedBlocks,unit=" block", unit_scale=False, desc="Working on"):
 		hdr          = elt["input"][0][2]
 		calib,status = matisseCalib(hdr,elt["action"],listArchive,elt['calib'])
 		elt["calib"] = calib
@@ -504,7 +514,10 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('--resol', default="",  \
                         help='reduce only a given spectral resolution. Can be any of LOW, MED or HIGH')
-
+    #--------------------------------------------------------------------------
+    parser.add_argument('--spectralBinning', default=5,  \
+                        help='Bin spectrally the data to improve SNR')
+    
     #--------------------------------------------------------------------------
     parser.add_argument('--maxIter', default=0,  \
                         help='Maximum Number of Iteration (default 1)')
@@ -528,3 +541,12 @@ if __name__ == '__main__':
         sys.exit(0)
         
     mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN, args.tplSTART, args.tplID)
+
+
+
+
+
+
+
+
+

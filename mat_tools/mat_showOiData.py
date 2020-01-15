@@ -13,6 +13,7 @@ import mat_show_oifits as msoi
 import os
 from matplotlib.backends.backend_pdf import PdfPages
 
+
 inch=1/2.54
 
 
@@ -62,7 +63,7 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
             #print(tely)
             axe.scatter(telx[0,0],tely[0,0],c=tcolor[i],s=40*symsize,zorder=3)
 
-def mat_showOiData(filename,wlRange=None,showErr=False):
+def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
 
     try:
         dic=msoi.open_oi(filename)
@@ -96,7 +97,8 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
               dic['STA_NAME'][np.where(dic['STA_INDEX'] == sti[1])[0][0]]]
              for sti in sta_index]
 
-    fig=plt.figure(figsize=(29.7*inch,21*inch))
+    if not(fig):
+        fig=plt.figure(figsize=(29.7*inch,21*inch))
 
     plts={}
 
@@ -133,6 +135,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
         #plts['PHI_{0}'.format(i)].plot(wl,phi[i,:],color=cols[i])
 
     msoi.show_oi_vs_wlen(dic,key='VIS',datatype="DPHI",plot_errorbars=showErr,subplotList=pltphi,colorList=cols)
+
 
     pltcp=[]
     for i in range(4):
@@ -246,8 +249,12 @@ def mat_showOiData(filename,wlRange=None,showErr=False):
 
     seeing="{0:.2f}".format(dic['SEEING'])
     coherence="{0:.2f}".format(1000*dic['TAU0'])
-    airmass="{0:.2f}".format(dic['HDR']['HIERARCH ESO ISS AIRM START'])
-    fig.text(0.71,0.92,"Seeing = {0}\"".format(seeing))
+    try:
+        airmass="{0:.2f}".format(dic['HDR']['HIERARCH ESO ISS AIRM START'])
+    except:
+        print("WARNING: No airmass. Setting it to zero")
+        airmass=0;
+        fig.text(0.71,0.92,"Seeing = {0}\"".format(seeing))
     fig.text(0.71,0.90,"Coherence = {0}ms".format(coherence))
     fig.text(0.71,0.88,"Airmass = {0}".format(airmass))
 
@@ -283,7 +290,10 @@ if __name__ == '__main__':
             merged=True
 
 
-
+    if (pdf or merged):
+        fig=plt.figure(figsize=(29.7*inch,21*inch))
+    else:
+        fig=None
 
     if os.path.isdir(filename):
         os.chdir(filename)
@@ -300,16 +310,17 @@ if __name__ == '__main__':
 
 
     for filei in filename:
-        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr)
+        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig)
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
-            plt.close(fig)
+            plt.clf()
             print("saving to {0}".format(pdfname))
-        if merged:
+        elif merged:
             pdf.savefig(fig)
-            plt.close(fig)
-
+            plt.clf()
+        else:
+            fig=None
    	if not(pdf or merged):
             plt.show()
 

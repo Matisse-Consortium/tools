@@ -648,7 +648,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
 
     return [res,0]
 
-def matisseRecipes(action,det, tel):
+def matisseRecipes(action, det, tel, resol):
 
     if (action=="ACTION_MAT_CAL_DET_SLOW_SPEED"):
         return ["mat_cal_det","--gain=2.73 --darklimit=100.0 --flatlimit=0.3 --max_nonlinear_range=36000.0 --max_abs_deviation=2000.0 --max_rel_deviation=0.01 --nltype=2"]
@@ -664,12 +664,34 @@ def matisseRecipes(action,det, tel):
         return ["mat_est_shift","--obsCorrection=TRUE"]
     if (action=="ACTION_MAT_EST_KAPPA"):
         return ["mat_est_kappa",""]
-    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel=="ESO-VLTI-A1234"):
-        return ["mat_raw_estimates","--useOpdMod=TRUE --replaceTel=3"]
-    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="AQUARIUS" and tel!="ESO-VLTI-A1234"):
-        return ["mat_raw_estimates","--useOpdMod=TRUE"]
-    if (action=="ACTION_MAT_RAW_ESTIMATES" and det=="HAWAII-2RG"):
-        return ["mat_raw_estimates","--useOpdMod=FALSE --tartyp=57 --compensate=[pb,nl,if,rb,bp,od] --hampelFilterKernel=10"]   
+
+    if (action=="ACTION_MAT_RAW_ESTIMATES"):
+        options = ""
+    
+        if (det=="AQUARIUS"):
+            options += "--useOpdMod=TRUE"
+            if (tel=="ESO-VLTI-A1234"):
+                options += " --replaceTel=3"
+                
+            if resol == "LOW":
+                options += " --spectralBinning=7"
+            if resol == "HIGH":
+                options += " --spectralBinning=7"
+                
+            
+        elif (det =="HAWAII-2RG"):
+            options += "--useOpdMod=FALSE --tartyp=57 --compensate=[pb,nl,if,rb,bp,od] --hampelFilterKernel=10"
+            if resol == "LOW":
+                options += " --spectralBinning=5"
+            if resol == "MED":
+                options += " --spectralBinning=5"
+            if resol == "HIGH":
+                options += " --spectralBinning=5"
+            if resol == "VHIGH":
+                options += " --spectralBinning=5"
+                
+        return ["mat_raw_estimates",options]
+    
     if (action=="ACTION_MAT_IM_BASIC"):
         return ["mat_im_basic",""]
     if (action=="ACTION_MAT_IM_EXTENDED"):
