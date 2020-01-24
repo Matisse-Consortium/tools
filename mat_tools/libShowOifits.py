@@ -82,7 +82,6 @@ def open_oi(oi_file):
         dic['TAU0'] = 0;
 
     target_name = hdu['OI_TARGET'].data['TARGET'][0]
-    print(target_name)
     if not target_name:
         try:
             target_name = hdr['HIERARCH ESO OBS TARG NAME']
@@ -99,7 +98,7 @@ def open_oi(oi_file):
 	catg=hdr['ESO PRO CATG']
 	if catg == "TARGET_RAW_INT":
 		target_category = "SCI"
-	else:	
+	else:
 		target_category = "CAL"
 	#target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
     except KeyError:
@@ -528,11 +527,12 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
 # default the seeing). It reads data from multiple oifits files in a
 # given directory. The data to be plotted can be filtered with the
 # filter_oi_list function.
+# if exponent is not zero, then the data will be multiplied by factor**exponent
 #
 def show_oi_vs_anything(list_of_dicts, wlenRange, key="TF2",
 datatype="TF2", xaxis="HIERARCH ESO ISS AMBI FWHM START",
 showvis=False,plot_errorbars=True,
-useStations=True,xlog=False,ylog=False,ylim=[]):
+useStations=True,xlog=False,ylog=False,ylim=[],factor="",exponent=0.0):
     # check if list is not empty:
     if list_of_dicts:
         target_names_cal = []
@@ -551,13 +551,23 @@ useStations=True,xlog=False,ylog=False,ylim=[]):
                     datayerr = np.array(dic[key][datatype+'ERR'])
                     #print("ready?")
                     datax    = dic['HDR'][xaxis]
+                    if exponent != 0.0:
+                        data_factor = dic['HDR'][factor]
                     #print(datax)
                     n_rows   = datay.shape[0]
                     # print datay.shape
                     for i in range(n_rows):
                         XKey_arr_cal.append(datax)
-                        arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
-                        err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        if exponent == 0.0:
+                            arr_cal.append(robust.mean(datay[i, wlenRange_idx]))
+                            err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx]))
+                        else:
+                            if np.isfinite(data_factor) and data_factor != 0.0:
+                                arr_cal.append(robust.mean(datay[i, wlenRange_idx])*data_factor**exponent)
+                                err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx])*data_factor**exponent)
+                            else: 
+                                arr_cal.append(np.nan)
+                                err_arr_cal.append(np.nan)
                         target_names_cal.append(dic['TARGET'])
 
                         if useStations==True:
@@ -587,7 +597,9 @@ useStations=True,xlog=False,ylog=False,ylim=[]):
         arr_cal          = np.array(arr_cal)
         err_arr_cal      = np.array(err_arr_cal)
         sta_index_cal    = np.array(sta_index_cal)
-
+        
+        if len(sta_index_cal) == 0:
+            return -1
         sta_indices = np.unique(sta_index_cal, axis=0)
         print(len(sta_indices))
         if key == 'VIS' or key == 'VIS2' or key == 'TF2':
@@ -710,7 +722,10 @@ useStations=True,xlog=False,ylog=False,ylim=[]):
                         axs1[i].set_ylim([np.nanmin([np.nanmin(arr_cal),np.nanmin(arr_sci)]), np.nanmax([np.nanmax(arr_cal),np.nanmax(arr_sci)])])
                     except:
                         pass
-            ylabel = datatype
+            if exponent == 0.0:
+                ylabel = datatype
+            else: 
+                ylabel = datatype+'*factor'
             if showvis == True:
                 if datatype == 'VIS2':
                     ylabel = 'VIS'
@@ -730,8 +745,10 @@ useStations=True,xlog=False,ylog=False,ylim=[]):
             #        axis.set_major_formatter(LogFormatter(minor_thresholds=[1,0.5,0.2],labelOnlyBase=False))
             #        axis.set_minor_formatter(LogFormatter(minor_thresholds=[1,0.5,0.2],labelOnlyBase=False))
                     # axis.set_scientific(False)
-
-        plt.suptitle('$\mathrm{'+datatype+'\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
+        if exponent == 0.0:
+            plt.suptitle(r'$\mathrm{'+datatype+'\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
+        else:
+            plt.suptitle(r'$\mathrm{'+datatype+'*'+factor.replace("HIERARCH ESO ","").replace(" ","\_")+'}^{%.1f}'%exponent+'\mathrm{\ vs.\ '+xaxis.replace("HIERARCH ESO ","").replace(" ","\_")+'}$')
 
         #plt.tight_layout()
         plt.show()
@@ -1617,7 +1634,8 @@ def open_oi_dir(input_dir, verbose=True):
 # DIT_range: [min,max] (s)
 # targets = []
 
-def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], targets=[], BCD1=[], BCD2=[], WLEN_range=[]):
+def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], 
+targets=[], BCD1=[], BCD2=[], WLEN_range=[],file_pattern=[]):
     filtered_list_of_dicts = []
     if bands:
         # print  'old:',bands
@@ -1632,14 +1650,16 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
                 # print 'new: ', bands_new
     for dic in list_of_dicts:
         if dic:
+            filename = dic['file']
+            if file_pattern:
+                if file_pattern not in filename:
+                    continue
             date = dic['DATEOBS'][0:10]
             #if dates:
             #    if date not in dates:
             #        continue
             if bands:
                 if dic['BAND'] not in bands_new:
-                    # test bands with default values
-                    
                     continue
             if BCD1:
                 if dic['BCD1NAME'] not in BCD1:

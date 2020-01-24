@@ -155,6 +155,33 @@ def open_fits(fits_file, verbose=False):
                    'STA3',
                    'STA4']
 
+        dic['RA'] = np.nan
+        dic['DEC'] = np.nan
+        dic['MJD-OBS'] = np.nan
+        dic['DATE-OBS'] = ''
+        dic['TAU0'] = np.nan
+        dic['SEEING'] = np.nan
+        dic['AIRM'] = np.nan
+        dic['TEMP'] = np.nan
+        dic['WINDDIR'] = np.nan
+        dic['WINDSP'] = np.nan
+        dic['BCD1'] = ''
+        dic['BCD2']  = ''
+        dic['DETNAME'] = ''
+        dic['TARGET'] = ''
+        dic['DISPNAME'] = ''
+        dic['DISPNAME_L'] = ''
+        dic['DISPNAME_N'] = ''
+        dic['DIT'] = np.nan
+        dic['PRO_CATG'] = ''
+        dic['CATEGORY'] = ''
+        dic['BAND'] = ''
+        dic['WL_CENTRAL'] = np.nan
+        dic['STA1'] = ''
+        dic['STA2'] = ''
+        dic['STA3'] = ''
+        dic['STA4'] = ''
+        
         for j in range(len(hdrkeys)):
             try:
                 dic[dickeys[j]] = hdr[hdrkeys[j][0]]
@@ -168,19 +195,13 @@ def open_fits(fits_file, verbose=False):
                     if verbose:
                         print("WARNING: Header keyword " + hdrkeys[j][1] + " missing. ")
                         print(e)
-                    dic[dickeys[j]] = None
+                    #dic[dickeys[j]] = None
                 except IndexError as e:
                     if verbose:
                         print("WARNING: No alternative header keyword. ")
                         print(e)
-                    dic[dickeys[j]] = None
-
-        if not dic['RA']:
-                dic['RA'] = np.nan
-        if not dic['DEC']:
-                dic['DEC'] = np.nan
- 	
-        dic['DISPNAME'] = None
+                    #dic[dickeys[j]] = None
+                  
         if dic['DETNAME']:
             if 'L' in dic['DETNAME']:
                 dic['DISPNAME'] = dic['DISPNAME_L']
@@ -604,13 +625,16 @@ def make_uv_plot(dic,ax,verbose=False,annotate=True,B_lim=(np.nan,np.nan),figsiz
     umax = []
     vmax = []
     for j in range(len(u)):
-        uvs.append([u[j],v[j]])
-        BE, BN, BL = dic['STAXYZ'][sta_index[j, 0] == dic['STA_INDEX']][0] - \
-            dic['STAXYZ'][sta_index[j, 1] == dic['STA_INDEX']][0]
-        sta_label= dic['STA_NAME'][sta_index[j, 0] == dic['STA_INDEX']][0] + '-' + \
-                    dic['STA_NAME'][sta_index[j, 1] == dic['STA_INDEX']][0]
-        inps.append( [dic['RA'] * np.pi / 180., dic['DEC'] * np.pi / 180., BE, BN, BL, sta_label]  )
-        flags.append(flag[j])
+        try:
+            uvs.append([u[j],v[j]])
+            BE, BN, BL = dic['STAXYZ'][sta_index[j, 0] == dic['STA_INDEX']][0] - \
+                dic['STAXYZ'][sta_index[j, 1] == dic['STA_INDEX']][0]
+            sta_label= dic['STA_NAME'][sta_index[j, 0] == dic['STA_INDEX']][0] + '-' + \
+                        dic['STA_NAME'][sta_index[j, 1] == dic['STA_INDEX']][0]
+            inps.append( [dic['RA'] * np.pi / 180., dic['DEC'] * np.pi / 180., BE, BN, BL, sta_label]  )
+            flags.append(flag[j])
+        except TypeError as e:
+            print(e)
     bases = []
     umax = np.nanmax(np.abs(u))
     vmax = np.nanmax(np.abs(v))
@@ -621,8 +645,11 @@ def make_uv_plot(dic,ax,verbose=False,annotate=True,B_lim=(np.nan,np.nan),figsiz
         dic['TREL'] = rel_time[0]
 
         for k, uv in enumerate(uvs):
-            bases = make_uv_tracks(uv, inps[k], flags[k],ax, bases)
-
+            try:
+                bases = make_uv_tracks(uv, inps[k], flags[k],ax, bases)
+            except IndexError as e:
+                print(e)
+                
         xlabel ='$u$ (m)'
         ylabel ='$v$ (m)'
         ax.set_xlim((130, -130))
@@ -741,7 +768,8 @@ def make_plot_with_baseline(dic,ax,tag,oi_type='vis',ylabel='',verbose=False,ann
                 model_result = fit_gaussian_model(pbl,y_new,sel_wl,mode='corr')
             if annotate == True or (annotate == False and annotate_baselines == True):
                 for j in range(len(y)):
-                    ax.text(pbl[j]-1.0, y_new[j], sta_labels[j], color='gray', alpha=0.6,ha='right')
+                    if (not math.isnan(y_new[j])) and (not math.isnan(pbl[j])):
+                        ax.text(pbl[j]-1.0, y_new[j], sta_labels[j], color='gray', alpha=0.6,ha='right')
             pmin = np.nanmin(y_new) #np.nanpercentile(y_new, 10.0)
             pmax = np.nanmax(y_new) #np.nanpercentile(y_new, 90.0)
             pmid = (pmin + pmax) / 2.0
@@ -1007,9 +1035,13 @@ B_lim=(np.nan,np.nan),fit_model = False,figsize=(15,15)):
             os.makedirs(outputdir)  
     for input_fitsfile in fitsfiles:
         ouput_file_path = outputdir + '/' + os.path.splitext(os.path.basename(input_fitsfile))[0]+'_mosaic'
+        #try:
         make_mosaic_plot([input_fitsfile],ouput_file_path,oi_types_list=oi_types_list, verbose=verbose, save_png=save_png, 
         save_eps=save_eps,sel_wl=sel_wl,bandwidth=bandwidth,annotate=annotate,legend_loc='upper right',
         legend_loc_pbl='lower left',wl_lim=wl_lim,B_lim=B_lim,fit_model = fit_model,figsize=(15,15))
+        #except ValueError as e:
+        #    print(e)
+        #    print('There was an error. Unable to plot '+input_fitsfile)
 
 ###############################################################################################################
 # make_plots
