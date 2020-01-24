@@ -37,6 +37,7 @@ from astropy import coordinates
 from astropy.io import fits
 from os.path import expanduser
 from matplotlib.ticker import *
+from matplotlib import cm
 
 home = expanduser("~")
 
@@ -81,6 +82,7 @@ def open_oi(oi_file):
         dic['TAU0'] = 0;
 
     target_name = hdu['OI_TARGET'].data['TARGET'][0]
+    print(target_name)
     if not target_name:
         try:
             target_name = hdr['HIERARCH ESO OBS TARG NAME']
@@ -114,12 +116,17 @@ def open_oi(oi_file):
     except KeyError:
         print ("Detector name not found.")
         det_name = ""
+        
     if (det_name == 'AQUARIUS'):
         band = 'N'
     elif (det_name == 'HAWAII-2RG'):
         band = 'LM'
+    elif (hdr['FILTER1'] == "H_band"):
+        band="H"
+        print('I found the mircx band!')
     else:
         band = ''
+                
     dic['BAND'] = band
     try:
         if (det_name == 'AQUARIUS'):
@@ -240,14 +247,19 @@ def open_oi(oi_file):
 
 ###############################################################################
 
-def show_oi_vs_freq(dic, log=False,showvis=False, subplotV2=None, subplotCP=None):
+def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
+                    subplotCP=None,useFlag=True, color='lightgray',
+                    plot_errorbars=True,plotfreq='as',
+                    closlim=[-200,200],vislim=[-0.1,1.1],freqlim=None):
     wl    = dic['WLEN'];
     vis2  = dic['VIS2']['VIS2'];
     vis2e = dic['VIS2']['VIS2ERR'];
+    vis2f = dic['VIS2']['FLAG'];
     u     = dic['VIS2']['U'];
     v     = dic['VIS2']['V'];
     cp    = dic['T3']['CLOS'];
     cpe   = dic['T3']['CLOSERR'];
+    cpf   = dic['T3']['FLAG'];
     u1    = dic['T3']['U1'];
     v1    = dic['T3']['V1'];
     u2    = dic['T3']['U2'];
@@ -264,40 +276,62 @@ def show_oi_vs_freq(dic, log=False,showvis=False, subplotV2=None, subplotCP=None
 
 
     # Visibility
-    # Plot all data first
-    for i, j in enumerate(u):
-        r = np.sqrt(u[i] ** 2 + v[i] ** 2);
-        freq = r / wl;
-        if log:
-            if showvis == True:
-                axes_v2.semilogy(freq, vis2[i, :], color='lightgray')
-            else:
-                axes_v2.semilogy(freq, np.sqrt(vis2[i, :]), color='lightgray')
-            axes_v2.set_ylim([1e-4, 1.1])
-        else:
-            if showvis == True:
-                axes_v2.plot(freq, np.sqrt(vis2[i, :]), color='lightgray')
-            else:
-                axes_v2.plot(freq, vis2[i, :], color='lightgray')
-
     # Plot valid data
+    
+    if log:
+        axes_v2.set_yscale('log', nonposy='clip')
+        if vislim == [-0.1,1.1]:
+            vislim = [1e-4,1.1]
+            
+    axes_v2.set_ylim(vislim[0],vislim[1])
+
     for i, j in enumerate(u):
         r = np.sqrt(u[i] ** 2 + v[i] ** 2);
-        freq = r / wl;
-        test = np.logical_and(vis2[i, :] >= 0, vis2e[i, :] / vis2[i, :] < 1)
-        if log:
-            if showvis == True:
-                axes_v2.semilogy(freq[test], np.sqrt(vis2[i, test]))
-            else:
-                axes_v2.semilogy(freq[test], vis2[i, test])
-            axes_v2.ylim([1e-4, 1.1])
+        if plotfreq == 'rad':
+            freq = r / wl;
+            freqlabel='B/$\lambda$ (cycles/rad)'
+        elif plotfreq=='as':
+            freq = r / wl * math.pi/180/3600;
+            freqlabel='B/$\lambda$ (cycles/arcseconds)'
+        elif plotfreq=='m':
+            freq=r;
+            freqlabel='Baseline (m)'
+        if useFlag==True:
+            test = ~vis2f[i, :]
         else:
-            if showvis == True:
-                axes_v2.plot(freq[test], np.sqrt(vis2[i, test]))
+            test=np.full(np.shape(vis2[i, :]),True);
+        
+        if showvis == True:
+            if plot_errorbars == True:
+                wtest = np.where(test);
+                for itest in range(len(wtest)):
+                    print(itest)
+                    print(wtest[0][itest])
+                    print(wl[wtest[0][itest]])
+                    wli = wl[wtest[0][itest]]
+                    getcol=cm.rainbow((wli-np.min(wl))/(np.max(wl)-np.min(wl)));
+                    print('wli',wli,'getcol',getcol)
+                    axes_v2.errorbar(freq[test[i]], np.sqrt(vis2[i, test[i]]),
+                                     yerr=vis2e[i, test[i]]/(2*np.sqrt(vis2[i, test[i]])),
+                                     ecolor = getcol, color='lightgray',
+                                     capsize = 2,elinewidth = 1,
+                                     cmap='rainbow')
             else:
-                axes_v2.plot(freq[test], vis2[i, test])
+                axes_v2.plot(freq[test], np.sqrt(vis2[i, test]),color=color)
+        else:
+            if plot_errorbars == True:
+                axes_v2.errorbar(freq[test], vis2[i, test],
+                                 yerr=vis2e[i, test], color='lightgray',
+                                 ecolor = color, alpha = 1.,
+                                 capsize = 2, elinewidth = 1,linewidth=0.5,
+                                 barsabove=1,errorevery=1,fmt='',
+                                 uplims=vis2[i,test]-vis2e[i,test]<vislim[0],
+                                 lolims=vis2[i,test]+vis2e[i,test]>vislim[1])
+            else:
+                axes_v2.plot(freq[test], vis2[i, test],color=color)
 
-    plt.ylim([-0.1, 1.1])
+            
+    #plt.ylim([-0.1, 1.1])
 
     if showvis == True:
         axes_v2.set_ylabel('V')
@@ -306,27 +340,40 @@ def show_oi_vs_freq(dic, log=False,showvis=False, subplotV2=None, subplotCP=None
            # plt.xlabel('Spatial Frequency (B/$\lambda$)')
 
     # Closure phase
-    # Plot all data first
-
-    for i, j in enumerate(u1):
-        r1 = np.sqrt(u1[i] ** 2 + v1[i] ** 2);
-        r2 = np.sqrt(u2[i] ** 2 + v2[i] ** 2);
-        r3 = np.sqrt((u1[i] + u2[i]) ** 2 + (v1[i] + v2[i]) ** 2);
-        freq = np.maximum(np.maximum(r1, r2), r3) / wl;
-        axes_cp.plot(freq, cp[i, :], color='lightgray')
-
     # Plot valid data only
+    axes_cp.set_ylim(closlim[0],closlim[1])
     for i, j in enumerate(u1):
         r1 = np.sqrt(u1[i] ** 2 + v1[i] ** 2);
         r2 = np.sqrt(u2[i] ** 2 + v2[i] ** 2);
         r3 = np.sqrt((u1[i] + u2[i]) ** 2 + (v1[i] + v2[i]) ** 2);
-        freq = np.maximum(np.maximum(r1, r2), r3) / wl;
-        test = np.absolute(cpe[i, :]) < 180 / math.pi / 3
-        axes_cp.plot(freq[test], cp[i, test])
+        if plotfreq == 'rad':
+            #freq = np.maximum(np.maximum(r1, r2), r3) / wl;
+            freq = (r1 * r2 * r3)**(1./3.) / wl 
+        elif plotfreq=='as':
+            #freq = np.maximum(np.maximum(r1, r2), r3) / wl * math.pi/180/3600
+            freq = (r1 * r2 * r3)**(1./3.) / wl * math.pi/180/3600;
+            #freq = (r1 + r2 + r3)/3. / wl * math.pi/180/3600;
+        elif plotfreq=='m':
+            #freq = np.maximum(np.maximum(r1, r2), r3);
+            freq = (r1 * r2 * r3)**(1./3.)
+            
+        if useFlag==True:
+            test = ~cpf[i, :]
+        else:
+            test=np.full(np.shape(cp[i, :]),True);
+        if plot_errorbars == True:
+                axes_cp.errorbar(freq[test], cp[i, test],
+                                 yerr=cpe[i, test], color='lightgray',
+                                 ecolor = color, alpha = 1.,
+                                 capsize = 2,elinewidth = 1,linewidth=0.5,
+                                 barsabove=1,errorevery=1,fmt='',
+                                 uplims=cp[i, test]-cpe[i, test]<closlim[0],
+                                 lolims=cp[i, test]+cpe[i, test]>closlim[1])
+        else:
+            axes_cp.plot(freq[test], cp[i, test],color=color)
 
-    axes_cp.set_ylim([-200, 200])
     axes_cp.set_ylabel('Closure phase ($^o$)')
-    axes_cp.set_xlabel('B/$\lambda$ (cycles/rad)')
+    axes_cp.set_xlabel(freqlabel)
 
     if not(subplotV2 and subplotCP):
         plt.show()
@@ -336,7 +383,8 @@ def show_oi_vs_freq(dic, log=False,showvis=False, subplotV2=None, subplotCP=None
 def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     plot_errorbars=True, correct_polynom=False,
                     timeVertOffset=0, stdevRange=False, normRange=False,
-                    stdevTime=False,subplotList=None,colorList=None,useFlag=False):
+                    stdevTime=False, subplotList=None, colorList=None,
+                    useFlag=False):
    # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
 
     sta_index_cal = []
@@ -402,8 +450,6 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     else:
         axs1 = subplotList
 
-    #print datae
-    #print datae.shape
     #print("Plotting...")
     npl=int(len(data)/n_max_config)
     #print(npl)
@@ -426,9 +472,6 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     elif key == 'TF2':
                         label = 'TF'
 
-            #print(i)
-            #print(idx)
-            #print(np.shape(data))
             if not(colorList):
                 axs1[j].plot(wl[idxGood[idx]] * 1e6, data[idx, idxGood[idx]]+timeVertOffset*j)
             else:
@@ -1595,6 +1638,8 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], D
             #        continue
             if bands:
                 if dic['BAND'] not in bands_new:
+                    # test bands with default values
+                    
                     continue
             if BCD1:
                 if dic['BCD1NAME'] not in BCD1:

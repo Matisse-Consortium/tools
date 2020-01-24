@@ -27,6 +27,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from   astropy.io import fits as fits
 from mat_fileDialog import mat_FileDialog, identifyFile
+from libShowOifits import open_oi
 
 ###############################################################################
 
@@ -45,20 +46,29 @@ def open_hdr(oi_file):
 
 ###############################################################################
 
-def get_UV(file):
+def get_UV(oi_file):
 
     BX = []
     BY = []
-
-    res = open_hdr(file)
+    
+    dic = open_oi(oi_file);
+    res = dic['HDR']
 
     try:
-        target_name = res['HIERARCH ESO OBS TARG NAME']
+        target_name = dic['TARGET']
     except:
-        print("No TARGET name")
-        target_name = "-"
+        print("WARNING: No TARGET name. Trying to get it from the header...")
+        try:
+            target_name = res['HIERARCH ESO OBS TARG NAME']
+        except:
+            print("WARNING: Did not find TARGET name...")
+            target_name = "Dummy target"
 
-    typ    = res['HIERARCH ESO PRO CATG']
+    try:
+        typ    = res['HIERARCH ESO PRO CATG']
+    except:
+        print("WARNING: No Product category keyword")
+        typ = "-"
 
     try:
         instru = res['INSTRUME']
@@ -66,20 +76,29 @@ def get_UV(file):
         try:
             instru = res['HIERARCH ESO INS MODE']
         except:
-            print('error, unknown instrument!')
+            print('WARNING: unknown instrument!')
 
-    #print(instru)
-
-
-    if instru == 'MATISSE':
+    if   instru == 'MATISSE':
         ntels = 4;
     elif instru == 'MIDI':
         ntels = 2;
+    elif instru == 'AMBER':
+        ntels = 3;
+    elif instru == 'MIRCX':
+        ntels = 6;
     else:
-        ntels = res['HIERARCH ESO DET NTEL']
+        try:
+            ntels = res['HIERARCH ESO DET NTEL']
+        except:
+            print('WARNING: NTEL not set. Setting it to 1.')
+            ntels=1;
 
     #read in priority the keywords
     try:
+        BX = dic['VIS2']['U'];
+        BY = dic['VIS2']['V'];
+    except:
+        print('No data in OI_VIS2 table. Trying ESO keywords...')
         base=0;
         for i in np.arange(1,ntels+1):
             for j in np.arange(i+1,ntels+1):
@@ -95,13 +114,15 @@ def get_UV(file):
 
                 BX = np.append(BX, bx)
                 BY = np.append(BY, by)
-    # otherwise look into the OI_VIS2 table directly
-    except:
-        print('No PBL keywords. taking a look into the OI_VIS2 table...')
-        hdu = fits.open(file)
-        #print(hdu['OI_VIS2'])
 
-    return BX,BY,target_name, typ
+    #read in priority the keywords
+    try:
+        WLEN = dic['WLEN']
+    except:
+        print('No wavelength table found. Trying some other tricks');
+        WLEN = res['EFF_WAVE'];
+        
+    return BX,BY,WLEN,target_name, typ, ntels
 
 ###############################################################################
 
@@ -109,11 +130,14 @@ def get_UVs(files):
     BX   = []
     BY   = []
     TARG = []
+    WLEN = []
 
     for file in files:
         print(file)
-        bx, by, targ, typ = get_UV(file)
+        bx, by, wl, targ, typ, ntels = get_UV(file)
 
+        print(typ, targ)
+            
         if typ == 'CALIB_RAW_INT':
             continue
 
@@ -125,12 +149,22 @@ def get_UVs(files):
 
         TARG = np.append(TARG, targ)
 
-    return BX, BY, TARG;
+        WLEN =  wl
+
+    return BX, BY, WLEN, TARG, ntels;
 
 ###############################################################################
 
-def plot_UV(BX, BY, TARG, marker='o', markersize=4, color="red"):
+def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",title='True', freq='m'):
 
+    BX0 = np.copy(BX);
+    if freq=='as':
+        BX = BX[:,None]/WLEN * np.pi/180/3600;
+        BY = BY[:,None]/WLEN * np.pi/180/3600;
+    if freq=='rad':
+        BX = BX[:,None]/WLEN;
+        BY = BY[:,None]/WLEN;
+        
     uniques = set(TARG)
     print(uniques)
     if len(uniques) < 4:
@@ -141,26 +175,38 @@ def plot_UV(BX, BY, TARG, marker='o', markersize=4, color="red"):
         nwiny = nwin;
         nwinx = nwin+1;
 
-    for i,base in enumerate(BX):
+    print(np.shape(WLEN))
+    print(np.shape(BX))
+    print(len(BY))
+
+    for i,base in enumerate(BX0):
         for j,uni in enumerate(uniques):
-            if uni == TARG[i/6]:
+            if uni == TARG[i/(ntels*(ntels-1)/2)]:
                 idx = j
 
-        #print(idx)
         try:
             ax = plt.subplot(nwinx,nwiny,idx+1)
             ax.axis('equal')
             aruni = np.array(list(uniques))
             #print(aruni)
-            ax.set_title(aruni[idx])
+            if title=='True':
+                ax.set_title(aruni[idx])
             #print(aruni[idx])
+
+            if freq=='m':
+                ax.set_xlabel('Baseline (m)')
+                ax.set_ylabel('Baseline (m)')
+            else:
+                ax.set_xlabel('Frequency (cycles/'+freq+')')
+                ax.set_ylabel('Frequency (cycles/'+freq+')')
+                
             
-            ax.plot( base, BY[i], marker=marker, markersize=markersize,   color=color)
-            ax.plot(-base,-BY[i], marker='o',    markersize=markersize-2, color=color)
+            ax.plot( BX[i], BY[i], marker=marker, markersize=markersize,   color=color)
+            ax.plot(-BX[i],-BY[i], marker='o',    markersize=markersize-2, color=color)
         except:
             print("ouille !")
 
-    ax.plot(0,0, marker='+', markersize=markersize, color=color)
+    ax.plot(0,0, marker='+', markersize=markersize, color='black')
 
 ###############################################################################
 
@@ -170,14 +216,30 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description='(u,v) plane plot.')
     #--------------------------------------------------------------------------
-    parser.add_argument('in_dir', metavar='in_dir', type=str, \
-    help='The path to the directory containing your oifits data.', default=None)
+    parser.add_argument('in_dir', metavar='in_dir', type=str,
+                        help='The path to the directory containing your oifits data.',
+                        default='.')
+    #--------------------------------------------------------------------------
+    parser.add_argument('--showtitle', metavar='showtitle', type=str,
+                        help='Display a title with the name of the star or not.',
+                        default=True)
+    #--------------------------------------------------------------------------
+    parser.add_argument('--pdf',   action="store_true",
+                        help='Create a pdf file for each target.')
+    #--------------------------------------------------------------------------
+    parser.add_argument('--color', metavar='color', type=str,
+                        help='Plot color.',
+                        default='red')
+    #--------------------------------------------------------------------------
+    parser.add_argument('--freq', metavar='freq', type=str,
+                        help='Type of scale to use. Can be any of m (meters), as (cycles/arcseconds) or rad (cycles/radians).',
+                        default='m')
     #--------------------------------------------------------------------------
 
     try:
         args = parser.parse_args()
     except:
-        print("\n\033[93mRunning mat_autoCalib.py --help to be kind with you:\033[0m\n")
+        print("\n\033[93mRunning mat_showUV.py --help to be kind with you:\033[0m\n")
         parser.print_help()
 	sys.exit(0)
 
@@ -188,7 +250,8 @@ if __name__ == '__main__':
     plt.figure(1)
     plt.clf();
 
-    BX, BY, TARG = get_UVs(files)
-    plot_UV(BX, BY, TARG)
+    BX, BY, WLEN, TARG, ntels = get_UVs(files)
+    plot_UV(BX, BY, WLEN, TARG, ntels,title=args.showtitle,color=args.color,
+            freq=args.freq)
     plt.show();
     
