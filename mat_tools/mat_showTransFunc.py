@@ -5,7 +5,7 @@ This file is part of the Matisse pipeline GUI series
 Copyright (C) 2017- Observatoire de la Côte d'Azur
 
 Created on Tue Jul 22 2019
-@author: FMi
+@author: fmillour
 
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.

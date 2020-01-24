@@ -1,8 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Apr 14 14:16:01 2019
+This file is part of the Matisse pipeline GUI series
+Copyright (C) 2017- Observatoire de la Côte d'Azur
 
+Created on Sun Apr 14 14:16:01 2019
 @author: ame
+
+DL offset display
+
+This software is a computer program whose purpose is to show oifits
+files from the MATISSE instrument.
+
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. 
+
+You can use, modify and/ or redistribute the software under the
+terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
+the following URL "http://www.cecill.info". You have a copy of the
+licence in the LICENCE.md file.
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
 """
 
 

@@ -7,6 +7,8 @@ Copyright (C) 2017- Observatoire de la Côte d'Azur
 Created on Fri Mar 16 19:38:46 2018
 @author: fmillour
 
+Get your oifits files in one directory
+
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.
 

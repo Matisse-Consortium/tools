@@ -1,15 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jul 16 12:28:03 2019
+  This file is part of the Matisse pipeline GUI series
+  Copyright (C) 2017- Observatoire de la Côte d'Azur
 
-@author: ame
+  Created on Tue Jul 16 12:28:03 2019
+  @author: ame
+
+  This script shows MATISSE oifits content on a neat ID card.
+
+  This software is governed by the CeCILL license under French law and
+  abiding by the rules of distribution of free software.
+
+  You can use, modify and/ or redistribute the software under the
+  terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
+  the following URL "http://www.cecill.info". You have a copy of the
+  licence in the LICENCE.md file.
+
+  The fact that you are presently reading this means that you have had
+  knowledge of the CeCILL license and that you accept its terms.
+
 """
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
 import sys
-import mat_show_oifits as msoi
+import libShowOifits as msoi
 import os
 from matplotlib.backends.backend_pdf import PdfPages
 

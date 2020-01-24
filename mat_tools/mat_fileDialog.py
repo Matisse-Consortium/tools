@@ -1,72 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""$Id$
-
-   This file is part of the Matisse pipeline GUI series
-   Copyright (C) 2017- Observatoire de la Côte d'Azur
+"""
+This file is part of the Matisse pipeline GUI series
+Copyright (C) 2017- Observatoire de la Côte d'Azur
 
    Created on Wed Apr  5 10:18:07 2017
-   @author: ame
+@author: ame, jvarga, fmillour
 
-   This software is a computer program whose purpose is to produce a
-   file selector for the MATISSE instrument.
+file selector for the MATISSE instrument.
 
-   This software is governed by the CeCILL license under French law
-   and abiding by the rules of distribution of free software.  You can
-   use, modify and/ or redistribute the software under the terms of
-   the CeCILL license as circulated by CEA, CNRS and INRIA at the
-   following URL "http://www.cecill.info".
+This software is a computer program whose purpose is to show oifits
+files from the MATISSE instrument.
 
-   As a counterpart to the access to the source code and rights to
-   copy, modify and redistribute granted by the license, users are
-   provided only with a limited warranty and the software's author,
-   the holder of the economic rights, and the successive licensors
-   have only limited liability.
+This software is governed by the CeCILL license under French law and
+abiding by the rules of distribution of free software. 
 
-  $Author$
-  $Date$
-  $Revision$
+You can use, modify and/ or redistribute the software under the
+terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
+the following URL "http://www.cecill.info". You have a copy of the
+licence in the LICENCE.md file.
 
-   In this respect, the user's attention is drawn to the risks
-   associated with loading, using, modifying and/or developing or
-   reproducing the software by the user in light of its specific
-   status of free software, that may mean that it is complicated to
-   manipulate, and that also therefore means that it is reserved for
-   developers and experienced professionals having in-depth computer
-   knowledge. Users are therefore encouraged to load and test the
-   software's suitability as regards their requirements in conditions
-   enabling the security of their systems and/or data to be ensured
-   and, more generally, to use and operate it in the same conditions
-   as regards security.
-
-   The fact that you are presently reading this means that you have
-   had knowledge of the CeCILL license and that you accept its terms.
-
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL license and that you accept its terms.
 """
-# Changelog:
-
-# - 2018-03-15, added buffering capability (jvarga): while entering a
-#   directory, it saves the matisseFileList variable into a buffer
-#   file (with pickle). Upon re-entering the directory, it opens the
-#   buffer file and loads the file list, thus avoiding re-opening the
-#   fits files. If there is a mismatch between the buffered file list
-#   and the actual contents of the folder, the buffer will be
-#   synchronized
-
-# - 2018-03-15, only selected keywords are extracted from the fits
-#   headers and saved to buffer file (fmillour, jvarga)
-
-# - 2018-03-15, fixed row coloring problem; changed pickle data
-#   protocol to binary (jvarga) - 2018-03-16, New item in right-click
-#   menu: Copy list to clipboard (jvarga)
-
-# - 2018-03-16, added a new column to the list (TPL START) (jvarga)
-#   Known issues:
-
-# - currently it only works properly when filter is set to "All files"
-
-# - The selected rows cannot be copied to the clipboard using Ctrl-C
-#   (on Windows)
 
 #TODO: fix file type filter issues
 
