@@ -12,7 +12,7 @@ This software is a computer program whose purpose is to show oifits
 files from the MATISSE instrument.
 
 This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software. 
+abiding by the rules of distribution of free software.
 
 You can use, modify and/ or redistribute the software under the
 terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
@@ -128,14 +128,15 @@ def mat_mergeOifits(oifitsList):
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
                 if (ifile!=0) and (imod!=0):
-                    for key in ["VIS2DATA","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
+                    for key in ["VIS2DATA","VIS2ERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
                     vis22 = (vis22*norm + data[ifile]["OI_VIS2"].data["VIS2DATA"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                     norm+=1
-        temp.data["VIS2ERR"]=np.sqrt(np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
+        temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2+ np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
+        #temp.data["VIS2ERR"]=np.sqrt(np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
         temp.data["INT_TIME"] *=norm
         avgFits["OI_VIS2"]=temp
 
