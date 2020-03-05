@@ -115,7 +115,7 @@ def open_oi(oi_file):
     except KeyError:
         print ("Detector name not found.")
         det_name = ""
-        
+
     if (det_name == 'AQUARIUS'):
         band = 'N'
     elif (det_name == 'HAWAII-2RG'):
@@ -125,7 +125,7 @@ def open_oi(oi_file):
         print('I found the mircx band!')
     else:
         band = ''
-                
+
     dic['BAND'] = band
     try:
         if (det_name == 'AQUARIUS'):
@@ -276,12 +276,12 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
 
     # Visibility
     # Plot valid data
-    
+
     if log:
         axes_v2.set_yscale('log', nonposy='clip')
         if vislim == [-0.1,1.1]:
             vislim = [1e-4,1.1]
-            
+
     axes_v2.set_ylim(vislim[0],vislim[1])
 
     for i, j in enumerate(u):
@@ -299,7 +299,7 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
             test = ~vis2f[i, :]
         else:
             test=np.full(np.shape(vis2[i, :]),True);
-        
+
         if showvis == True:
             if plot_errorbars == True:
                 wtest = np.where(test);
@@ -329,7 +329,7 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
             else:
                 axes_v2.plot(freq[test], vis2[i, test],color=color)
 
-            
+
     #plt.ylim([-0.1, 1.1])
 
     if showvis == True:
@@ -347,7 +347,7 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
         r3 = np.sqrt((u1[i] + u2[i]) ** 2 + (v1[i] + v2[i]) ** 2);
         if plotfreq == 'rad':
             #freq = np.maximum(np.maximum(r1, r2), r3) / wl;
-            freq = (r1 * r2 * r3)**(1./3.) / wl 
+            freq = (r1 * r2 * r3)**(1./3.) / wl
         elif plotfreq=='as':
             #freq = np.maximum(np.maximum(r1, r2), r3) / wl * math.pi/180/3600
             freq = (r1 * r2 * r3)**(1./3.) / wl * math.pi/180/3600;
@@ -355,7 +355,7 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
         elif plotfreq=='m':
             #freq = np.maximum(np.maximum(r1, r2), r3);
             freq = (r1 * r2 * r3)**(1./3.)
-            
+
         if useFlag==True:
             test = ~cpf[i, :]
         else:
@@ -565,7 +565,7 @@ useStations=True,xlog=False,ylog=False,ylim=[],factor="",exponent=0.0):
                             if np.isfinite(data_factor) and data_factor != 0.0:
                                 arr_cal.append(robust.mean(datay[i, wlenRange_idx])*data_factor**exponent)
                                 err_arr_cal.append(robust.mean(datayerr[i, wlenRange_idx])*data_factor**exponent)
-                            else: 
+                            else:
                                 arr_cal.append(np.nan)
                                 err_arr_cal.append(np.nan)
                         target_names_cal.append(dic['TARGET'])
@@ -597,7 +597,7 @@ useStations=True,xlog=False,ylog=False,ylim=[],factor="",exponent=0.0):
         arr_cal          = np.array(arr_cal)
         err_arr_cal      = np.array(err_arr_cal)
         sta_index_cal    = np.array(sta_index_cal)
-        
+
         if len(sta_index_cal) == 0:
             return -1
         sta_indices = np.unique(sta_index_cal, axis=0)
@@ -724,7 +724,7 @@ useStations=True,xlog=False,ylog=False,ylim=[],factor="",exponent=0.0):
                         pass
             if exponent == 0.0:
                 ylabel = datatype
-            else: 
+            else:
                 ylabel = datatype+'*factor'
             if showvis == True:
                 if datatype == 'VIS2':
@@ -914,7 +914,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
 
                         if key ==  'TF2':
                             ### Plot an interpolation of transfer function
-                            z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],3)
+                            z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],1)
                             p = np.poly1d(z)
                             x = (np.max(MJD_arr_cal[idxst])-np.min(MJD_arr_cal[idxst]))*np.arange(100)/100.
                             axs1[i].plot(np.min(MJD_arr_cal[idxst])+x,p(x),color='gray')
@@ -1390,7 +1390,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                                      yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(np.abs(TF2_arr[cidxst])),
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
-                                    z=np.polyfit(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]), np.sqrt(np.abs(TF2_arr[cidxst])),3)
+                                    z=np.polyfit(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]), np.sqrt(np.abs(TF2_arr[cidxst])),1)
                                     p=np.poly1d(z)
                                     x=(np.max(TF2_MJD_arr[cidxst])-np.min(TF2_MJD_arr[cidxst]))*np.arange(100)/100.
                                     axs1[i].plot(np.min(TF2_MJD_arr[cidxst])+x,p(x),color=TF2_colors[j])
@@ -1634,7 +1634,7 @@ def open_oi_dir(input_dir, verbose=True):
 # DIT_range: [min,max] (s)
 # targets = []
 
-def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[], 
+def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[],
 targets=[], BCD1=[], BCD2=[], WLEN_range=[],file_pattern=[]):
     filtered_list_of_dicts = []
     if bands:
