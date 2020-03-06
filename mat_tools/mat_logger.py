@@ -139,9 +139,11 @@ class mat_logData():
                         din = f.disp
                 if f.dprtype == "STD":
                     isImageAcq = "T"
-        elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" :
+        elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" or  "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test" :
             if  self.tplid == "MATISSE_hyb_obs" :
                 tpltype="OBS-HYB"
+            elif self.tplid == "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test" :
+                tpltype="OBS-HYB-FT"
             else:
                 tpltype="OBS-HSE"
 
@@ -980,9 +982,9 @@ class mat_logger(wx.Dialog):
 # Colour of text for tpl list
     def setRowColorTpl(self,listItem, data):
 
-        if data.tplid == "MATISSE_hyb_obs" or data.tplid == "MATISSE_hse_obs":
+        if data.tplid == "MATISSE_hyb_obs" or data.tplid == "MATISSE_hse_obs" or  "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test":
                 txtcol=wx.Colour(116,196,147)
-        elif data.tplid == "MATISSE_img_acq" or data.tplid == "MATISSE_img_acq_ft":
+        elif data.tplid == "MATISSE_img_acq" or data.tplid == "MATISSE_img_acq_ft" :
                 txtcol=wx.Colour(116,147,196)
         else:
                 txtcol=wx.Colour(155,155,155)
