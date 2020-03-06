@@ -1405,7 +1405,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                     x=np.linspace(np.min(TF2_MJD_arr[cidxst]),np.max(TF2_MJD_arr[cidxst]),nel)
                                     y=np.interp(x,x0,y0)
                                     n=4
-                                    kernel=np.one(n)/n
+                                    kernel=np.ones(n)/n
                                     y2=np.convolve(y,kernel,mode='same')
                                     axs1[i].plot(x,y2,color=TF2_colors[j])
                                 else:
