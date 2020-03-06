@@ -139,7 +139,7 @@ class mat_logData():
                         din = f.disp
                 if f.dprtype == "STD":
                     isImageAcq = "T"
-        elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" or  "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test" :
+        elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" or  self.tplid == "MATISSE_hyb_obs_ft" or  self.tplid == "MATISSE_hyb_obs_ft_test" :
             if  self.tplid == "MATISSE_hyb_obs" :
                 tpltype="OBS-HYB"
             elif self.tplid == "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test" :
