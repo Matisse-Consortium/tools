@@ -1398,6 +1398,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                     print(nel)
                                     x=np.linspace(np.min(TF2_MJD_arr[cidxst]),np.max(TF2_MJD_arr[cidxst]),nel)
                                     y=np.interp(x,TF2_MJD_arr[cidxst], np.sqrt(np.abs(TF2_arr[cidxst])))
+                                    axs1[i].plot(TF2_MJD_arr[cidxst], np.sqrt(np.abs(TF2_arr[cidxst])),color="pink")
                                     axs1[i].plot(x,y,color=TF2_colors[j])
                                 else:
                                     axs1[i].errorbar(TF2_MJD_arr[cidxst], TF2_arr[cidxst], yerr=TF2err_arr[cidxst],
