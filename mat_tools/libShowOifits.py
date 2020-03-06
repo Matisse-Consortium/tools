@@ -917,6 +917,7 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
                             z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],1)
                             p = np.poly1d(z)
                             x = (np.max(MJD_arr_cal[idxst])-np.min(MJD_arr_cal[idxst]))*np.arange(100)/100.
+                            x=np.interp(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst])
                             axs1[i].plot(np.min(MJD_arr_cal[idxst])+x,p(x),color='gray')
 
                     else:
@@ -1518,6 +1519,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                 z=np.polyfit(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst],1)
                                 p=np.poly1d(z)
                                 x=(np.max(CP_MJD_arr_cal[cidxst])-np.min(CP_MJD_arr_cal[cidxst]))*np.arange(100)/100.
+                                x=np.interp(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst])
                                 axs[i + 0].plot(np.min(CP_MJD_arr_cal[cidxst])+x,p(x),color=V2_cal_colors[j])
                                 val=np.sqrt(np.abs(CP_arr_cal[cidxst]))-p(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]))
                                 valmed=np.median(val)
