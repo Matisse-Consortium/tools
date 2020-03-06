@@ -1392,13 +1392,11 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                                      yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(np.abs(TF2_arr[cidxst])),
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
-                                    nel=int((np.max(MJD_arr_cal[idxst])-np.min(MJD_arr_cal[idxst]))/0.01)
+
+
+                                    nel=int((np.max(TF2_MJD_arr[cidxst])-np.min(TF2_MJD_arr[cidxst]))/0.01)
                                     print(nel)
-
-
                                     x=np.linspace(np.min(TF2_MJD_arr[cidxst]),np.max(TF2_MJD_arr[cidxst]),nel)
-
-
                                     y=np.interp(x,TF2_MJD_arr[cidxst], np.sqrt(np.abs(TF2_arr[cidxst])))
                                     axs1[i].plot(x,y,color=TF2_colors[j])
                                 else:
