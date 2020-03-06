@@ -1404,7 +1404,10 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                     y0=np.sqrt(np.abs(TF2_arr[cidxst]))[idx]
                                     x=np.linspace(np.min(TF2_MJD_arr[cidxst]),np.max(TF2_MJD_arr[cidxst]),nel)
                                     y=np.interp(x,x0,y0)
-                                    axs1[i].plot(x,y,color=TF2_colors[j])
+                                    n=4
+                                    kernel=np.one(n)/n
+                                    y2=np.convolve(y,kernel,mode='same')
+                                    axs1[i].plot(x,y2,color=TF2_colors[j])
                                 else:
                                     axs1[i].errorbar(TF2_MJD_arr[cidxst], TF2_arr[cidxst], yerr=TF2err_arr[cidxst],
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
