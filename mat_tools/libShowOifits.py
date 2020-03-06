@@ -1522,9 +1522,9 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                 x=(np.max(CP_MJD_arr_cal[cidxst])-np.min(CP_MJD_arr_cal[cidxst]))*np.arange(100)/100.
                                 y=np.interp(x,CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst])
                                 axs[i + 0].plot(np.min(CP_MJD_arr_cal[cidxst])+x,y,color=V2_cal_colors[j])
-                                val=np.sqrt(np.abs(CP_arr_cal[cidxst]))-p(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]))
-                                valmed=np.median(val)
-                                print "CP",np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[CP_sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0]+ ' - ' + sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
+                                #val=np.sqrt(np.abs(CP_arr_cal[cidxst]))-p(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]))
+                                #valmed=np.median(val)
+                                #print "CP",np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[CP_sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0]+ ' - ' + sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
                             else:
                                 axs[i + 0].errorbar(CP_MJD_arr_cal[cidxst], CP_arr_cal[cidxst],
                                                     fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
