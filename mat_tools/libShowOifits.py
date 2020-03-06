@@ -1382,7 +1382,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                     label = 'TF2 '
                 idxst = np.all(TF2_sta_index == sta_indices[i], axis=1)
                 if len(TF2_arr[idxst]) > 0:
-                    for j in range(len(BCD_configs)):
+                    for j in range(len(BCD_configs[0])):
                         BCDidx = np.all(TF2_BCD_arr == BCD_configs[j], axis=1)
                         cidxst = np.logical_and(idxst, BCDidx)
                         if len(TF2_arr[cidxst]) > 0:
@@ -1509,7 +1509,7 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
             if len(CP_sta_index_cal) > 0:
                 idxst = np.all(CP_sta_index_cal == CP_sta_indices[i], axis=1)
                 if len(CP_arr_cal[idxst]) > 0:
-                    for j in range(len(BCD_configs)):
+                    for j in range(len(BCD_configs[0])):
                         BCDidx = np.all(CP_BCD_arr_cal == BCD_configs[j], axis=1)
                         cidxst = np.logical_and(idxst, BCDidx)
                         if len(CP_arr_cal[cidxst]) > 0:
