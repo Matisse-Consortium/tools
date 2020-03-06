@@ -914,11 +914,11 @@ def show_oi_vs_time(list_of_dicts, wlenRange, key="VIS2",subplotList=None,
 
                         if key ==  'TF2':
                             ### Plot an interpolation of transfer function
-                            z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],1)
-                            p = np.poly1d(z)
+                            #z = np.polyfit(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst],1)
+                            #p = np.poly1d(z)
                             x = (np.max(MJD_arr_cal[idxst])-np.min(MJD_arr_cal[idxst]))*np.arange(100)/100.
-                            x=np.interp(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst])
-                            axs1[i].plot(np.min(MJD_arr_cal[idxst])+x,p(x),color='gray')
+                            y=np.interp(MJD_arr_cal[idxst]-np.min(MJD_arr_cal[idxst]), arr_cal[idxst])
+                            axs1[i].plot(np.min(MJD_arr_cal[idxst])+x,y,color='gray')
 
                     else:
                         axs1[i].errorbar(MJD_arr_cal[idxst], arr_cal[idxst], fmt='o', color=calColor, elinewidth=1.0, label=label)
@@ -1391,13 +1391,14 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                                      yerr=0.5 * TF2err_arr[cidxst] / np.sqrt(np.abs(TF2_arr[cidxst])),
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                      label=label + BCD_labels[j])
-                                    z=np.polyfit(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]), np.sqrt(np.abs(TF2_arr[cidxst])),1)
-                                    p=np.poly1d(z)
+                                    #z=np.polyfit(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]), np.sqrt(np.abs(TF2_arr[cidxst])),1)
+                                    #p=np.poly1d(z)
                                     x=(np.max(TF2_MJD_arr[cidxst])-np.min(TF2_MJD_arr[cidxst]))*np.arange(100)/100.
-                                    axs1[i].plot(np.min(TF2_MJD_arr[cidxst])+x,p(x),color=TF2_colors[j])
-                                    val=np.sqrt(np.abs(TF2_arr[cidxst]))-p(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]))
-                                    valmed=np.median(val)
-                                    print np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
+                                    y=np.interp(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]), np.sqrt(np.abs(TF2_arr[cidxst])))
+                                    axs1[i].plot(np.min(TF2_MJD_arr[cidxst])+x,y,color=TF2_colors[j])
+                                    #val=np.sqrt(np.abs(TF2_arr[cidxst]))-p(TF2_MJD_arr[cidxst]-np.min(TF2_MJD_arr[cidxst]))
+                                    #valmed=np.median(val)
+                                    #print np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[sta_indices[i, 1] == dic['STA_INDEX']][0]
                                 else:
                                     axs1[i].errorbar(TF2_MJD_arr[cidxst], TF2_arr[cidxst], yerr=TF2err_arr[cidxst],
                                                      fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
@@ -1516,11 +1517,11 @@ def show_vis2_tf2_vs_time(list_of_dicts, wlenRange, showvis=False, saveplots=Fal
                                 axs[i + 0].errorbar(CP_MJD_arr_cal[cidxst], CP_arr_cal[cidxst], yerr=CPerr_arr_cal[cidxst],
                                                 fmt=BCD_markers[j], color=TF2_colors[j], elinewidth=1.5,
                                                 label='CP cal ' + BCD_labels[j])
-                                z=np.polyfit(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst],1)
-                                p=np.poly1d(z)
+                                #z=np.polyfit(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst],1)
+                                #p=np.poly1d(z)
                                 x=(np.max(CP_MJD_arr_cal[cidxst])-np.min(CP_MJD_arr_cal[cidxst]))*np.arange(100)/100.
-                                x=np.interp(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst])
-                                axs[i + 0].plot(np.min(CP_MJD_arr_cal[cidxst])+x,p(x),color=V2_cal_colors[j])
+                                y=np.interp(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]), CP_arr_cal[cidxst])
+                                axs[i + 0].plot(np.min(CP_MJD_arr_cal[cidxst])+x,y,color=V2_cal_colors[j])
                                 val=np.sqrt(np.abs(CP_arr_cal[cidxst]))-p(CP_MJD_arr_cal[cidxst]-np.min(CP_MJD_arr_cal[cidxst]))
                                 valmed=np.median(val)
                                 print "CP",np.median(np.abs(val-valmed)),BCD_labels[j],sta_names[CP_sta_indices[i, 0] == dic['STA_INDEX']][0] + ' - ' + sta_names[CP_sta_indices[i, 1] == dic['STA_INDEX']][0]+ ' - ' + sta_names[CP_sta_indices[i, 2] == dic['STA_INDEX']][0]
