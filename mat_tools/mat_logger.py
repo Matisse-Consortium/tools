@@ -328,6 +328,9 @@ class mat_bandParamOptions(wx.Frame):
             "<tr><td>corrFlux</td><td>FALSE</td><td>corrFlux option.</td></tr>"
             "<tr><td>cumulBlock</td><td>FALSE</td><td>cumul all blocks of an OB.</td></tr>"
             "<tr><td>coherentAlgo</td><td>2</td><td>Estimation Algorithm (1: AMBER like Method, 2: CRAL Cohrent Integration Method).</td></tr>"
+            "<tr><td>spectralBinning</td><td>(5 for L 7 for N)</td><td>Spectral binning in pixels. Should be an odd number. If an even integer "
+            "is given, the pipeline will select the next odd integer</td></tr>"
+
             "</table><h3>Examples</h3>"
             "<p> paramN=/useOpdMod=TRUE/corrFlux=TRUE</p>"
             "<p> paramL=/cumulBlock=TRUE</p>".format(band)
