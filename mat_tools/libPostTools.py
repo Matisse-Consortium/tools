@@ -127,7 +127,7 @@ def mat_mergeOifits(oifitsList):
         for ifile in range(nfile):
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) and (imod!=0):
+                if (ifile!=0) or (imod!=0):
                     for key in ["VIS2DATA","VIS2ERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -155,7 +155,7 @@ def mat_mergeOifits(oifitsList):
         for ifile in range(nfile):
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) and (imod!=0):
+                if (ifile!=0) or (imod!=0):
                     for key in ["VISAMPERR","VISPHIERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -188,7 +188,7 @@ def mat_mergeOifits(oifitsList):
         for ifile in range(nfile):
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) and (imod!=0):
+                if (ifile!=0) or (imod!=0):
                     for key in ["T3PHIERR","U1COORD","V1COORD","U2COORD","V2COORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_T3"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -212,7 +212,7 @@ def mat_mergeOifits(oifitsList):
         for ifile in range(nfile):
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) and (imod!=0):
+                if (ifile!=0) or (imod!=0):
                     for key in ["FLUXDATA","FLUXERR","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_FLUX"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -238,7 +238,7 @@ def mat_mergeOifits(oifitsList):
         for ifile in range(nfile):
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) and (imod!=0):
+                if (ifile!=0) or (imod!=0):
                     for key in ["TF2","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["TF2"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
