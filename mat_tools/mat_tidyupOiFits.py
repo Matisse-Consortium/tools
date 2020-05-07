@@ -167,14 +167,14 @@ if __name__ == '__main__':
             fifil = os.path.basename(fil)
             
             if fifil.endswith('fits'):
-                print(fifil)
+                #print(fifil)
                 for i in matchfilestoavoid:
                     if fnmatch(fifil, i):
-                        print("Breeaaaaaak!")
+                        #print("Breeaaaaaak!")
                         break;
                 
                 try:
-                    print("copying file to the right path...")
+                    #print("copying file to the right path...")
                     hdu    = fits.getheader(fil)
                     if hdu['HIERARCH ESO PRO CATG'] == 'CALIB_RAW_INT' or\
                        hdu['HIERARCH ESO PRO CATG'] == 'TARGET_RAW_INT':
