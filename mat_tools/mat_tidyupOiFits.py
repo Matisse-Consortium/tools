@@ -155,8 +155,8 @@ if __name__ == '__main__':
         print("Number of files to treat:",len(allfiles))
         
         #print(os.path.join(args.oiFits,"*.fits*"))
-        #for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
-        for fil in allfiles:
+        for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
+        #for fil in allfiles:
             matchfilestoavoid = ["TARGET_CAL_0*","OBJ_CORR_FLUX_0*",
                                  "OI_OPDWVPO_*","PHOT_BEAMS_*",
                                  "CALIB_CAL_0*","RAW_DPHASE_*",
