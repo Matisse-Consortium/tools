@@ -25,9 +25,19 @@ set fitfwhm2      = 20.0          # Start FWHM for the model fit (in mas) [2.354
 # ------------------------------------------------------------------------------------
 # INPUT - parameter
 # ================= BEGIN OF INPUT for the image reconstruction run (guess = 0) ==================================================================================
-set engine        = 2           # Specifies the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
 set algoMode      = 1           # Specifies if bispectrum or complex visibilities are used for reconstruction. 1 = use bispectrum, 2 = use complex visibilities,
                                 # 3 = use bispectrum and complex visibilities. [1]
+set engine        = 2           # Specifies the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
+set costFunc      = 1           # Specifies the chi square function Q[ok(x)] of the measured data which should be minimized (ok(x) is the actual iterated image):
+                                # 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
+                                #    var(u,v) the variance of mbis(u,v)
+                                # 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with
+                                #    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
+                                #    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
+                                #    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
+                                # 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
+                                #    ipow(u) & mpow(u) the iterated and measured power spectrum, repectively, and varpow(u) the variance of mpow(u), and
+                                #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
 set fov           = 120         # Field of view for the reconstructed image in [mas].
 set npix          = 128         # Size of the reconstructed image in pixels. Powers of 2 should be used (speeds up the FFT), but this is not mandatory.
 set oradiusStart  = 35.0         # start radius of the object mask [mas]
@@ -81,12 +91,12 @@ set calcVis2f0  = 1      # =1: an artificial squared visibility and error for sp
 set calcVisamp  = 1      # =1: VIS amplitude and error is calculated from the visibilities^2; =0: is not calculated
 set calcVisf0   = 1      # =1: an artificial complex visibility and error for spatial frequency 0 should be set; =0: is not set
 		         #
-set costFunc    = 1      # 1: chi square of the bispectrum: Q[ok(x,y)] = Sum{ weight(u,v)/var(u,v)*|gamma0*ibis(u,v) - mbis(u,v)|^2 }
-                         # 2: chi square of the bispectrum phasors: Q[ok(x,y)] = Sum{ weight(u,v)/varph(u,v)*|gamma0*exp(i iph(u,v)) - exp(i mph(u,v)|^2
-                         #                                                            + weight(u,v)/varmod(u,v)*f0*|gamma0*imod(u,v) - mmod(u,v)|^2
-set wienerfilter = 1     # =1: Wiener filter is applied to the gradient of the cost function; =0: is not applied
-set costWeight  = 1.0    # Weight for the cost function 2 (weight between bispectrum phasor term and modulus term)
-set gradTol     = 0.00000000001 # Tolerance value for ASA_CG.
+set costWeight  = 1.0    # Weight for the cost function 2 (weight between bispectrum/FTspectrum phasor term and modulus term) and 3 (weight between bispectrum/FTspectrum phasor term and pow term)
+set wienerfilter = 0     # =1: Wiener filter is applied to the gradient of the cost function; =0: is not applied
+set gradTol     = 0.00000000001 # Tolerance value for ASA_CG [1e-11]
+set factr       = 10.0          # L-BFGS-B tolerance for termination test. [10.0]
+set pgTol       = 0.000001      # L-BFGS-B projected gradient tolerance for termination test. [1e-06]
+set ncorr       = 5             # Number of  corrections for L-BFGS-B. [5]
 set startselect = 4        #  startimage is 4: the reconstruction of the run before; 0: the default image 3: the best reconstruction up to now [4]
 set priorselect = 4        #  priorimage is 4: the reconstruction of the run before; 0: the default image 3: the best reconstruction up to now [4]
 set convScale   = -1.0     # the reconstruction is convolved with the ideal PSF of a single-dish telescope with a diamater which is identical

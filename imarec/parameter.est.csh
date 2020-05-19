@@ -46,13 +46,13 @@
 	     --algo_mode=1 --calc_t3amp=$calcT3amp --calc_vis2f0=0 --model_scale=0.1 \
 	     --om_start=10 --om_step=1 --om_count=1 \
 	     --mu_start=1.0 --mu_factor=1.0 --mu_count=1 --mjd_tol=$mjdtol --bl_tol=$bltol --fit_fwhm=$fitfwhm \
-	     --cost_func=1 --cost_weight=1.0 --reg_func=0 --reg_eps=1.0 \
+	     --cost_func=3 --cost_weight=1.0 --reg_func=0 --reg_eps=1.0 \
 	     --grad_tol=0.00000001 --weight_power=0.0 --conv_scale=1.0 --precision=0 --info_flags=$info)
   set DARGSft = (--nbresult=3 --lambda_list=$lambdaList0 \
              --algo_mode=2 --calc_t3amp=$calcT3amp --calc_vis2f0=0 --model_scale=0.1 \
              --om_start=10 --om_step=1 --om_count=1 \
              --mu_start=1.0 --mu_factor=1.0 --mu_count=1 --mjd_tol=$mjdtol --bl_tol=$bltol --fit_fwhm=$fitfwhm \
-             --cost_func=1 --cost_weight=1.0 --reg_func=0 --reg_eps=1.0 \
+             --cost_func=3 --cost_weight=1.0 --reg_func=0 --reg_eps=1.0 \
              --grad_tol=0.00000001 --weight_power=0.0 --conv_scale=1.0 --precision=0 --info_flags=$info)
   set NSTART = (--start_mode=2 --start_param=2.0)
   set NPRIOR = (--prior_mode=2 --prior_param=2.0)
@@ -85,14 +85,18 @@
 #  echo "weiter [cr]"; set ja = $<
 
   if($posbis == 1) esorex --log-dir=${est} --output-dir=${est} mat_cal_imarec $DARGSbis $ARGS sof
-#  if($posft  == 1) esorex --log-dir=${estft} --output-dir=${est} mat_cal_imarec $DARGSft $ARGS sof
   if($posft  == 1) esorex --log-dir=${estft} --output-dir=${estft} mat_cal_imarec $DARGSft $ARGS sof
   if( $status != 0 ) exit 1
-  if(($posbis == 0)&&($posft == 0)) exit 1
+  if($posbis == 0) then
+    echo "no OI_VIS2 and OI_T3 data available ---> EXIT"
+    exit 1
+  endif
 
-  cd $estft
-     cp A.ft.dat ../$est
-  cd ..
+  if($posft == 1) then
+    cd $estft
+    cp A.ft.dat ../$est
+    cd ..
+  endif 
   rm -rf $estft
   cd $est
   sed -i 's/\[tid=000\]//' esorex.log
@@ -164,10 +168,10 @@ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequ
      set maxlambda   = `awk 'BEGIN{max=-10.;} { if(($1!="#")&&($5>0.)) {lam=$2; if(lam>max) {max=lam;};}; } END{print max;}' $vis2`
      set vis2anzahl  = `awk 'BEGIN{z=0;}      { if(($1!="#")&&($5>0.)) {z=z+1;}; } END{print z;}' $vis2`
      set cpanzahl    = `awk 'BEGIN{z=0;}      { if($1!="#") {z=z+1;}; } END{print z;}' $cp`
-     set ftanzahl    = `awk 'BEGIN{z=0;}      { if(($1!="#")&&($5>0.)) {z=z+1;}; } END{print z;}' $ft`
+     set ftanzahl = 0; if($posft == 1) set ftanzahl    = `awk 'BEGIN{z=0;}      { if(($1!="#")&&($5>0.)) {z=z+1;}; } END{print z;}' $ft`
      set vis2snr     = `awk 'BEGIN{sum1=0.; sum2=0.;} { if(($1!="#")&&($5>0.)) {vis2=sqrt($6^2); err=sqrt($7^2); if(err>0.) {snr=vis2/err; sum1=sum1+snr; sum2=sum2+1.;}; }; } END{snr=sum1/sum2; print snr;}' $vis2`
      set cperr       = `awk 'BEGIN{sum1=0.; sum2=0.;} { if($1!="#") {pi=atan2(1.,1.)*4.; err=sqrt($10^2)*180./pi; sum1=sum1+err; sum2=sum2+1.;}; } END{err=sum1/sum2; print err;}' $cp`
-     set ftpherr     = `awk 'BEGIN{sum1=0.; sum2=0.;} { if($1!="#") {pi=atan2(1.,1.)*4.; err=sqrt($9^2)*180./pi; sum1=sum1+err; sum2=sum2+1.;}; } END{err=sum1/sum2; print err;}' $ft`
+     set ftpherr = 0; if($posft == 1) set ftpherr     = `awk 'BEGIN{sum1=0.; sum2=0.;} { if($1!="#") {pi=atan2(1.,1.)*4.; err=sqrt($9^2)*180./pi; sum1=sum1+err; sum2=sum2+1.;}; } END{err=sum1/sum2; print err;}' $ft`
 
      set pi = `echo 1. | awk '{ pi=atan2($1,$1)*4.; print pi; }'`
      set alpha = 0.25

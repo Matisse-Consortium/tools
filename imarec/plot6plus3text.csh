@@ -49,7 +49,12 @@ set indent = "|ll|ll|ll|lll|l|"
 #set head   = "$t1[1] & ResRatio & $t2[1] & ResRatio & $t3[1] & ResRatio & $t4[1] & $t4[2] & $t4[3] & \\"
 set head   = ($t1[1] $t2[1] $t3[1] $t4[1] $t4[2] $t4[3])
 set line1  = "$t1[2] & $t1[3]   & $t2[2] & $t2[3]   & $t3[2] & $t3[3]   & $t4[4] & $t4[5] & $t4[6] & with uv weight\\"
+if( $#t1 == 3 ) then
 set line2  = "       &          & $t2[4] & $t2[5]   & $t3[4] & $t3[5]   & $t4[7] & $t4[8] & $t4[9] & without uv weight\\"
+endif
+if( $#t1 == 5 ) then
+set line2  = "$t1[4] & $t1[5]   & $t2[4] & $t2[5]   & $t3[4] & $t3[5]   & $t4[7] & $t4[8] & $t4[9] & without uv weight\\"
+endif
 
 cat <<EOF >>$out
 

@@ -164,7 +164,7 @@ if( $engine > 1 ) then
 	       --om_start=$oradiusStart --om_step=$stepSize --om_count=$oradiusNumber --engine=$engine \
 	       --mu_start=$muStart --mu_factor=$muFactor --mu_count=$muNumber --wiener_filter=$wienerfilter --fit_fwhm=$fitfwhm \
 	       --cost_func=$costFunc --cost_weight=$costWeight --reg_func=$regFunc --reg_eps=$regEps --start_select=$startselect --prior_select=$priorselect \
-	       --grad_tol=$gradTol --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
+	       --grad_tol=$gradTol --pg_tol=$pgTol --factr=$factr --ncorr=$ncorr --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
 	       --mjd_tol=$mjdtol --bl_tol=$bltol --filter_fwhm=$filterfwhm --filter_factor=$filterfactor --guess=$guess --noise_factor=$noisefactor)
 else
   set DARGS = (--nbresult=3 --lambda_list=$lambdaList0 \
@@ -174,7 +174,7 @@ else
                --om_start=$oradiusStart --om_step=$stepSize --om_count=$oradiusNumber \
                --mu_start=$muStart --mu_factor=$muFactor --mu_count=$muNumber --wiener_filter=$wienerfilter --fit_fwhm=$fitfwhm \
                --cost_func=$costFunc --cost_weight=$costWeight --reg_func=$regFunc --reg_eps=$regEps --start_select=$startselect --prior_select=$priorselect \
-               --grad_tol=$gradTol --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
+               --grad_tol=$gradTol --pg_tol=$pgTol --factr=$factr --ncorr=$ncorr --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
                --mjd_tol=$mjdtol --bl_tol=$bltol --filter_fwhm=$filterfwhm --filter_factor=$filterfactor --guess=$guess --noise_factor=$noisefactor)
 endif
 # ------------------------------------------------------------------------------------
@@ -199,9 +199,7 @@ echo "$results existiert noch nicht."
 mkdir -p $results
 echo $results
 
-if($algoMode == 1) set OUTPUT = (--vis2_name=${results}/A.vis2.dat --cp_name=${results}/A.cp.dat)
-if($algoMode == 2) set OUTPUT = (--vis_name=${results}/A.ft.dat)
-if($algoMode == 3) set OUTPUT = (--vis2_name=${results}/A.vis2.dat --cp_name=${results}/A.cp.dat --vis_name=${results}/A.ft.dat)
+set OUTPUT = (--vis2_name=${results}/A.vis2.dat --cp_name=${results}/A.cp.dat --vis_name=${results}/A.ft.dat)
 # ------------------------------------------------------------------------------------
 
 echo "---3---"
@@ -218,7 +216,9 @@ if( $status != 0 ) exit 1
 cp $parfile ${results}/
 
 cd ${results}/
-  if($algoMode == 1) then
+#  if($algoMode == 1) then
+  if(($algoMode == 1)||($costFunc == 3)) then
+   echo "-------------- mat_cal_imarec_all.2.csh : algoMode == 1 || costFunc == 3 -------------------- "
     set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $12;}}' esorex.log`
     set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $19;}}' esorex.log`
     set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit uniform /) {print $12;}}' esorex.log`
@@ -228,7 +228,9 @@ cd ${results}/
     set tld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz disk /) {print $12;}}' esorex.log`
     set tchi2ld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz disk /) {print $19;}}' esorex.log`
   endif
-  if($algoMode != 1) then
+#  if($algoMode != 1) then
+  if(($algoMode != 1)&&($costFunc != 3)) then
+   echo "-------------- mat_cal_imarec_all.2.csh : algoMode != 1 && costFunc != 3 -------------------- "
     set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis: fit gaussian /) {print $12;}}' esorex.log`
     set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis: fit gaussian /) {print $19;}}' esorex.log`
     set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis: fit uniform /) {print $12;}}' esorex.log`
@@ -256,9 +258,15 @@ cd ${results}/
     $SCRIPTS/IRBis.display.Mac.nt.csh \
     $fov $fits $convScale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model0 \
     $tgauss $tud $tfdd $weightPower $calcVis2f0 $tld
-  else
+  endif
+  if($algoMode == 2) then
     echo $fov $fits $convScale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model0 $tgauss $tud $tfdd $weightPower $calcVisf0 $tld
     $SCRIPTS/IRBis.display.Mac.nt.ft.csh \
+    $fov $fits $convScale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model0 $tgauss $tud $tfdd $weightPower $calcVisf0 $tld
+  endif
+  if($algoMode == 3) then
+    echo $fov $fits $convScale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model0 $tgauss $tud $tfdd $weightPower $calcVisf0 $tld
+    $SCRIPTS/IRBis.display.Mac.nt.bisft.csh \
     $fov $fits $convScale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model0 $tgauss $tud $tfdd $weightPower $calcVisf0 $tld
   endif
 #  echo "weiter mit CR"
@@ -274,15 +282,28 @@ if($algoMode == 1) then
   set rrescp  = `awk '{ if($1!="#") {print $8;}; }' ${results}/liste`
   set cpqrec  = `echo $chi2cpc $rrescp | awk '{ q=(($1-1.)+($2-1.))/2.; if($1<1.) {q=(((1./$1)-1.)+($2-1.))/2.;}; print q;}'`
   set phiqrec  = -1.
-else
+  set cpphiqrec = -1.
+endif
+if($algoMode == 2) then
   set chi2phi  = `awk '{ if($1!="#") {print $7;}; }' ${results}/liste`
   set rresphi  = `awk '{ if($1!="#") {print $8;}; }' ${results}/liste`
   set phiqrec  = `echo $chi2phi $rresphi | awk '{ q=(($1-1.)+($2-1.))/2.; if($1<1.) {q=(((1./$1)-1.)+($2-1.))/2.;}; print q;}'`
   set cpqrec   = -1.
+  set cpphiqrec = -1.
+endif
+if($algoMode == 3) then
+  set chi2phi  = `awk '{ if($1!="#") {print $7;}; }' ${results}/liste`
+  set rresphi  = `awk '{ if($1!="#") {print $8;}; }' ${results}/liste`
+  set chi2cpc = `awk '{ if($1!="#") {print $3;}; }' ${results}/liste`
+  set rrescp  = `awk '{ if($1!="#") {print $4;}; }' ${results}/liste`
+  set cpphiqrec = `echo $chi2cpc $rrescp $chi2phi $rresphi | awk '{ cb=$1; if($1<1.) {cb=1./$1;}; cf=$3; if($3<1.) {cf=1./$3;}; q=((cb-1.)+($2-1.)+(cf-1.)+($4-1.))/4.; print q;}'`
+  set phiqrec  = -1.
+  set cpqrec   = -1.
 endif
 if($qrecmode == 1) set qrec = `awk '{ if($1!="#") {print $1;}; }' ${results}/liste`
 if(($qrecmode == 2)&&($algoMode == 1)) set qrec = $cpqrec
-if(($qrecmode == 2)&&($algoMode != 1)) set qrec = $phiqrec
+if(($qrecmode == 2)&&($algoMode == 2)) set qrec = $phiqrec
+if(($qrecmode == 2)&&($algoMode == 3)) set qrec = $cpphiqrec
 set weiter = `echo $qrec $qrecvorher | awk '{ weiter=0; if($1<$2) {weiter=1;}; print weiter; }'`
 set qrecvorher = $qrec
 if( $weiter == 0 ) goto Label222
@@ -316,9 +337,15 @@ cd $resultdir
 
    rm -f head; awk 'BEGIN{z=1;} { if((z<4)&&($1=="#")) {print $0;}; z=z+1; }' E.liste.0 > head
    if($algoMode == 1) rm -f head00; awk 'BEGIN{z=1;} { if(z==3) {print $0,"| cpqrec";}; z=z+1; }' head > head00
-   if($algoMode != 1) rm -f head00; awk 'BEGIN{z=1;} { if(z==3) {print $0,"| phqrec";}; z=z+1; }' head > head00
+   if($algoMode == 2) rm -f head00; awk 'BEGIN{z=1;} { if(z==3) {print $0,"| phqrec";}; z=z+1; }' head > head00
+   if($algoMode == 3) rm -f head00; awk 'BEGIN{z=1;} { if(z==3) {print $0,"| cpphqrec";}; z=z+1; }' head > head00
    rm -f E.liste.00.sorted; sort -k 1 -n E.liste.00 > E.liste.00.sorted
-   rm -f E.liste.03; awk '{ chi2cp=$7; rrescp=$8; if(chi2cp>1.) {q=((chi2cp-1.)+(rrescp-1.))/2.;}; if(chi2cp<1.) {q=(((1./chi2cp)-1.)+(rrescp-1.))/2.;}; print $0,q;}' E.liste.00 > E.liste.03
+   if(($algoMode == 1)||($algoMode == 2)) then
+     rm -f E.liste.03; awk '{ cb=$7; if($7<1.) {cb=1./$7;}; q=( (cb-1.)+($8-1.) )/2.; print $0,q;}' E.liste.00 > E.liste.03
+   endif
+   if($algoMode == 3) then
+     rm -f E.liste.03; awk '{ cb=$3; if($3<1.) {cb=1./$3;}; cf=$7; if($7<1.) {cf=1./$7;}; q=( (cb-1.)+($4-1.)+(cf-1.)+($8-1.) )/4.; print $0,q;}' E.liste.00 > E.liste.03
+   endif
    rm -f E.liste.03.sorted; sort -k 24 -n E.liste.03 > E.liste.03.sorted
    if( $model0 != "no" ) then
 #       qrec built from all measuruments ($qrecmode == 1)
@@ -335,8 +362,12 @@ cd $resultdir
    endif
    if($algoMode == 1) then
      rm -f head03; echo "#  " >> head03; echo "# 2) reconstructions sorted with increasing CP-qrec (CP-qrec in the last column):" >> head03
-   else
+   endif
+   if($algoMode == 2) then
      rm -f head03; echo "#  " >> head03; echo "# 2) reconstructions sorted with increasing PH-qrec (PH-qrec in the last column):" >> head03
+   endif
+   if($algoMode == 3) then
+     rm -f head03; echo "#  " >> head03; echo "# 2) reconstructions sorted with increasing CP-PH-qrec (CP-PH-qrec in the last column):" >> head03
    endif
    rm -f head04; echo "#  " >> head04; echo "# 1) reconstructions sorted with increasing qrec:" >> head04
    rm -f head05; echo "#  " >> head05

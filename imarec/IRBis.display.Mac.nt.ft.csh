@@ -37,17 +37,39 @@ set tfdd   = $19
 set weightPower = $20
 set calcVisf0 = $21
 set tld    = $22
+set algoMode = 2
 
 echo "Inputs: "
 echo "fov fits convscale costFunc regFunc oradiusStart stepSize oradiusNumber muStart muFactor muNumber npix startmode startparam objname model tgauss tud tfdd weightPower calcVisf0: "
 echo $fov $fits $convscale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model $tgauss $tud $tfdd $weightPower $calcVisf0
 echo "--- IRBis.display.Mac.nt.ft.csh --------------------------------------------------------------"
 
+# ---- alle 6 moeglichen costFunc/algoMode -Kombinationen ------------------------ A ------------
+#            1 costFunc=1 & algoMode=2(FT)        
+#            2 costFunc=2 & algoMode=2(FT)
+#            3 costFunc=3 & algoMode=2(FT)
+#            4 costFunc=1 & algoMode=3(BISFT)
+#            5 costFunc=2 & algoMode=3(BISFT)
+#            6 costFunc=3 & algoMode=3(BISFT)
+	if( ($costFunc == 1)&&($algoMode == 2) ) set mode = 1
+	if( ($costFunc == 2)&&($algoMode == 2) ) set mode = 2
+	if( ($costFunc == 3)&&($algoMode == 2) ) set mode = 3
+# Hier in IRBis.display.Mac.nt.ft.csh gibt es die Kombinationen mode = 1, 2, 3
+	if( ($costFunc == 1)&&($algoMode == 3) ) set mode = 4
+	if( ($costFunc == 2)&&($algoMode == 3) ) set mode = 5
+	if( ($costFunc == 3)&&($algoMode == 3) ) set mode = 6
+# in IRBis.display.Mac.nt.bisft.csh gibt es die Kombinationen mode = 4, 5, 6
+# ---- alle 6 moeglichen costFunc/algoMode -Kombinationen ------------------------ E ------------
+
 echo "a) Erzeugung der Plotts: Visbilities/ft phases"
 set ft0 = `echo *.ft.dat`
 ls -l $ft0
 # Umwandeln in altes Format:
 set ft = $ft0.new; rm -f $ft; awk '{ if($1!="#") {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$14,$15,$16,$17,$18,$19,$13;}; }' $ft0 > $ft
+if($costFunc == 3) then
+  set vis20 = `echo *.vis2.dat`
+  set vis2 = $vis20.new; rm -f $vis2; awk '{ if($1!="#") {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$13,$14,$11;}; }' $vis20 > $vis2
+endif
 echo "FOV = $fov mas"
 #
 # ft - new (11-12-15):
@@ -55,38 +77,66 @@ echo "FOV = $fov mas"
 # nr lambda u v bl amp amperr phi phierr gd ud fdd ld rec1_amp rec1_phi rec2_amp rec2_phi rec3_amp rec3_phi
 # 1  2      3 4 5  6   7      8   9      10 11 12  13 14       15       16       17       18       19
 #
-# ft - old:
-# measured complex visibilities vs reconstructed complex visibilities
-# nr lambda u v bl amp amperr phi phierr gd ud fdd rec1_amp rec1_phi rec2_amp rec2_phi rec3_amp rec3_phi
-# 1  2      3 4 5  6   7      8   9      10 11 12  13       14       15       16       17       18
-#
 # $ft0.new  == $ft
 # nr lambda u v bl amp amperr phi phierr gd ud fdd rec1_amp rec1_phi rec2_amp rec2_phi rec3_amp rec3_phi ld
 # 1  2      3 4 5  6   7      8   9      10 11 12  13       14       15       16       17       18       19
 #
-# vis2:
+# vis2 - new (11-12-15):
 # measured squared visibilities vs reconstructed squared visibilities
-# nr lambda u v bl vis2 err gd ud fdd rec1 rec2 rec3
-# 1  2      3 4 5  6    7   8  9  10  11   12   13
-# cp: neu seit 13-11-15:
-# nr lambda u1 v1 u2 v2 amp amperr cp cperr biserr rec1_amp rec1_cp rec2_amp rec2_cp rec3_amp rec3_cp
-# 1  2      3  4  5  6  7   8      9  10    11     12       13       14      15      16       17
+# nr lambda u v bl vis2 err gd ud fdd ld rec1 rec2 rec3
+# 1  2      3 4 5  6    7   8  9  10  11 12   13   14
+#
+# $vis20.new  == $vis2
+# nr lambda u v bl vis2 err gd ud fdd rec1 rec2 rec3 ld
+# 1  2      3 4 5  6    7   8  9  10  11   12   13   14
+#
 rm -f $ft.vis.0 $ft.ph.0
 
-set chivisa = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$13)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
-set chivisb = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$15)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
-set chivisc = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$17)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
-set resratioa = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$13)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
-set resratiob = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$15)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
-set resratioc = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$17)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+if(($costFunc == 1)||($costFunc == 2)) then
+# ----- Erzeugung der Chi^2 und ResidualRatio aus den eingelesenen |V|-Daten in $ft  (fuer mode = 1,2)
+# set chivisa = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$13)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
+ set chivis2a = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {v2=$6^2;v2err=2.*sqrt($6^2)*$7;v2r=$13^2; res=(v2-v2r)/v2err; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
+# set chivisb = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$15)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
+ set chivis2b = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {v2=$6^2;v2err=2.*sqrt($6^2)*$7;v2r=$15^2; res=(v2-v2r)/v2err; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
+# set chivisc = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$17)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
+ set chivis2c = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {v2=$6^2;v2err=2.*sqrt($6^2)*$7;v2r=$17^2; res=(v2-v2r)/v2err; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
+# set resratioa = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$13)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+ set resratio2a = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {v2=$6^2;v2err=2.*sqrt($6^2)*$7;v2r=$13^2; res=(v2-v2r)/v2err; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+# set resratiob = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$15)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+ set resratio2b = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {v2=$6^2;v2err=2.*sqrt($6^2)*$7;v2r=$15^2; res=(v2-v2r)/v2err; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+# set resratioc = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$17)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+ set resratio2c = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {v2=$6^2;v2err=2.*sqrt($6^2)*$7;v2r=$17^2; res=(v2-v2r)/v2err; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $ft`
+endif
+if($costFunc == 3) then
+# ----- Erzeugung der Chi^2 und ResidualRatio aus den eingelesenen V^2-Daten  $vis2
+ set chivis2a = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$11)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $vis2`
+ set chivis2b = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$12)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $vis2`
+ set chivis2c = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$13)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $vis2`
+ set resratio2a = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$11)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $vis2`
+ set resratio2b = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$12)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $vis2`
+ set resratio2c = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$13)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $vis2`
+endif
 
+
+if(($costFunc == 1)||($costFunc == 2)) then
 awk -v fov=$fov 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz ";}; \
                                if(($1=="#")&&(z==1)) {print "# 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7        |", "8            |", "9           |", "10          |", "11          |", "12           |", "13  ";}; \
                                if($1!="#") {rad=sqrt($3^2+$4^2); radc=rad*1000.; vis=sqrt($6^2); if($6==0.0) {viserr=0.0;}; if($6!=0.0) {viserr=$7;}; \
                                             visgauss=sqrt($10^2); visud=sqrt($11^2); visfdd=sqrt($12^2); visld=sqrt($19^2); visa=sqrt($13^2); visb=sqrt($15^2); visc=sqrt($17^2); \
                                             print $1,$3,$4,vis,viserr,visgauss,visud,visfdd, visa,visb,visc,radc,visld;}; z=z+1;}' $ft > $ft.vis.0
+endif
 
+if($costFunc == 3) then
+# ----- Erzeugung der Visibilities $vis2.0 aus den quadrierten Visibilities in $vis2
+awk -v fov=$fov 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz ";}; \
+                               if(($1=="#")&&(z==1)) {print "# 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7        |", "8            |", "9           |", "10          |", "11          |", "12          |", "13   ";}; \
+                               if($1!="#") {rad=sqrt($3^2+$4^2); radc=rad*1000.; vis=sqrt(sqrt($6^2)); if($6==0.0) {viserr=0.0;}; if($6!=0.0) {viserr=0.5*$7/vis;}; \
+                                            visgauss=sqrt(sqrt($8^2)); visud=sqrt(sqrt($9^2)); visfdd=sqrt(sqrt($10^2)); visld=sqrt(sqrt($14^2)); visa=sqrt(sqrt($11^2)); visb=sqrt(sqrt($12^2)); visc=sqrt(sqrt($13^2)); \
+                                            print $1,$3,$4,vis,viserr,visgauss,visud,visfdd, visa,visb,visc,radc,visld;}; z=z+1;}' $vis2 > $vis2.0
 
+endif
+
+# ----- Erzeugung der Chi^2 und ResidualRatio aus den eingelesenen FT-Phasen  $ft
 set pi = `echo 1. | awk '{print atan2($1,$1)*4.;}'`
 set chi2fta   = `awk -v p=$pi 'BEGIN{sum=0.;z=0.} { if($1!="#") {d0=$8-$14;d1=d0+2.*p;d2=d0-2.*p;d00=d0^2;d11=d1^2;d22=d2^2;d=d0;dd=d00;if(dd>d11) {d=d1;dd=d11;};if(dd>d22) {d=d2;dd=d22};res=d/$9; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
 set chi2ftb   = `awk -v p=$pi 'BEGIN{sum=0.;z=0.} { if($1!="#") {d0=$8-$16;d1=d0+2.*p;d2=d0-2.*p;d00=d0^2;d11=d1^2;d22=d2^2;d=d0;dd=d00;if(dd>d11) {d=d1;dd=d11;};if(dd>d22) {d=d2;dd=d22};res=d/$9; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $ft`
@@ -97,10 +147,20 @@ set ftresc   = `awk -v p=$pi 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {d0=$8-$18;d
 
 # qrec-Berechnung aus den obigen direkt berechneten Chi^2-/RR-Werten
 # mit qrec = ( |Cv-1|+|RR{V^2}-1| + |Cb-1|+|RR{CP}-1| )/4; mit Cv=Chi^2{V^2} oder Cv=1/Chi^2{V^2} bei Chi^2{V^2}<1, Cb=Chi^2{CP} oder Cb=1/Chi^2{CP} bei Chi^2{CP}<1
-set qreca = `echo $chivisa $resratioa $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cv-1.)^2)+sqrt(($2-1.)^2)+sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/4.; printf "%12.3f", qrec;}'`
-echo $qreca
-set phqreca = `echo $chivisa $resratioa $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/2.; printf "%12.3f", qrec;}'`
-echo $phqreca
+if(($costFunc == 1)||($costFunc == 2)) then
+#  set qreca = `echo $chivisa $resratioa $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cv-1.)^2)+sqrt(($2-1.)^2)+sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/4.; printf "%12.3f", qrec;}'`
+ set qreca = `echo $chivis2a $resratio2a $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cv-1.)^2)+sqrt(($2-1.)^2)+sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/4.; printf "%12.3f", qrec;}'`
+ echo $qreca
+#  set phqreca = `echo $chivisa $resratioa $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/2.; printf "%12.3f", qrec;}'`
+ set phqreca = `echo $chivis2a $resratio2a $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/2.; printf "%12.3f", qrec;}'`
+ echo $phqreca
+endif
+if($costFunc == 3) then
+ set qreca = `echo $chivis2a $resratio2a $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cv-1.)^2)+sqrt(($2-1.)^2)+sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/4.; printf "%12.3f", qrec;}'`
+ echo $qreca
+ set phqreca = `echo $chivis2a $resratio2a $chi2fta $ftresa | awk '{Cv=$1; if(Cv<1.) {Cv=1./$1;}; Cb=$3; if(Cb<1.) {Cb=1./$3;}; qrec = ( sqrt((Cb-1.)^2)+sqrt(($4-1.)^2) )/2.; printf "%12.3f", qrec;}'`
+ echo $phqreca
+endif
 
 
 # ft:
@@ -118,52 +178,82 @@ awk -v p=$pi 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U |", "V |"
 
 # A) plott of the visibilities as function of the length of the spatial frequency
 rm -f visa.ps visb.ps visc.ps
-rm -f $ft.vis.0.sorted ttt; awk '{if($1!="#") {print $0;};}' $ft.vis.0 > ttt; sort -n -k 12 ttt > $ft.vis.0.sorted
+if(($costFunc == 1)||($costFunc == 2)) then
+ # Spaltenbelgung von $ft.vis.0:
+ # Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz
+ # 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7         |", "8            |", "9           |", "10          |", "11          |", "12           |", "13
+ rm -f $ft.vis.0.sorted ttt; awk '{if($1!="#") {print $0;};}' $ft.vis.0 > ttt; sort -n -k 12 ttt > $ft.vis.0.sorted
+ ls -l {$ft}*
 
-ls -l {$ft}*
-
-set psplotva = visa.ps
-rm -f $psplotva
+ set psplotva = visa.ps
+ rm -f $psplotva
 # ./gnupl.csh
 # Input: [name of the ascii file of the data] [text for the measured data] [text for the fitted data] 
 #        [column of the X axis in the file] [column of the measured data] [column of the errors of the measured data]
 #        [column of the fitted data] [text on X axis] [text on Y axis] [name of the ps plot]
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotva "Chi\^2/RR = $chivisa/$resratioa" 9
-ls -l $psplotva
+# $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotva "Chi\^2/RR = $chivisa/$resratioa" 9
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotva "Chi\^2/RR (V^2) = $chivis2a/$resratio2a" 9
+ ls -l $psplotva
 
-set psplotvb = visb.ps
-rm -f $psplotvb
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvb "Chi\^2/RR = $chivisb/$resratiob" 10
-ls -l $psplotva $psplotvb
+ set psplotvb = visb.ps
+ rm -f $psplotvb
+# $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvb "Chi\^2/RR = $chivisb/$resratiob" 10
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvb "Chi\^2/RR (V^2) = $chivis2b/$resratio2b" 10
+ ls -l $psplotva $psplotvb
 
-set psplotvc = visc.ps
-rm -f $psplotvc
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvc "Chi\^2/RR = $chivisc/$resratioc" 11
+ set psplotvc = visc.ps
+ rm -f $psplotvc
+# $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvc "Chi\^2/RR = $chivisc/$resratioc" 11
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvc "Chi\^2/RR (V^2) = $chivis2c/$resratio2c" 11
+
+ # A2) plot of the fitted model visibilities and measured visibilities as a function of the length of the spatial frequency
+ rm -f gaussa.ps uda.ps fdda.ps lda.ps gaussudfdda.ps
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussa.ps "fitted Gaussian model (FWHM={$tgauss}mas)" 6
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" uda.ps "fitted Uniform disk model (diameter={$tud}mas)" 7
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" fdda.ps "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" lda.ps "fitted Lorentz function (FWHM={$tld}mas)" 13
+ $SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussudfdda.ps \
+			    "fitted Uniform disk model (diameter={$tud}mas)" 7 "fitted Gaussian model (FWHM={$tgauss}mas)" 6 "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8 \
+			    "fitted Lorentz function (FWHM={$tld}mas)" 13
+endif
+
+if($costFunc == 3) then
+ # Spaltenbelgung von $vis2.0:
+ # Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz "
+ # 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7         |", "8            |", "9           |", "10          |", "11          |", "12           |", "13   "
+ rm -f $vis2.0.sorted ttt; awk '{if($1!="#") {print $0;};}' $vis2.0 > ttt; sort -n -k 12 ttt > $vis2.0.sorted
+
+ set psplotva = visa.ps
+ rm -f $psplotva
+# ./gnupl.csh
+# Input: [name of the ascii file of the data] [text for the measured data] [text for the fitted data] 
+#        [column of the X axis in the file] [column of the measured data] [column of the errors of the measured data]
+#        [column of the fitted data] [text on X axis] [text on Y axis] [name of the ps plot]
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotva "Chi\^2/RR (V^2) = $chivis2a/$resratio2a" 9
+ ls -l $psplotva
+
+ set psplotvb = visb.ps
+ rm -f $psplotvb
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvb "Chi\^2/RR (V^2) = $chivis2b/$resratio2b" 10
+ ls -l $psplotva $psplotvb
+
+ set psplotvc = visc.ps
+ rm -f $psplotvc
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" $psplotvc "Chi\^2/RR (V^2) = $chivis2c/$resratio2c" 11
+
+ # A2) plot of the fitted model visibilities and measured visibilities as a function of the length of the spatial frequency
+ rm -f gaussa.ps uda.ps fdda.ps lda.ps gaussudfdda.ps
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussa.ps "fitted Gaussian model (FWHM={$tgauss}mas)" 6
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" uda.ps "fitted Uniform disk model (diameter={$tud}mas)" 7
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" fdda.ps "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" lda.ps "fitted Lorentz function (FWHM={$tld}mas)" 13
+ $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussudfdda.ps \
+                            "fitted Uniform disk model (diameter={$tud}mas)" 7 "fitted Gaussian model (FWHM={$tgauss}mas)" 6 "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8 \
+                            "fitted Lorentz function (FWHM={$tld}mas)" 13
+endif
 
 ls -l $psplotva $psplotvb $psplotvc
 rm -f t1.eps t2.eps; cp $psplotva t1.eps; cp $psplotvb t2.eps
-
-# ./gnupl2.csh
-# Input: [name of the ascii file of the data] [text for the measured data]
-#        [column of the X axis in the file] [column of the measured data] [column of the errors of the measured data]
-#        [text on X axis] [text on Y axis] [name of the ps plot]
-#        [text for the fitted data] [column of the fitted data] ...
-
-# A2) plot of the fitted model visibilities and measured visibilities as a function of the length of the spatial frequency
-rm -f gaussa.ps uda.ps fdda.ps lda.ps gaussudfdda.ps
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussa.ps "fitted Gaussian model (FWHM={$tgauss}mas)" 6
-
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" uda.ps "fitted Uniform disk model (diameter={$tud}mas)" 7
-
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" fdda.ps "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8
-
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" lda.ps "fitted Lorentz function (FWHM={$tld}mas)" 13
-
-
-$SCRIPTS/gnupl2.csh $ft.vis.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussudfdda.ps \
-			    "fitted Uniform disk model (diameter={$tud}mas)" 7 "fitted Gaussian model (FWHM={$tgauss}mas)" 6 "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8 \
-			    "fitted Lorentz function (FWHM={$tld}mas)" 13
-
 ls -l gaussa.ps uda.ps fdda.ps lda.ps gaussudfdda.ps
 
 # $ft.ph.0 :
@@ -235,26 +325,33 @@ echo "b) Abbildung der besten Rek. (ungefaltet/gefaltet) und das Original oder d
 	echo "--------------- fdump --------------------- A ---------------------------"
 
 	# quality parameter of the best reconstruction:
+	echo "---------- IRBis.display.Mac.nt.ft.csh ----- 1b ---------------"
+if(($costFunc == 1)||($costFunc == 2)||($costFunc == 3)) then
          fdump  $fits\[2\] \!rec33.txt QREC -; set qrec = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
          fdump  $fits\[2\] \!rec33.txt COST -; set cost = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
-	 fdump  $fits\[2\] \!rec33.txt CHI2VIS -; set chi2vis = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
-         fdump  $fits\[2\] \!rec33.txt RRESVIS -; set rresvis = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
-         fdump  $fits\[2\] \!rec33.txt CHI2AMP -; set chi2amp = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
-         fdump  $fits\[2\] \!rec33.txt RRESAMP -; set rresamp = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
+	 fdump  $fits\[2\] \!rec33.txt CHI2BIS -; set chi2vis = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
+         fdump  $fits\[2\] \!rec33.txt RRESBIS -; set rresvis = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
+         fdump  $fits\[2\] \!rec33.txt CHI2VIS2 -; set chi2vis2 = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
+         fdump  $fits\[2\] \!rec33.txt RRESVIS2 -; set rresvis2 = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
          fdump  $fits\[2\] \!rec33.txt CHI2PHI -; set chi2phi = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
          fdump  $fits\[2\] \!rec33.txt RRESPHI -; set rresphi = `awk '{if ($0 ~ /  1  /) {printf "%12.4f", $2;}}' rec33.txt`
 
         set phqrec = `echo $chi2phi $rresphi | awk '{ Cb=$1; if($1<1.) {Cb=1./$1;}; qrec = ( sqrt((Cb-1.)^2) + sqrt(($2-1.)^2) )/2.; printf "%12.4f", qrec; }'`
-	echo "# qrec   |  cost  |  chi2vis |  rresvis | chi2amp | rresamp | chi2phi | rresphi | cpqrec "
-	echo  $qrec "  " $cost "  " $chi2vis "   " $rresvis "  " $chi2amp "   " $rresamp "  " $chi2phi "  " $rresphi "  " $phqrec
-	echo "--------------- fdump --------------------- E ---------------------------"
+        echo "# qrec   |  cost  |  chi2vis |  rresvis | chi2vis2 | rresvis2 | chi2phi | rresphi | cpqrec "
+        echo  $qrec "  " $cost "  " $chi2vis "   " $rresvis "  " $chi2vis2 "   " $rresvis2 "  " $chi2phi "  " $rresphi "  " $phqrec
+endif
+        echo "--------------- fdump --------------------- E ---------------------------"
         
 
 #        rm -f tkhh; awk -v w=$qrec '{ if(($15 == w",")||($15 == w"0,")||($15 == w"00,")) {print $0;}; }' esorex.log > tkhh
 #        set khh0       = `awk '{w=$45;} END{printf "%12.4f", w;}' tkhh`              ; if( x$khh0 == "x" ) set khh = -1; if( x$khh0 != "x" ) set khh = $khh0; echo $khh; rm -f tkhh
         set qrecbest = `awk -v w=$qrec 'BEGIN{mindist=1e10;} { dist=sqrt((w-$15)^2); if(dist < mindist) {mindist=dist; qrecbest=$15;}; } END{print qrecbest;}' esorex.log`
         rm -f tkhh; awk -v w=$qrecbest '{ if($15 == w) {print $0;}; }' esorex.log > tkhh
-        set khh0       = `awk 'BEGIN{z=0;} {z=z+1; if(z==1) {w=$45;};} END{printf "%12.3f", w;}' tkhh`              ; if( x$khh0 == "x" ) set khh = -1; if( x$khh0 != "x" ) set khh = $khh0; echo $khh; rm -f tkhh
+        if(($costFunc == 1)||($costFunc == 2)||($costFunc == 3)) set khh0       = `awk 'BEGIN{z=0;} {z=z+1; if(z==1) {w=$45;};} END{printf "%12.3f", w;}' tkhh`
+	echo "---------- IRBis.display.Mac.nt.ft.csh ----- 1c ---------------"
+#        if( ($mode==4)||($mode==5)) set khh0       = `awk 'BEGIN{z=0;} {z=z+1; if(z==1) {w=$63;};} END{printf "%12.3f", w;}' tkhh`
+#        if( $mode==6 ) set khh0       = `awk 'BEGIN{z=0;} {z=z+1; if(z==1) {w=$57;};} END{printf "%12.3f", w;}' tkhh`
+        if( x$khh0 == "x" ) set khh = -1; if( x$khh0 != "x" ) set khh = $khh0; echo $khh; rm -f tkhh
 	set khhm = $khh
 
 	rm -f liste0;  fstruct colinfo=no $fits >> liste0
@@ -283,20 +380,24 @@ echo "b) Abbildung der besten Rek. (ungefaltet/gefaltet) und das Original oder d
 	rm -f liste khhm0.ll
         echo " calcVisf0 weightPower convscale = " $calcVisf0  $weightPower $convscale
 	echo "-----------------------------------------------------------------"
+      if(($costFunc == 1)||($costFunc == 2)||($costFunc == 3)) then
         echo "# quality parameter of the best reconstruction:" >> liste
-	echo "# ----------------------------------------------" >> liste 
-        echo "# qrec   |  cost  |  chi2vis |  rresvis | chi2amp | rresamp | chi2phi  | rresphi | dist$convscale || FOV (mas) |Reg-Fct.|oradius step number|mu factor number|calcVisf0|weightPower| npix |startmode|startparam|directory  " >> liste
-        echo  $qrec "   " $cost "  " $chi2vis "   " $rresvis "  " $chi2amp "   " $rresamp "   " $chi2phi "  " $rresphi "  " $khh "    " $fov "       " $regFunc "       " $oradiusStart $stepSize $oradiusNumber "     " $muStart $muFactor $muNumber "        " $calcVisf0  "       " $weightPower "      " $npix "     " $startmode "      " $startparam  "   " $cwd:t >> liste
-      echo "Eingaben: "
-      echo "fov fits convscale costFunc regFunc oradiusStart stepSize oradiusNumber muStart muFactor muNumber npix startmode startparam objname model tgauss tud tfdd weightPower calcVisf0: "
-      echo $fov $fits $convscale $costFunc $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model
-      echo $tgauss $tud $tfdd $weightPower $calcVisf0
+        echo "# ----------------------------------------------" >> liste
+        echo "# qrec   |  cost  |  chi2vis |  rresvis | chi2vis2 | rresvis2 | chi2phi  | rresphi | dist$convscale || FOV (mas) |Reg-Fct.|oradius step number|mu factor number|calcVisf0|weightPower| npix |startmode|startparam|directory  " >> liste
+        echo  $qrec "   " $cost "  " $chi2vis "   " $rresvis "  " $chi2vis2 "   " $rresvis2 "   " $chi2phi "  " $rresphi "  " $khh "    " $fov "       " $regFunc "       " $oradiusStart $stepSize $oradiusNumber "     " $muStart $muFactor $muNumber "        " $calcVisf0  "       " $weightPower "      " $npix "     " $startmode "      " $startparam  "   " $cwd:t >> liste
+      endif
+#      echo "Eingaben: "
+#      echo "fov fits convscale costFunc algoMode regFunc oradiusStart stepSize oradiusNumber muStart muFactor muNumber npix startmode startparam objname model tgauss tud tfdd weightPower calcVisf0: "
+#      echo $fov $fits $convscale $costFunc $algoMode $regFunc $oradiusStart $stepSize $oradiusNumber $muStart $muFactor $muNumber $npix $startmode $startparam $objname $model
+#      echo $tgauss $tud $tfdd $weightPower $calcVisf0
       echo "-- IRBis.display.Mac.nt.ft.csh ---------------------------------------------------------------"
 
+      if(($costFunc == 1)||($costFunc == 2)||($costFunc == 3)) then
         echo "# quality parameter of the best reconstruction (dist from esorex.log):" >> khhm0.ll
         echo "# ----------------------------------------------" >> khhm0.ll
-        echo "# qrec   |  cost  |  chi2vis |  rresvis | chi2amp | rresamp | chi2phi  | rresphi | dist$convscale || FOV (mas) |Reg-Fct.|oradius step number|mu factor number|calcVisf0|weightPower| npix |startmode|startparam|directory  " >> khhm0.ll
-        echo  $qrec "   " $cost "  " $chi2vis "   " $rresvis "  " $chi2amp "   " $rresamp "   " $chi2phi "  " $rresphi "  " $khhm0 "    " $fov "       " $regFunc "       " $oradiusStart $stepSize $oradiusNumber "     " $muStart $muFactor $muNumber "        " $calcVisf0  "       " $weightPower "      " $npix "     " $startmode "      " $startparam  "   " $cwd:t >> khhm0.ll
+        echo "# qrec   |  cost  |  chi2vis |  rresvis | chi2vis2 | rresvis2 | chi2phi  | rresphi | dist$convscale || FOV (mas) |Reg-Fct.|oradius step number|mu factor number|calcVisf0|weightPower| npix |startmode|startparam|directory  " >> khhm0.ll
+        echo  $qrec "   " $cost "  " $chi2vis "   " $rresvis "  " $chi2vis2 "   " $rresvis2 "   " $chi2phi "  " $rresphi "  " $khhm0 "    " $fov "       " $regFunc "       " $oradiusStart $stepSize $oradiusNumber "     " $muStart $muFactor $muNumber "        " $calcVisf0  "       " $weightPower "      " $npix "     " $startmode "      " $startparam  "   " $cwd:t >> khhm0.ll
+      endif
    
 
 # size0 : Kantenlaenge in Pixel des dargestellten Felder
@@ -350,6 +451,10 @@ echo "b) Abbildung der besten Rek. (ungefaltet/gefaltet) und das Original oder d
 
 #	rm -f tt1.eps tt2.eps tt3.eps; cp gaussudfdda.ps tt1.eps; cp visa.ps tt2.eps; cp cpa.ps tt3.eps
 	rm -f tt1.eps tt2.eps tt3.eps; cp gaussudfdda.ps tt1.eps; cp visa.ps tt2.eps; cp cpaa.ps tt3.eps
+# *.eps-Files fuer $SCRIPTS/plot6plus3text.csh
+# --> tt1.eps == gaussudfdda.ps
+# --> tt2.eps == visa.ps
+# --> tt3.eps == cpaa.ps
 
 	foreach sc (sqrt lin log)
 	if( $model == "no" ) then
@@ -363,6 +468,12 @@ echo "b) Abbildung der besten Rek. (ungefaltet/gefaltet) und das Original oder d
             @ i++; ps2eps $f; rm -f t$i.eps; mv $f:r.eps t$i.eps; ls -l t$i.eps
           end
 	endif
+# *.eps-Files fuer $SCRIPTS/plot6plus3text.csh
+# --> t1.eps == $fits:r.model.$sc.ps or $fits:r.start.$sc.ps
+# --> t2.eps == $fits:r.modelconv.$sc.ps or $fits:r.prior.$sc.ps
+# --> t3.eps == $fits:r.bestrec.$sc.ps
+# --> t4.eps == $fits:r.bestrecconv.$sc.ps
+# --> t5.eps == $fits:r.uv.$sc.ps
 
 rm -f param.txt
 echo "FOV $fov mas" >> param.txt
@@ -377,13 +488,25 @@ echo "startparam $startparam mas" >> param.txt
 echo "superres $convscale" >> param.txt
 echo "$objname" >> param.txt
 
+
+# 29-3-19:  noch zu tun: chivisa, resratioa --> chivis2a, resratio2a fuer costFunc 1,2 !!!!!
 rm -f results.txt
 set chi2vis00 = `echo $chi2vis | awk '{printf "%12.3f", $1;}'`
 set rresvis00 = `echo $rresvis | awk '{printf "%12.3f", $1;}'`
-set chi2amp00 = `echo $chi2amp | awk '{printf "%12.3f", $1;}'`
-set rresamp00 = `echo $rresamp | awk '{printf "%12.3f", $1;}'`
-set chivisa00 = `echo $chivisa | awk '{printf "%12.3f", $1;}'`
-set resratioa00 = `echo $resratioa | awk '{printf "%12.3f", $1;}'`
+if(($costFunc == 1)||($costFunc == 2)) then
+ set chi2vis200 = `echo $chi2vis2 | awk '{printf "%12.3f", $1;}'`
+ set rresvis200 = `echo $rresvis2 | awk '{printf "%12.3f", $1;}'`
+# set chivisa00 = `echo $chivisa | awk '{printf "%12.3f", $1;}'`
+# set resratioa00 = `echo $resratioa | awk '{printf "%12.3f", $1;}'`
+ set chivis2a00 = `echo $chivis2a | awk '{printf "%12.3f", $1;}'`
+ set resratio2a00 = `echo $resratio2a | awk '{printf "%12.3f", $1;}'`
+endif
+if($costFunc == 3) then
+ set chi2vis200 = `echo $chi2vis2 | awk '{printf "%12.3f", $1;}'`
+ set rresvis200 = `echo $rresvis2 | awk '{printf "%12.3f", $1;}'`
+ set chivis2a00 = `echo $chivis2a | awk '{printf "%12.3f", $1;}'`
+ set resratio2a00 = `echo $resratio2a | awk '{printf "%12.3f", $1;}'`
+endif
 set chi2phi00   = `echo $chi2phi   | awk '{printf "%12.3f", $1;}'`
 set rresphi00   = `echo $rresphi   | awk '{printf "%12.3f", $1;}'`
 set chi2fta00   = `echo $chi2fta   | awk '{printf "%12.3f", $1;}'`
@@ -394,14 +517,26 @@ set phqrec00   = `echo $phqrec   | awk '{printf "%12.3f", $1;}'`
 set khhm00     = `echo $khhm     | awk '{printf "%12.3f", $1;}'`
 set qreca00    = `echo $qreca    | awk '{printf "%12.3f", $1;}'`
 set phqreca00  = `echo $phqreca  | awk '{printf "%12.3f", $1;}'`
-echo "Complex-Vis $chi2vis00 $rresvis00" >> results.txt
-echo "V $chi2amp00 $rresamp00 $chivisa00 $resratioa00" >> results.txt
-echo "PH $chi2phi00 $rresphi00 $chi2fta00 $ftresa00" >> results.txt
-echo "dist qrec phqrec $khh00 $qrec00 $phqrec00  $khhm00 $qreca00 $phqreca00" >> results.txt
+if(($costFunc == 1)||($costFunc == 2)) then
+ echo "Complex-Vis $chi2vis00 $rresvis00" >> results.txt
+# echo "V2 $chi2vis200 $rresvis200 $chivisa00 $resratioa00" >> results.txt
+ echo "V2 $chi2vis200 $rresvis200 $chivis2a00 $resratio2a00" >> results.txt
+ echo "PH $chi2phi00 $rresphi00 $chi2fta00 $ftresa00" >> results.txt
+ echo "dist qrec phqrec $khh00 $qrec00 $phqrec00  $khhm00 $qreca00 $phqreca00" >> results.txt
+endif
+if($costFunc == 3) then
+ echo "Complex-Vis $chi2vis00 $rresvis00" >> results.txt
+ echo "V2 $chi2vis200 $rresvis200 $chivis2a00 $resratio2a00" >> results.txt
+ echo "PH $chi2phi00 $rresphi00 $chi2fta00 $ftresa00" >> results.txt
+ echo "dist qrec phqrec $khh00 $qrec00 $phqrec00  $khhm00 $qreca00 $phqreca00" >> results.txt
+endif
 
 
 #    uv coverage plot:
      $SCRIPTS/uvplot.vis.csh; rm -f t66.eps; mv uv.ps t66.eps
+
+# *.eps-File fuer $SCRIPTS/plot6plus3text.csh
+# --> t66.eps == uv.ps
 
         cp $SCRIPTS/plot6b.tex .; latex plot6b.tex; dvips plot6b.dvi; rm -f reks.$sc.ps; mv plot6b.ps reks.$sc.ps
 	$SCRIPTS/plot6plus3text.csh; rm -f RR.konv.iterated.rek1.$sc.ps; mv plot6plus3text.ps RR.konv.iterated.rek1.$sc.ps

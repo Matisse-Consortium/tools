@@ -162,7 +162,7 @@ if( $engine > 1 ) then
 	       --om_start=$oradiusStart --om_step=$stepSize --om_count=$oradiusNumber --engine=$engine \
 	       --mu_start=$muStart --mu_factor=$muFactor --mu_count=$muNumber --wiener_filter=$wienerfilter --fit_fwhm=$fitfwhm \
 	       --cost_func=$costFunc --cost_weight=$costWeight --reg_func=$regFunc --reg_eps=$regEps --start_select=$startselect --prior_select=$priorselect \
-	       --grad_tol=$gradTol --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
+	       --grad_tol=$gradTol --pg_tol=$pgTol --factr=$factr --ncorr=$ncorr --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
 	       --mjd_tol=$mjdtol --bl_tol=$bltol --filter_fwhm=$filterfwhm --filter_factor=$filterfactor --guess=$guess --noise_factor=$noisefactor)
 else
   set DARGS = (--nbresult=3 --lambda_list=$lambdaList0 \
@@ -172,7 +172,7 @@ else
                --om_start=$oradiusStart --om_step=$stepSize --om_count=$oradiusNumber \
                --mu_start=$muStart --mu_factor=$muFactor --mu_count=$muNumber --wiener_filter=$wienerfilter --fit_fwhm=$fitfwhm \
                --cost_func=$costFunc --cost_weight=$costWeight --reg_func=$regFunc --reg_eps=$regEps --start_select=$startselect --prior_select=$priorselect \
-               --grad_tol=$gradTol --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
+               --grad_tol=$gradTol --pg_tol=$pgTol --factr=$factr --ncorr=$ncorr --weight_power=$weightPower --conv_scale=$convScale --precision=$precision --info_flags=$info \
                --mjd_tol=$mjdtol --bl_tol=$bltol --filter_fwhm=$filterfwhm --filter_factor=$filterfactor --guess=$guess --noise_factor=$noisefactor)
 endif
 # ------------------------------------------------------------------------------------
@@ -197,9 +197,7 @@ echo "$results existiert noch nicht."
 mkdir -p $results
 echo $results
 
-if($algoMode == 1) set OUTPUT = (--vis2_name=${results}/A.vis2.dat --cp_name=${results}/A.cp.dat)
-if($algoMode == 2) set OUTPUT = (--vis_name=${results}/A.ft.dat)
-if($algoMode == 3) set OUTPUT = (--vis2_name=${results}/A.vis2.dat --cp_name=${results}/A.cp.dat --vis_name=${results}/A.ft.dat)
+set OUTPUT = (--vis2_name=${results}/A.vis2.dat --cp_name=${results}/A.cp.dat --vis_name=${results}/A.ft.dat)
 # ------------------------------------------------------------------------------------
 
 echo "---3---"
@@ -216,7 +214,8 @@ if( $status != 0 ) exit 1
 cp $parfile ${results}/
 
 cd ${results}/
-  if($algoMode == 1) then
+#  if($algoMode == 1) then
+  if(($algoMode == 1)||($costFunc == 3)) then
     set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $12;}}' esorex.log`
     set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $19;}}' esorex.log`
     set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit uniform /) {print $12;}}' esorex.log`
@@ -226,7 +225,8 @@ cd ${results}/
     set tld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz disk /) {print $12;}}' esorex.log`
     set tchi2ld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz disk /) {print $19;}}' esorex.log`
   endif
-  if($algoMode != 1) then
+#  if($algoMode != 1) then
+  if(($algoMode != 1)&&($costFunc != 3)) then
     set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis: fit gaussian /) {print $12;}}' esorex.log`
     set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis: fit gaussian /) {print $19;}}' esorex.log`
     set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis: fit uniform /) {print $12;}}' esorex.log`

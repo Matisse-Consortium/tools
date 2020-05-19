@@ -55,13 +55,11 @@ echo "FOV = $fov mas"
 # measured squared visibilities vs reconstructed squared visibilities
 # nr lambda u v bl vis2 err gd ud fdd ld rec1 rec2 rec3
 # 1  2      3 4 5  6    7   8  9  10  11 12   13   14
-# vis2 - old:
-# measured squared visibilities vs reconstructed squared visibilities
-# nr lambda u v bl vis2 err gd ud fdd rec1 rec2 rec3
-# 1  2      3 4 5  6    7   8  9  10  11   12   13
+#
 # $vis20.new  == $vis2
 # nr lambda u v bl vis2 err gd ud fdd rec1 rec2 rec3 ld
 # 1  2      3 4 5  6    7   8  9  10  11   12   13   14
+#
 # cp :
 # nr lambda u1 v1 u2 v2 amp cp cperr biserr rec1_amp rec1_cp rec2_amp rec2_cp rec3_amp rec3_cp
 # 1  2      3  4  5  6  7   8  9     10     11       12      13       14      15       16
@@ -70,6 +68,7 @@ echo "FOV = $fov mas"
 # 1  2      3  4  5  6  7   8      9  10    11     12       13       14      15      16       17
 rm -f $vis2.0 $cp.0
 
+# ----- Erzeugung der Chi^2 und ResidualRatio aus den eingelesenen V^2-Daten  $vis2
 set chivis2a = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$11)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $vis2`
 set chivis2b = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$12)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $vis2`
 set chivis2c = `awk 'BEGIN{sum=0.;z=0.} { if($1!="#") {res=($6-$13)/$7; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $vis2`
@@ -77,6 +76,7 @@ set resratioa = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$11)/$7; if
 set resratiob = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$12)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $vis2`
 set resratioc = `awk 'BEGIN{sump=0.;summ=0.;} { if($1!="#") {res=($6-$13)/$7; if(res>0.) {sump=sump+res;}; if(res<=0.) {summ=summ-res;}; }; } END{rr=10000.; if((sump>0.)&&(summ>0.)) {rr=sump/summ; if(rr<1.) {rr=summ/sump;};}; printf "%8.3f\n",rr;}' $vis2`
 
+# ----- Erzeugung der Visibilities $vis2.0 aus den quadrierten Visibilities in $vis2
 awk -v fov=$fov 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz ";}; \
                                if(($1=="#")&&(z==1)) {print "# 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7        |", "8            |", "9           |", "10          |", "11          |", "12          |", "13   ";}; \
                                if($1!="#") {rad=sqrt($3^2+$4^2); radc=rad*1000.; vis=sqrt(sqrt($6^2)); if($6==0.0) {viserr=0.0;}; if($6!=0.0) {viserr=0.5*$7/vis;}; \
@@ -84,6 +84,7 @@ awk -v fov=$fov 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U |", "V
                                             print $1,$3,$4,vis,viserr,visgauss,visud,visfdd, visa,visb,visc,radc,visld;}; z=z+1;}' $vis2 > $vis2.0
 
 
+# ----- Erzeugung der Chi^2 und ResidualRatio aus den eingelesenen CP-Daten  $cp
 set pi = `echo 1. | awk '{print atan2($1,$1)*4.;}'`
 set chicpa   = `awk -v p=$pi 'BEGIN{sum=0.;z=0.} { if($1!="#") {d0=$9-$13;d1=d0+2.*p;d2=d0-2.*p;d00=d0^2;d11=d1^2;d22=d2^2;d=d0;dd=d00;if(dd>d11) {d=d1;dd=d11;};if(dd>d22) {d=d2;dd=d22};res=d/$10; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $cp`
 set chicpb   = `awk -v p=$pi 'BEGIN{sum=0.;z=0.} { if($1!="#") {d0=$9-$15;d1=d0+2.*p;d2=d0-2.*p;d00=d0^2;d11=d1^2;d22=d2^2;d=d0;dd=d00;if(dd>d11) {d=d1;dd=d11;};if(dd>d22) {d=d2;dd=d22};res=d/$10; sum=sum+res^2; z=z+1.;}; } END{printf "%8.3f\n", sum/z;}' $cp`
@@ -109,6 +110,10 @@ awk -v p=$pi 'BEGIN{z=0;} { if(($1=="#")&&(z==0)) {print "# Nr. |", "U1 |", "V1 
                                           cp=$9*180./p; cperr=$10*180./p; cpa=d8*180./p; cpb=d9*180./p; cpc=d10*180./p; print $1,$3,$4,$5,$6,cp,cperr,cpa,cpb,cpc;}; z=z+1;}' $cp > $cp.0
 
 # A) plott of the visibilities as function of the length of the spatial frequency
+# Spaltenbelgung von $vis2.0:
+# Nr. |", "U |", "V |", "Vis |", "VisErr |", "Gaussian |", "Uniform d |", "Fully dark d |", "Vis (1.rec) |", "Vis (2.rec) |", "Vis (3.rec) |", "f (1/arcsec) |", "Lorentz "
+# 1   |", "2 |", "3 |", "4   |", "5      |", "6        |", "7         |", "8            |", "9           |", "10          |", "11          |", "12           |", "13   "
+
 rm -f visa.ps visb.ps visc.ps
 rm -f $vis2.0.sorted ttt; awk '{if($1!="#") {print $0;};}' $vis2.0 > ttt; sort -n -k 12 ttt > $vis2.0.sorted
 
@@ -144,14 +149,9 @@ rm -f t1.eps t2.eps; cp $psplotva t1.eps; cp $psplotvb t2.eps
 # A2) plot of the fitted model visibilities and measured visibilities as a function of the length of the spatial frequency
 rm -f gaussa.ps uda.ps fdda.ps lda.ps gaussudfdda.ps
 $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussa.ps "fitted Gaussian model (FWHM={$tgauss}mas)" 6
-
 $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" uda.ps "fitted Uniform disk model (diameter={$tud}mas)" 7
-
 $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" fdda.ps "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8
-
 $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" lda.ps "fitted Lorentz function (FWHM={$tld}mas)" 13
-
-
 $SCRIPTS/gnupl2.csh $vis2.0.sorted "measured visibilities" 12 4 5 "spatial frequency (1/arcsec)" "Visibility" gaussudfdda.ps \
                             "fitted Uniform disk model (diameter={$tud}mas)" 7 "fitted Gaussian model (FWHM={$tgauss}mas)" 6 "fitted Fully darkened disk model (diameter={$tfdd}mas)" 8 \
 			    "fitted Lorentz function (FWHM={$tld}mas)" 13
@@ -356,6 +356,10 @@ echo "b) Abbildung der besten Rek. (ungefaltet/gefaltet) und das Original oder d
 
 #	rm -f tt1.eps tt2.eps tt3.eps; cp gaussudfdda.ps tt1.eps; cp visa.ps tt2.eps; cp cpa.ps tt3.eps
 	rm -f tt1.eps tt2.eps tt3.eps; cp gaussudfdda.ps tt1.eps; cp visa.ps tt2.eps; cp cpaa.ps tt3.eps
+# *.eps-Files fuer $SCRIPTS/plot6plus3text.csh
+# --> tt1.eps == gaussudfdda.ps
+# --> tt2.eps == visa.ps
+# --> tt3.eps == cpaa.ps
 
 	foreach sc (sqrt lin log)
 	if( $model == "no" ) then
@@ -369,6 +373,12 @@ echo "b) Abbildung der besten Rek. (ungefaltet/gefaltet) und das Original oder d
             @ i++; ps2eps $f; rm -f t$i.eps; mv $f:r.eps t$i.eps; ls -l t$i.eps
           end
 	endif
+# *.eps-Files fuer $SCRIPTS/plot6plus3text.csh
+# --> t1.eps == $fits:r.model.$sc.ps or $fits:r.start.$sc.ps
+# --> t2.eps == $fits:r.modelconv.$sc.ps or $fits:r.prior.$sc.ps
+# --> t3.eps == $fits:r.bestrec.$sc.ps
+# --> t4.eps == $fits:r.bestrecconv.$sc.ps
+# --> t5.eps == $fits:r.uv.$sc.ps
 
 rm -f param.txt
 echo "FOV $fov mas" >> param.txt
@@ -408,6 +418,9 @@ echo "dist qrec cpqrec $khh00 $qrec00 $cpqrec00  $khhm00 $qreca00 $cpqreca00" >>
 
 #    uv coverage plot:
      $SCRIPTS/uvplot.csh; rm -f t66.eps; mv uv.ps t66.eps
+
+# *.eps-File fuer $SCRIPTS/plot6plus3text.csh
+# --> t66.eps == uv.ps
 
         cp $SCRIPTS/plot6b.tex .; latex plot6b.tex; dvips plot6b.dvi; rm -f reks.$sc.ps; mv plot6b.ps reks.$sc.ps
 	$SCRIPTS/plot6plus3text.csh; rm -f RR.konv.iterated.rek1.$sc.ps; mv plot6plus3text.ps RR.konv.iterated.rek1.$sc.ps
