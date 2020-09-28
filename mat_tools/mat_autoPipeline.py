@@ -36,6 +36,11 @@ import filecmp
 from libAutoPipeline import *
 from multiprocessing.pool import Pool
 from functools import partial
+from datetime import datetime
+
+
+stat_compute_times=[]
+
 #import pdb
 
 #------------------------------------------------------------------------------
@@ -54,7 +59,12 @@ def runEsorex(cmd):
     val  = item[-1].split(".")
     #print("Running (Recipes : ",item[2],", TplStart : ",val[1],", Detector : ",val[2],")")
     val  = item[1].split("=")
+    t0 = datetime.now()
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
+    dt = datetime.now() - t0
+    print("Computing time {0}s".format(dt.total_seconds()))
+
+
 
 #------------------------------------------------------------------------------
 def removeDoubleParamater(p):
@@ -71,399 +81,404 @@ def removeDoubleParamater(p):
 def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0, tplstartsel="", tplidsel=""):
 
 
-	# Print meaningful error messages if something is wrong in the command line
-	print("------------------------------------------------------------------------")
-	if (dirRaw == ""):
-	    print("ERROR : You have to specifiy a Raw Data Directory or a list of raw file")
-	    sys.exit(0)
-	else:
-	    print('%-40s' % ("Raw Data Directory or file list:",),dirRaw)
-	if (dirCalib==""):
-	    dirCalib="/data/CalibMap"
-	    print("Info: Calibration Directory not specified. We use the default directory")
-	print('%-40s' % ("Calibration Directory:",),dirCalib)
-	if (dirResult==""):
-		dirResult=os.getcwd()
-		print("Info : Results Directory not specified. We use the current directory")
-	print('%-40s' % ("Results Directory:",),dirResult)
-	if (nbCore==0):
-	    nbCore=1
-	    print("Info : Number of Cores not specified. We use "+str(nbCore)+" core")
-	print('%-40s' % ("Number of Cores:",),nbCore)
-	if (maxIter==0):
-	    maxIter=1
-	    print("Info : Maximum Number of Iteration not specified. We fix it to "+str(maxIter))
-	print('%-40s' % ("Maximum Number of Iteration:",),maxIter)
+    # Print meaningful error messages if something is wrong in the command line
+    print("------------------------------------------------------------------------")
+    if (dirRaw == ""):
+        print("ERROR : You have to specifiy a Raw Data Directory or a list of raw file")
+        sys.exit(0)
+    else:
+        print('%-40s' % ("Raw Data Directory or file list:",),dirRaw)
+    if (dirCalib==""):
+        if "MATISSE_CALIB_DIR" in os.environ:
+            dirCalib=os.environ["MATISSE_CALIB_DIR"]
+            print("Info: Calibration Directory not specified but environment"
+                  "variable MATISSE_CALIB_DIR exist.")
+        else:
+            Calib="/data/CalibMapNew"
+            print("Info: Calibration Directory not specified. We use the default value")
+    print('%-40s' % ("Calibration Directory:",),dirCalib)
+    if (dirResult==""):
+        dirResult=os.getcwd()
+        print("Info : Results Directory not specified. We use the current directory")
+    print('%-40s' % ("Results Directory:",),dirResult)
+    if (nbCore==0):
+        nbCore=1
+        print("Info : Number of Cores not specified. We use "+str(nbCore)+" core")
+    print('%-40s' % ("Number of Cores:",),nbCore)
+    if (maxIter==0):
+        maxIter=1
+        print("Info : Maximum Number of Iteration not specified. We fix it to "+str(maxIter))
+    print('%-40s' % ("Maximum Number of Iteration:",),maxIter)
 
-	print("------------------------------------------------------------------------")
-	if  not("[" in dirRaw):
-	    listRaw = glob.glob(dirRaw+"/MATIS*.fits")
-	    print("Raw directory given")
-	else:
-	    print("List of raw files given")
-	    listRaw = eval(dirRaw)
-	if (dirCalib != ""):
-	    listArchive = glob.glob(dirCalib+"/*.fits")
-	else:
-	    listArchive =[]
-	#print(listRaw)
-	# Sort listRaw using template ID and template start
-	print("Sorting files according to constraints...")
-	allhdr        = []
-	for filename in tqdm(listRaw, unit=" files", unit_scale=False, desc="Working on files"):            
+    print("------------------------------------------------------------------------")
+    if  not("[" in dirRaw):
+        listRaw = glob.glob(dirRaw+"/MATIS*.fits")
+        print("Raw directory given")
+    else:
+        print("List of raw files given")
+        listRaw = eval(dirRaw)
+    if (dirCalib != ""):
+        listArchive = glob.glob(dirCalib+"/*.fits")
+    else:
+        listArchive =[]
+    #print(listRaw)
+    # Sort listRaw using template ID and template start
+    print("Sorting files according to constraints...")
+    allhdr        = []
+    for filename in tqdm(listRaw, unit=" files", unit_scale=False, desc="Working on files"):
             try:
                 allhdr.append(getheader(filename,0))
             except:
                 print("\nWARNING: corrupt file!")
 
-	listRawSorted = []
-	allhdrSorted  = []
-	listRes = []
-	for hdr,filename in zip(allhdr,listRaw):
-	    if ('HIERARCH ESO TPL START' in hdr and 'HIERARCH ESO DET CHIP NAME' in hdr) :
-		tplid    = hdr['HIERARCH ESO TPL ID']
-		tplstart = hdr['HIERARCH ESO TPL START']
-		chip     = hdr['HIERARCH ESO DET CHIP NAME']
+    listRawSorted = []
+    allhdrSorted  = []
+    listRes = []
+    for hdr,filename in zip(allhdr,listRaw):
+        if ('HIERARCH ESO TPL START' in hdr and 'HIERARCH ESO DET CHIP NAME' in hdr) :
+        tplid    = hdr['HIERARCH ESO TPL ID']
+        tplstart = hdr['HIERARCH ESO TPL START']
+        chip     = hdr['HIERARCH ESO DET CHIP NAME']
 
-		if skipL == 0 and chip == 'HAWAII-2RG':
-		    # Append low resolution stuff in the front of the list
-		    disperser = hdr['HIERARCH ESO INS DIL NAME']
+        if skipL == 0 and chip == 'HAWAII-2RG':
+            # Append low resolution stuff in the front of the list
+            disperser = hdr['HIERARCH ESO INS DIL NAME']
 
-		    if resol != "":
-		        if disperser != resol:
-		            continue
+            if resol != "":
+                if disperser != resol:
+                    continue
 
-		    # Go through all 4 cases. First case: tplid and tplstart given by user
-		    if (tplidsel != "" and tplstartsel != ""):
-		        if (tplid == tplidsel and tplstart == tplstartsel):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
-		    # Second case: tpl ID given but not tpl start
-		    if (tplidsel != "" and tplstartsel == ""):
-		        if (tplid == tplidsel):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
-		    # Third case: tpl start given but not tpl ID
-		    if (tplidsel == "" and tplstartsel != ""):
-		        if (tplstart == tplstartsel):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
-		    # Fourth case: nothing given by user
-		    if (tplidsel == "" and tplstartsel == ""):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
+            # Go through all 4 cases. First case: tplid and tplstart given by user
+            if (tplidsel != "" and tplstartsel != ""):
+                if (tplid == tplidsel and tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+            # Second case: tpl ID given but not tpl start
+            if (tplidsel != "" and tplstartsel == ""):
+                if (tplid == tplidsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+            # Third case: tpl start given but not tpl ID
+            if (tplidsel == "" and tplstartsel != ""):
+                if (tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+            # Fourth case: nothing given by user
+            if (tplidsel == "" and tplstartsel == ""):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
 
-		if skipN == 0 and chip == 'AQUARIUS':
-		    # Append low resolution stuff in the front of the list
-		    disperser = hdr['HIERARCH ESO INS DIN NAME']
+        if skipN == 0 and chip == 'AQUARIUS':
+            # Append low resolution stuff in the front of the list
+            disperser = hdr['HIERARCH ESO INS DIN NAME']
 
-		    if resol != "":
-		        if disperser != resol:
-		            continue
+            if resol != "":
+                if disperser != resol:
+                    continue
 
-		    # Go through all 4 cases. First case: tplid and tplstart given by user
-		    if (tplidsel != "" and tplstartsel != ""):
-		        if (tplid == tplidsel and tplstart == tplstartsel):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
-		    # Second case: tpl ID given but not tpl start
-		    if (tplidsel != "" and tplstartsel == ""):
-		        if (tplid == tplidsel):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
-		    # Third case: tpl start given but not tpl ID
-		    if (tplidsel == "" and tplstartsel != ""):
-		        if (tplstart == tplstartsel):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
-		    # Fourth case: nothing given by user
-		    if (tplidsel == "" and tplstartsel == ""):
-		            listRawSorted.append(filename)
-		            allhdrSorted.append(hdr)
-		            listRes.append(disperser)
+            # Go through all 4 cases. First case: tplid and tplstart given by user
+            if (tplidsel != "" and tplstartsel != ""):
+                if (tplid == tplidsel and tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+            # Second case: tpl ID given but not tpl start
+            if (tplidsel != "" and tplstartsel == ""):
+                if (tplid == tplidsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+            # Third case: tpl start given but not tpl ID
+            if (tplidsel == "" and tplstartsel != ""):
+                if (tplstart == tplstartsel):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
+            # Fourth case: nothing given by user
+            if (tplidsel == "" and tplstartsel == ""):
+                    listRawSorted.append(filename)
+                    allhdrSorted.append(hdr)
+                    listRes.append(disperser)
 
-	# Replace original list with the sorted one
-	listRaw = listRawSorted
-	allhdr  = allhdrSorted
+    # Replace original list with the sorted one
+    listRaw = listRawSorted
+    allhdr  = allhdrSorted
 
-	# Determination of the number of Reduction Blocks
-	keyTplStart    = []
-	listIterNumber = []
-	print("Determining the number of reduction blocks...")
+    # Determination of the number of Reduction Blocks
+    keyTplStart    = []
+    listIterNumber = []
+    print("Determining the number of reduction blocks...")
 
-	for hdr,filename,res in zip(allhdr,listRaw,listRes):
-	    try:
-		tplstart = hdr['HIERARCH ESO TPL START']
-		chipname = hdr['HIERARCH ESO DET CHIP NAME']
-	    except:
-		print("WARNING, "+filename+" is not a valid MATISSE fits file!")
-		continue;
-	   # Reduction blocks are defined by template start and detector name
-	    temp = tplstart+"."+chipname
-	    keyTplStart.append(temp)
+    for hdr,filename,res in zip(allhdr,listRaw,listRes):
+        try:
+        tplstart = hdr['HIERARCH ESO TPL START']
+        chipname = hdr['HIERARCH ESO DET CHIP NAME']
+        except:
+        print("WARNING, "+filename+" is not a valid MATISSE fits file!")
+        continue;
+       # Reduction blocks are defined by template start and detector name
+        temp = tplstart+"."+chipname
+        keyTplStart.append(temp)
 
-	# Put LOW first, then MED then HIGH
-	keyTplStart2=sorted(set(keyTplStart))
-	for idx2,ikey2 in enumerate(keyTplStart2):
-	    #print(idx2)
-	    #print(ikey2)
-	    idx = np.where([ikey == ikey2 for ikey in keyTplStart])
-	    idx = idx[0][0]
-	    #print(idx)
-	   # put high res data at the end
-	    if listRes[idx] == 'HIGH':
-	       listRes[idx] = 'zHIGH'
-	    keyTplStart2[idx2] = listRes[idx]+"%"+keyTplStart2[idx2]
-	keyTplStart=sorted(set(keyTplStart2))
-	keyTplStart=list([it.split("%")[1] for it in keyTplStart])
+    # Put LOW first, then MED then HIGH
+    keyTplStart2=sorted(set(keyTplStart))
+    for idx2,ikey2 in enumerate(keyTplStart2):
+        #print(idx2)
+        #print(ikey2)
+        idx = np.where([ikey == ikey2 for ikey in keyTplStart])
+        idx = idx[0][0]
+        #print(idx)
+       # put high res data at the end
+        if listRes[idx] == 'HIGH':
+           listRes[idx] = 'zHIGH'
+        keyTplStart2[idx2] = listRes[idx]+"%"+keyTplStart2[idx2]
+    keyTplStart=sorted(set(keyTplStart2))
+    keyTplStart=list([it.split("%")[1] for it in keyTplStart])
 
-	for elt in keyTplStart:
-	    listIterNumber.append(0)
-	print("Found "+str(len(keyTplStart))+" reduction blocks.")
+    for elt in keyTplStart:
+        listIterNumber.append(0)
+    print("Found "+str(len(keyTplStart))+" reduction blocks.")
 
-	iterNumber = 0
-	while True:
-	    iterNumber += 1
-	    print("")
-	    print("Iteration ",iterNumber)
-	    print("-----------------------")
-	    if (iterNumber > 1):
-		listIter=[]
-		print("listing stuff...")
-		for iter in range(iterNumber-1):
-		    repIterPrev = dirResult+'/Iter'+str(iter+1)
-		    listRepIter = [os.path.join(repIterPrev, f) for f in os.listdir(repIterPrev) if os.path.isdir(os.path.join(repIterPrev, f))]
-		    print("listing files from previous iteration...")
-		    for elt in listRepIter:
-		        listIter = listIter+[os.path.join(elt, f) for f in os.listdir(elt) if os.path.isfile(os.path.join(elt, f)) and f[-5:] == '.fits']
+    iterNumber = 0
+    while True:
+        iterNumber += 1
+        print("")
+        print("Iteration ",iterNumber)
+        print("-----------------------")
+        if (iterNumber > 1):
+        listIter=[]
+        print("listing stuff...")
+        for iter in range(iterNumber-1):
+            repIterPrev = dirResult+'/Iter'+str(iter+1)
+            listRepIter = [os.path.join(repIterPrev, f) for f in os.listdir(repIterPrev) if os.path.isdir(os.path.join(repIterPrev, f))]
+            print("listing files from previous iteration...")
+            for elt in listRepIter:
+                listIter = listIter+[os.path.join(elt, f) for f in os.listdir(elt) if os.path.isfile(os.path.join(elt, f)) and f[-5:] == '.fits']
 
-	    print("listing reduction blocks...")
-	    listRedBlocks = []
-	    # Reduction Blocks List Initialization
-	    cpt=0
-	    for elt in keyTplStart:
-		listRedBlocks.append({"action":" ","recipes":" ","param":" ","input":[],"calib":[],"status":0,"tplstart":" ","iter":listIterNumber[cpt]})
-		cpt += 1
-	    # Fill the list of raw data in the Reduction Blocks List
-	    print("listing files in the reduction blocks...")
-	    for hdr,filename in zip(allhdr,listRaw):
-	    #for filename in listRaw:
-		try:
-		    chiupname = hdr['HIERARCH ESO DET CHIP NAME'];
-		    stri = hdr['HIERARCH ESO TPL START']+'.'+chiupname
-		    #print(chipname)
-		    if len(chipname)==0:
-		        print("WARNING, "+filename+" is a RMNREC file!")
-		        continue
-		except:
-		    print("WARNING, "+filename+" is not a valid MATISSE fits file!")
-		    continue;
-		tag  = matisseType(hdr)
-		listRedBlocks[keyTplStart.index(stri)]["input"].append([filename,tag,hdr])
+        print("listing reduction blocks...")
+        listRedBlocks = []
+        # Reduction Blocks List Initialization
+        cpt=0
+        for elt in keyTplStart:
+        listRedBlocks.append({"action":" ","recipes":" ","param":" ","input":[],"calib":[],"status":0,"tplstart":" ","iter":listIterNumber[cpt]})
+        cpt += 1
+        # Fill the list of raw data in the Reduction Blocks List
+        print("listing files in the reduction blocks...")
+        for hdr,filename in zip(allhdr,listRaw):
+        #for filename in listRaw:
+        try:
+            chiupname = hdr['HIERARCH ESO DET CHIP NAME'];
+            stri = hdr['HIERARCH ESO TPL START']+'.'+chiupname
+            #print(chipname)
+            if len(chipname)==0:
+                print("WARNING, "+filename+" is a RMNREC file!")
+                continue
+        except:
+            print("WARNING, "+filename+" is not a valid MATISSE fits file!")
+            continue;
+        tag  = matisseType(hdr)
+        listRedBlocks[keyTplStart.index(stri)]["input"].append([filename,tag,hdr])
 
-	    # Fill the list of actions,recipes,params in the Reduction Blocks List
-	    print("listing actions in the reduction blocks...")
-	    for elt in listRedBlocks:
-		hdr  = elt["input"][0][2]
+        # Fill the list of actions,recipes,params in the Reduction Blocks List
+        print("listing actions in the reduction blocks...")
+        for elt in listRedBlocks:
+        hdr  = elt["input"][0][2]
                 chip = hdr['HIERARCH ESO DET CHIP NAME'];
-		keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+chip
+        keyTplStartCurrent=hdr['HIERARCH ESO TPL START']+'.'+chip
                 if chip == 'AQUARIUS':
                     resolution = hdr['HIERARCH ESO INS DIN NAME']
                 if chip == 'HAWAII-2RG':
-		    resolution = hdr['HIERARCH ESO INS DIL NAME']
-                    
-		action        = matisseAction(hdr,elt["input"][0][1])
-		if ('TELESCOP' in hdr):
-			tel = hdr['TELESCOP']
-		else:
-			tel=""
-		recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel, resolution)
-		elt["action"]   = action
-		elt["recipes"]  = recipes
-		if action=="ACTION_MAT_RAW_ESTIMATES":
-		    if (hdr['HIERARCH ESO DET CHIP NAME'] == "AQUARIUS"):
-		        if (paramN == ""):
-		            elt["param"]    = param
-		        else:
-		            elt["param"]    = paramN + " " + param
-		    else:
-		        if (paramL == ""):
-		            elt["param"]    = param
-		        else:
-		            elt["param"]    = paramL + " " + param
-		else:
-		    elt["param"]    = param
-		elt["tplstart"] = keyTplStartCurrent
-                
-	# Fill the list of calib in the Reduction Blocks List from dirCalib
-	    print("listing calibrations in the reduction blocks...")
-	    for elt in tqdm(listRedBlocks,unit=" block", unit_scale=False, desc="Working on"):
-		hdr          = elt["input"][0][2]
-		calib,status = matisseCalib(hdr,elt["action"],listArchive,elt['calib'])
-		elt["calib"] = calib
-		elt["status"] = status
-	    print("done.")
+            resolution = hdr['HIERARCH ESO INS DIL NAME']
 
-	# Fill the list of calib in the Reduction Blocks List from dirResult Iter i-1
-	    print("listing calibrations from previous iteration in the reduction blocks...")
-	    if (iterNumber > 1):
-		for elt in listRedBlocks:
-		    hdr          = elt["input"][0][2]
-		    calib,status = matisseCalib(hdr,elt["action"],listIter,elt['calib'])
-		    elt["calib"] = calib
-		    elt["status"] = status
-		print("done.")
+        action        = matisseAction(hdr,elt["input"][0][1])
+        if ('TELESCOP' in hdr):
+            tel = hdr['TELESCOP']
+        else:
+            tel=""
+        recipes,param = matisseRecipes(action, hdr['HIERARCH ESO DET CHIP NAME'], tel, resolution)
+        elt["action"]   = action
+        elt["recipes"]  = recipes
+        if action=="ACTION_MAT_RAW_ESTIMATES":
+            if (hdr['HIERARCH ESO DET CHIP NAME'] == "AQUARIUS"):
+                if (paramN == ""):
+                    elt["param"]    = param
+                else:
+                    elt["param"]    = paramN + " " + param
+            else:
+                if (paramL == ""):
+                    elt["param"]    = param
+                else:
+                    elt["param"]    = paramL + " " + param
+        else:
+            elt["param"]    = param
+        elt["tplstart"] = keyTplStartCurrent
 
-	# Create the SOF files
-	    print("creating the sof files and directories...")
-	    repIter = dirResult+"/Iter"+str(iterNumber)
-	    if os.path.isdir(repIter) == True:
-		if overwrite == 1:
-		    shutil.rmtree(repIter)
-		    os.mkdir(repIter)
-	    else:
-		os.mkdir(repIter)
+    # Fill the list of calib in the Reduction Blocks List from dirCalib
+        print("listing calibrations in the reduction blocks...")
+        for elt in tqdm(listRedBlocks,unit=" block", unit_scale=False, desc="Working on"):
+        hdr          = elt["input"][0][2]
+        calib,status = matisseCalib(hdr,elt["action"],listArchive,elt['calib'])
+        elt["calib"] = calib
+        elt["status"] = status
+        print("done.")
 
-	    listCmdEsorex = []
-	    cptStatusOne  = 0
-	    cptStatusZero = 0
-	    cptToProcess  = 0
-	    cpt           = 0
-	    for elt in listRedBlocks:
-		overwritei = overwrite;
-		if (elt["status"] == 1):
-		    cptStatusOne += 1
+    # Fill the list of calib in the Reduction Blocks List from dirResult Iter i-1
+        print("listing calibrations from previous iteration in the reduction blocks...")
+        if (iterNumber > 1):
+        for elt in listRedBlocks:
+            hdr          = elt["input"][0][2]
+            calib,status = matisseCalib(hdr,elt["action"],listIter,elt['calib'])
+            elt["calib"] = calib
+            elt["status"] = status
+        print("done.")
 
-		    filelist  = os.listdir(repIter)
-		    rbname    = elt["recipes"]+"."+elt["tplstart"]
-		    sofname   = os.path.join(repIter,rbname+".sof").replace(':',':')
-		    outputDir = os.path.join(repIter,rbname+".rb").replace(':','_')
+    # Create the SOF files
+        print("creating the sof files and directories...")
+        repIter = dirResult+"/Iter"+str(iterNumber)
+        if os.path.isdir(repIter) == True:
+        if overwrite == 1:
+            shutil.rmtree(repIter)
+            os.mkdir(repIter)
+        else:
+        os.mkdir(repIter)
 
-		    if overwritei == 0:
-		        print("\nTesting if last reduction went through...")
-		        if glob.glob(os.path.join(outputDir, "*_RAW_INT_*.fits")) or glob.glob(os.path.join(outputDir, "IM_BASIC.fits")):
-		            print("Yes!")
-		        else:
-		            overwritei = 1;
-		            print("Nope!")
+        listCmdEsorex = []
+        cptStatusOne  = 0
+        cptStatusZero = 0
+        cptToProcess  = 0
+        cpt           = 0
+        for elt in listRedBlocks:
+        overwritei = overwrite;
+        if (elt["status"] == 1):
+            cptStatusOne += 1
 
-		    resol = 'no res'
-		    if os.path.exists(sofname):
-		        print("sof file "+sofname+" already exists...")
-		        if overwritei:
-		            print("WARNING: Overwriting existing files")
+            filelist  = os.listdir(repIter)
+            rbname    = elt["recipes"]+"."+elt["tplstart"]
+            sofname   = os.path.join(repIter,rbname+".sof").replace(':',':')
+            outputDir = os.path.join(repIter,rbname+".rb").replace(':','_')
 
-		            fp = open(sofname,'w')
-		            for frame,tag,hdr in elt['input']:
-		                fp.write(frame+" "+tag+"\n")
-		                #print(frame, hdr['HIERARCH ESO INS DIL NAME'])
-		                resol = hdr['HIERARCH ESO INS DIL NAME']
-		            for frame,tag in elt['calib']:
-		                fp.write(frame+" "+tag+"\n")
-		            fp.close()
-		        else:
-		            print("WARNING: sof file exists. Skipping... (consider using --overwrite)")
-		            #continue;
-		    else:
-		        print("sof file "+sofname+" does not exist. Creating it...")
-		        fp = open(sofname,'w')
-		        for frame,tag,hdr in elt['input']:
-		            fp.write(frame+" "+tag+"\n")
-		            #print(frame, hdr['HIERARCH ESO INS DIL NAME'])
-		            resol = hdr['HIERARCH ESO INS DIL NAME']
-		        for frame,tag in elt['calib']:
-		            fp.write(frame+" "+tag+"\n")
-		        fp.close()
+            if overwritei == 0:
+                print("\nTesting if last reduction went through...")
+                if glob.glob(os.path.join(outputDir, "*_RAW_INT_*.fits")) or glob.glob(os.path.join(outputDir, "IM_BASIC.fits")):
+                    print("Yes!")
+                else:
+                    overwritei = 1;
+                    print("Nope!")
+
+            resol = 'no res'
+            if os.path.exists(sofname):
+                print("sof file "+sofname+" already exists...")
+                if overwritei:
+                    print("WARNING: Overwriting existing files")
+
+                    fp = open(sofname,'w')
+                    for frame,tag,hdr in elt['input']:
+                        fp.write(frame+" "+tag+"\n")
+                        #print(frame, hdr['HIERARCH ESO INS DIL NAME'])
+                        resol = hdr['HIERARCH ESO INS DIL NAME']
+                    for frame,tag in elt['calib']:
+                        fp.write(frame+" "+tag+"\n")
+                    fp.close()
+                else:
+                    print("WARNING: sof file exists. Skipping... (consider using --overwrite)")
+                    #continue;
+            else:
+                print("sof file "+sofname+" does not exist. Creating it...")
+                fp = open(sofname,'w')
+                for frame,tag,hdr in elt['input']:
+                    fp.write(frame+" "+tag+"\n")
+                    #print(frame, hdr['HIERARCH ESO INS DIL NAME'])
+                    resol = hdr['HIERARCH ESO INS DIL NAME']
+                for frame,tag in elt['calib']:
+                    fp.write(frame+" "+tag+"\n")
+                fp.close()
 
 
-		    if os.path.exists(outputDir):
-		        print("outputDir "+outputDir+" already exists...")
-		        # Remove any previous logfile
-		        print("Remove any previous logfile...")
-		        try:
-		            os.remove(os.path.join(outputDir,".logfile"))
-		        except:
-		            print("Nothing to remove...")
-		        if os.listdir(outputDir) == []:
-		            print("outputDir is empty, continuing...")
-		        else:
-		            print("outputDir already exists and is not empty...")
-		            if overwritei:
-		                print("WARNING: Overwriting existing files")
-		            else:
-		                print("WARNING: outputDir exists. Skipping... (consider using --overwrite)\n")
-		                continue;
-		    else:
-		        print("outputDir "+outputDir+" does not exist. Creating it...\n")
-		        os.mkdir(outputDir)
+            if os.path.exists(outputDir):
+                print("outputDir "+outputDir+" already exists...")
+                # Remove any previous logfile
+                print("Remove any previous logfile...")
+                try:
+                    os.remove(os.path.join(outputDir,".logfile"))
+                except:
+                    print("Nothing to remove...")
+                if os.listdir(outputDir) == []:
+                    print("outputDir is empty, continuing...")
+                else:
+                    print("outputDir already exists and is not empty...")
+                    if overwritei:
+                        print("WARNING: Overwriting existing files")
+                    else:
+                        print("WARNING: outputDir exists. Skipping... (consider using --overwrite)\n")
+                        continue;
+            else:
+                print("outputDir "+outputDir+" does not exist. Creating it...\n")
+                os.mkdir(outputDir)
 
                     listNewParams=removeDoubleParamater(elt['param'].replace("/"," --"))
-                        
-		    #cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param'].replace("/"," --")+" "+sofname+"%"+resol;
+
+            #cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param'].replace("/"," --")+" "+sofname+"%"+resol;
                     cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+listNewParams+" "+sofname+"%"+resol;
-  
-		    if (iterNumber > 1):
-		        sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
-		        if (os.path.exists(sofnamePrev)):
-		            if (filecmp.cmp(sofname,sofnamePrev)):
-		                print("Reduction Blocks already processed during previous iteration")
-		                print("Remove directory : "+outputDir)
-		                shutil.rmtree(outputDir)
-		            else:
-		                listIterNumber[cpt] = iterNumber
-		                elt["iter"]         = iterNumber
-		                cptToProcess       += 1
-		                listCmdEsorex.append(cmd)
-		        else:
-		            listIterNumber[cpt]     = iterNumber
-		            elt["iter"]             = iterNumber
-		            cptToProcess           += 1
-		            listCmdEsorex.append(cmd)
-		    else:
-		        listIterNumber[cpt]         = iterNumber
-		        elt["iter"]                 = iterNumber
-		        cptToProcess               += 1
-		        listCmdEsorex.append(cmd)
-		else:
-		    cptStatusZero+=1
-		cpt+=1
-	    print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
 
-	    if (listCmdEsorex != [] and iterNumber <= maxIter):
-		# Create a process pool with a maximum of 10 worker processes
-		pool = Pool(processes=nbCore)
-		# Map our function to a data set - number 1 through 20
-		pool.map(runEsorex, listCmdEsorex)
+            if (iterNumber > 1):
+                sofnamePrev = repIterPrev+"/"+elt["recipes"]+"."+elt["tplstart"]+".sof"
+                if (os.path.exists(sofnamePrev)):
+                    if (filecmp.cmp(sofname,sofnamePrev)):
+                        print("Reduction Blocks already processed during previous iteration")
+                        print("Remove directory : "+outputDir)
+                        shutil.rmtree(outputDir)
+                    else:
+                        listIterNumber[cpt] = iterNumber
+                        elt["iter"]         = iterNumber
+                        cptToProcess       += 1
+                        listCmdEsorex.append(cmd)
+                else:
+                    listIterNumber[cpt]     = iterNumber
+                    elt["iter"]             = iterNumber
+                    cptToProcess           += 1
+                    listCmdEsorex.append(cmd)
+            else:
+                listIterNumber[cpt]         = iterNumber
+                elt["iter"]                 = iterNumber
+                cptToProcess               += 1
+                listCmdEsorex.append(cmd)
+        else:
+            cptStatusZero+=1
+        cpt+=1
+        print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
 
-	    print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
-	    print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
+        if (listCmdEsorex != [] and iterNumber <= maxIter):
+        # Create a process pool with a maximum of 10 worker processes
+        pool = Pool(processes=nbCore)
+        # Map our function to a data set - number 1 through 20
+        pool.map(runEsorex, listCmdEsorex)
 
-	    if (listCmdEsorex == [] or iterNumber == maxIter):
-		print(" ")
-		print("No more iteration to do")
-		print("-----------------------")
-		print(" ")
-		print("Processing summary:")
-		print(" ")
-		for elt in listRedBlocks:
-		    if (elt["status"] == 1):
-		        msg="Processing done at iteration "+str(elt["iter"])
-		    else:
-		        if (elt["action"] == "NO-ACTION"):
-		            msg = "Data not taken into account by the Pipeline"
-		        else:
-		            msg = "Reduction Block not processed - Missing calibration"
-		    tplstart,detector = elt["tplstart"].split('.')
-		    print('%-24s' % (tplstart,),'%-14s' % (detector,),'%-30s' % (elt["action"],),msg)
+        print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
+        print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
 
-		break
+        if (listCmdEsorex == [] or iterNumber == maxIter):
+        print(" ")
+        print("No more iteration to do")
+        print("-----------------------")
+        print(" ")
+        print("Processing summary:")
+        print(" ")
+        for elt in listRedBlocks:
+            if (elt["status"] == 1):
+                msg="Processing done at iteration "+str(elt["iter"])
+            else:
+                if (elt["action"] == "NO-ACTION"):
+                    msg = "Data not taken into account by the Pipeline"
+                else:
+                    msg = "Reduction Block not processed - Missing calibration"
+            tplstart,detector = elt["tplstart"].split('.')
+            print('%-24s' % (tplstart,),'%-14s' % (detector,),'%-30s' % (elt["action"],),msg)
+
+        break
 
 
 
@@ -517,7 +532,7 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('--spectralBinning', default=5,  \
                         help='Bin spectrally the data to improve SNR')
-    
+
     #--------------------------------------------------------------------------
     parser.add_argument('--maxIter', default=0,  \
                         help='Maximum Number of Iteration (default 1)')
@@ -539,7 +554,7 @@ if __name__ == '__main__':
         parser.print_help()
         print("\n     Example : python mat_autoPipeline.py /data/2018-05-19 --skipN --resol=LOW --nbCores=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
-        
+
     mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,args.maxIter,args.skipL,args.skipN, args.tplSTART, args.tplID)
 
 
