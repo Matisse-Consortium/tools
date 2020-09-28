@@ -13,7 +13,7 @@ This software is a computer program whose purpose is to show oifits
 files from the MATISSE instrument.
 
 This software is governed by the CeCILL license under French law and
-abiding by the rules of distribution of free software. 
+abiding by the rules of distribution of free software.
 
 You can use, modify and/ or redistribute the software under the
 terms of the CeCILL license as circulated by CEA, CNRS and INRIA at
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Merging all oifits files from the same template into a single OiFits file per detector.')
     parser.add_argument('dirIn', default="",help='Input directory')
     parser.add_argument('--dirOut', default="MERGED",help='Output directory')
-    parser.add_argument('--separateChopping', default="FALSE",help='speratating chopped and non-chopped exposure for LM band')
+    parser.add_argument('--separateChopping', default="TRUE",help='speratating chopped and non-chopped exposure for LM band')
     try:
         args = parser.parse_args()
     except:
