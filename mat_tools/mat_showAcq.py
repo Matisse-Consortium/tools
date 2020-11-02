@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -39,6 +40,8 @@ from scipy.optimize import minimize
 import matplotlib.patches as patches
 from scipy import ndimage
 import scipy.optimize as opt
+import argparse
+from tqdm import tqdm
 
 
 
@@ -51,7 +54,7 @@ def gaussian(center_x, center_y, width_x, width_y,height,background):
 def file_is_empty(path):
     return os.stat(path).st_size==0
 
-def mat_showAcq(filename):
+def mat_showAcq(filename,pdf=False):
     sky=[]
     target=[]
     undy=[]
@@ -59,10 +62,11 @@ def mat_showAcq(filename):
     compteurtarget=0
     compteurundy=0
 
+
     hdu=fits.open(filename)
     TorS=hdu['IMAGING_DATA'].data['TARTYP']
     detecteur=hdu[0].header['HIERARCH ESO DET CHIP NAME']
-    print(detecteur)
+    print("Processing file {0}...".format(filename))
     a=1
     b=1
     if detecteur == 'HAWAII-2RG':
@@ -127,8 +131,8 @@ def mat_showAcq(filename):
 
 
 
-
-    for i in range(len(csky)-1):
+    plt.figure(1,figsize=(15,7))
+    for i in tqdm(range(len(csky)-1)):
 
         vecsky=sky[csky[i]+1:csky[i+1]+1]
         vectarget=target[ctarget[i]+1:ctarget[i+1]+1]
@@ -188,14 +192,14 @@ def mat_showAcq(filename):
         b13x=params13[1]*a
         b13y=params13[0]*b
 
-        print('barycentre au cycle:'+str(i))
-        print(b9x,b9y)
-        print(b10x,b10y)
-        print(b12x,b12y)
-        print(b13x,b13y)
+        #print('barycentre au cycle:'+str(i))
+        #print(b9x,b9y)
+        #print(b10x,b10y)
+        #print(b12x,b12y)
+        #print(b13x,b13y)
 
 
-        plt.figure(1,figsize=(15,7))
+
         plt.subplot(2,2,1)
 
         plt.scatter(b9x*a,b9y*b ,marker='o',color="blue")
@@ -239,19 +243,34 @@ def mat_showAcq(filename):
         plt.ylabel(' IP7,T4')
 
 
+    if pdf==False:
+        plt.show()
+    else:
+        savename="{0}_acq.pdf".format(filename.split(".fits")[0])
+        print("Saving plot to {0}".format(savename))
+        plt.savefig(savename,bbox_inches = "tight")
 
-
-
-
-
-    plt.show()
 
 if  __name__== '__main__' :
+    parser = argparse.ArgumentParser(description='mat_showAcq.py : compute and show photocenter of MATISSE image acqusition')
+    
+    parser.add_argument('filename', default="",  \
+    help='Name of the MATISSE image acquisition file to process')
 
+    parser.add_argument('--pdf', default=0,  action='store_true',\
+    help='save plot to pdf')
+
+
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_showAcq.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+        print("\n     Example : python mat_showAcq.py  MATIS.2019-11-07T06:25:21.184.fits")
+        sys.exit(0)
 
     arg=sys.argv
-    filename=arg[1]
-    mat_showAcq(filename)
+    mat_showAcq(args.filename,pdf=args.pdf)
 
 
 
