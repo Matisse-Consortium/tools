@@ -49,18 +49,13 @@ from mat_showRawData import mat_showRawData
 import matplotlib.pyplot as plt
 from mat_showOiData import mat_showOiData
 import subprocess
+import argparse
+from tqdm import tqdm
 
 # Set useful paths
 fvpath    = distutils.spawn.find_executable("fv")
 iconspath = os.path.join(os.path.dirname(__file__),"icons")
 
-#various dir0 for debug
-if socket.gethostname()=="pc-amepro":
-    dir0="D:\\Documents\\Travail\\MATISSE\\"
-else:
-    #on wmtpipeline
-    dir0="/data/RawDataMatisse/"
-print ("working in directory : {0}".format(dir0))
 
 cleanLog = False
 
@@ -68,7 +63,7 @@ def findHeaderKeyword(h,key):
     try :
         res = h[key]
     except:
-        print ("keyword {0} not found".format(key))
+        #print ("keyword {0} not found".format(key))
         res = ""
     return res
 
@@ -174,7 +169,7 @@ class mat_logData():
         else:
             tpltype="OTHER"
 
-        print("CSV formatting {0}=>{1}".format(self.tplstart,tpltype))
+        #print("CSV formatting {0}=>{1}".format(self.tplstart,tpltype))
 
         if tpltype=="OTHER":
             return ""
@@ -195,7 +190,7 @@ class mat_logData():
 
 class mat_fileData():
       def __init__(self,filename,h):
-        print("Entering mat_filedata")
+        #print("Entering mat_filedata")
         self.filename = filename
         self.doCatg   = matisseType(h)
         self.date     = findHeaderKeyword(h,'DATE')
@@ -249,7 +244,7 @@ class mat_fileData():
 
 
         self.chop = findHeaderKeyword(h,"HIERARCH ESO ISS CHOP ST")
-        print self.shutters
+        #print self.shutters
 
 ###############################################################################
 
@@ -436,12 +431,10 @@ class mat_pipelineOptions(wx.Panel):
 
 class mat_logger(wx.Dialog):
 
-    def __init__(self, parent, date):
-
-        super(mat_logger, self).__init__(parent, title="MATISSE Log of {0}".format(date), style=wx.DEFAULT_FRAME_STYLE, size=(1450, 800))
+    def __init__(self, parent, date, cleanLog=False,xlsOnly=False):
 
         self.date = os.path.basename(os.path.realpath(date).rstrip('\\').rstrip('/'))
-        print("The current directory is "+self.date)
+        #print("The current directory is "+self.date)
         self.logfilename = os.path.join(dir0,"mat_logger_"+self.date+'.pkl')
         self.csvfilename = os.path.join(dir0,"mat_logger_"+self.date+'.txt')
         self.excelfilename = os.path.join(dir0,"mat_logger_"+self.date+'.xlsx')
@@ -451,11 +444,38 @@ class mat_logger(wx.Dialog):
         self.tplList    = []
         self.tplListObj = []
         self.fileList   = []
-        self.InitUI()
-        self.Centre()
-        self.Show()
-        self.path=""
-        self.selectedTpl=[]
+        
+        if cleanLog==False:
+            if os.path.isfile(self.logfilename):
+                try:
+                    print "log file exist for {0} ... loading".format(self.logfilename)
+                    pik=open(self.logfilename, 'rb')
+                    self.tplList    = pickle.load(pik)
+                    self.tplListObj = pickle.load(pik)
+                    self.fileList   = pickle.load(pik)
+                except:
+                    print "log file seems corrupted... archiving it anyway".format(self.logfilename)
+                    os.rename(self.logfilename,self.logfilename+"old")
+            else:
+                print "No previous log file for {0} ...".format(self.date)
+        else:
+            print "Deleting previous log for {0} ...".format(self.date)
+
+        self.getInfosFromNight()
+        
+        
+        if xlsOnly==True:
+            self.exportXLS()
+            sys.exit(0)
+            
+        else:
+            super(mat_logger, self).__init__(parent, title="MATISSE Log of {0}".format(date), style=wx.DEFAULT_FRAME_STYLE, size=(1450, 800))
+            self.InitUI()
+            self.tplListWidget.SetObjects(self.tplListObj)
+            self.Centre()
+            self.Show()
+            self.path=""
+            self.selectedTpl=[]
 
 #------------------------------------------------------------------------------
 
@@ -522,10 +542,11 @@ class mat_logger(wx.Dialog):
 
         self.fileListWidget =  ObjectListView(panel,wx.ID_ANY, style=wx.LC_REPORT)
         cols2=[ColumnDefn("Date",       "left",140,"date",      minimumWidth=20),
-               ColumnDefn("File name",  "left",240,"filename",  minimumWidth=20),
+               ColumnDefn("File name",  "left",200,"filename",  minimumWidth=20),
                ColumnDefn("DO CATG",    "left",70, "doCatg",    minimumWidth=20),
                ColumnDefn("Disp.",      "left",40, "disp",      minimumWidth=20),
                ColumnDefn("wl0",        "left",40, "wl0",      minimumWidth=20),
+               ColumnDefn("Band",        "left",40, "band",      minimumWidth=20),               
                ColumnDefn("DIT",        "left",40, "dit",       minimumWidth=20),
                ColumnDefn("NDIT",       "left",40, "ndit",      minimumWidth=20),
                ColumnDefn("Mod",        "left",35, "mod",       minimumWidth=20),
@@ -577,18 +598,8 @@ class mat_logger(wx.Dialog):
         self.tabPipeline.resetSelection.Bind(wx.EVT_BUTTON,     self.resetSelectionClicked)
         self.byebyeBut.Bind(wx.EVT_BUTTON,     self.byebye)
         tabs.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.tabChanged)
+        self.Bind(wx.EVT_CLOSE, self.byebye)
 
-        if cleanLog==False:
-            if os.path.isfile(self.logfilename):
-                print "log file exist for {0} ... loading".format(self.logfilename)
-                pik=open(self.logfilename, 'rb')
-                self.tplList    = pickle.load(pik)
-                self.tplListObj = pickle.load(pik)
-                self.fileList   = pickle.load(pik)
-            else:
-                print "No log file for {0} ...".format(self.date)
-
-        self.getInfosFromNight()
         self.Show()
 
         # But solve a sizing problem only found on linux (but I don't know why)
@@ -596,14 +607,16 @@ class mat_logger(wx.Dialog):
         self.tabPipeline.Show()
 #------------------------------------------------------------------------------
     def tabChanged(self,event):
-        print("Tab changed")
+        pass
+        #print("Tab changed")
 
 #------------------------------------------------------------------------------
     def exportCSVClicked(self,event):
-        print("Saving csv file to "+self.csvfilename)
-        #csvfile = open(self.csvfilename,'wb')
-        #csvfile.write("TARGET;TPLTYPE;TPLSTART;DIL;DIN;MODL;MODN;ACQ;FS;PHOTO;CHOPPING;NFILES;NEXP;TYPE;SEEING;TAU0;COMMENT\n");
-
+        self.exportXLS()
+#------------------------------------------------------------------------------
+    def exportXLS(self):
+        print("Saving xls file to "+ self.excelfilename)
+        
         xl=Workbook()
         sheet=xl.active
         sheet.append(["TARGET","FLUXL","FLUXN","FTRACK","TPLTYPE","TPLSTART","DIL","WL0","DITL","DIN","DITN","MODL",
@@ -809,7 +822,7 @@ class mat_logger(wx.Dialog):
         tpl = self.tplListWidget.GetObjects()
         itemNum  = self.tplListWidget.GetNextSelected(-1)
         while (itemNum!=-1):
-            print(itemNum)
+            #print(itemNum)
             idx = self.tplListWidget.GetItem(itemNum).GetData()
             if not(tpl[idx] in self.selectedTpl):
                 self.selectedTpl.append(tpl[idx])
@@ -834,6 +847,7 @@ class mat_logger(wx.Dialog):
 
     def updateClicked(self,event):
         self.getInfosFromNight()
+        self.tplListWidget.SetObjects(self.tplListObj)
         self.tplListWidget.SortBy(0, ascending=False)
 
 #------------------------------------------------------------------------------
@@ -901,7 +915,7 @@ class mat_logger(wx.Dialog):
 #------------------------------------------------------------------------------
 
     def byebye(self,event):
-        print("Bye bye!")
+        #print("Bye bye!")
         self.Destroy()
         return 0
 
@@ -928,41 +942,42 @@ class mat_logger(wx.Dialog):
 
     def getInfosFromNight(self):
         files = os.listdir(dir0)
-        for filei in files:
+        print("Processing {0} files...".format(len(files)))
+        for filei in tqdm(files):
             if not(filei in self.fileList):
                 if filei.endswith(".fits"):
                     try:
-                        print("Reading header")
-                        h        = fits.getheader(dir0+"/"+filei)
-                        print("Getting tplStart")
+                        #print("Reading header")
+                        h = fits.getheader(dir0+"/"+filei)
+                        #print("Getting tplStart")
                         tplstart = findHeaderKeyword(h,'HIERARCH ESO TPL START')
-                        print "{0} ==> {1}".format(filei,tplstart)
+                        #print "{0} ==> {1}".format(filei,tplstart)
                         if (tplstart in self.tplList):
-                            print("tplStart already started, adding file to list")
+                            #print("tplStart already started, adding file to list")
                             i = self.tplList.index(tplstart)
-                            print(i)
-                            print(len(self.tplListObj))
-                            print("incrementing file number...")
+                            #print(i)
+                            #print(len(self.tplListObj))
+                            #print("incrementing file number...")
                             try:
                                 self.tplListObj[i].nbFiles += 1
-                                print("done")
+                                #print("done")
                             except:
-                                print("failed but...")
+                                #print("failed but...")
                                 self.tplListObj[i].nbFiles = 1;
-                                print("passed")
-                            print("Checking exposure number")
+                                #print("passed")
+                            #print("Checking exposure number")
                             if self.tplListObj[i].nexp  < findHeaderKeyword(h, 'HIERARCH ESO TPL NEXP'):
                                 self.tplListObj[i].nexp = findHeaderKeyword(h, 'HIERARCH ESO TPL NEXP')
-                            print("Adding file to list")
+                            #print("Adding file to list")
                             self.tplListObj[i].listOfFiles.append(mat_fileData(filei,h))
                             self.fileList.append(filei)
                         elif tplstart!="":
-                            print("Not tplStart, starting a new list")
+                            #print("Not tplStart, starting a new list")
                             self.tplList.append(tplstart)
                             target= findHeaderKeyword(h,'HIERARCH ESO OBS TARG NAME')
                             fluxL=findHeaderKeyword(h,'HIERARCH ESO SEQ TARG FLUX L')
                             fluxN=findHeaderKeyword(h,'HIERARCH ESO SEQ TARG FLUX N')
-  			    ftracker=findHeaderKeyword(h,'HIERARCH ESO DEL FT SENSOR')
+                            ftracker=findHeaderKeyword(h,'HIERARCH ESO DEL FT SENSOR')
 
                             progid= findHeaderKeyword(h,'HIERARCH ESO OBS PROG ID')
                             tplid=findHeaderKeyword(h,'HIERARCH ESO TPL ID')
@@ -972,12 +987,15 @@ class mat_logger(wx.Dialog):
                                        1,nexp," ",mat_fileData(filei,h),"Started"))
                             self.fileList.append(filei)
                         else :
-                            print ("skipping file without tplstart {0}".format(filei))
+                            #print ("skipping file without tplstart {0}".format(filei))
+                            pass
                     except:
-                        print ("skipping file {0} : not valid fits file".format(filei))
+                        pass
+                        #print ("skipping file {0} : not valid fits file".format(filei))
                 else:
-                    print ("skipping file {0} : not fits file".format(filei))
-        self.tplListWidget.SetObjects(self.tplListObj)
+                    pass
+                    #print ("skipping file {0} : not fits file".format(filei))
+       
         self.saveData()
 #------------------------------------------------------------------------------
 
@@ -1048,51 +1066,42 @@ class autoUpdate(object):
 ###############################################################################
 
 if __name__ == '__main__':
-    dir0=[];
-    # Scan the command line arguments
-    listArg = sys.argv
-    for idx,elt in enumerate(listArg):
-        if ('--help' in elt):
-            print ("Usage : mat_logger.py date")
-            print ("options")
-            print ("--dir0  : base directory ")
-            print ("--clean : remove old log file")
-            sys.exit(0)
-        if len(listArg) == 2:
-            try:
-                dir0=listArg[idx+1]
-            except:
-                print " no argument for dir0"
-        if (elt=='--clean'):
-            print "cleaning Log..."
-            cleanLog=True
+    parser = argparse.ArgumentParser(description='mat_logger.py is MATISSE interactive logger and data reduction tool')
+    
+    parser.add_argument('dirRaw', default="",  \
+    help='The path to the directory containing your raw data.')
 
-    # If no argument is given, then open the file dialog to select directory
-    if not dir0:
-        app2 = wx.App()
-        print("No input directory given, running file selector...")
-        openFileDialog = mat_FileDialog(None, 'Open a night directory',"lmk,")
-        if openFileDialog.ShowModal() == wx.ID_OK:
-            dir0 = openFileDialog.GetPaths()[0]
-            print(dir0)
-        openFileDialog.Destroy()
-        app2.MainLoop()
-        app2.Destroy()
+    parser.add_argument('--clean', default=0,action='store_true',  \
+    help='remove old log file')
 
+
+    parser.add_argument('--xlsOnly', default="",  action='store_true',\
+    help='directly export log to XSL file (no interactive GUI (Not Working yet)')
+
+    
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_logger.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+        print("\n     Example : python mat_logger.py /data/rawData/2018-05-19")
+        sys.exit(0)
+        
     try :
         app = wx.App()
     except:
         pass
-
+    
+    dir0=os.path.abspath(args.dirRaw)
     os.chdir(dir0)
-    # Save a backup pkl file, just in case something happens
-    #saveBackup()
-    #autoUpdate()
-
-    openLogger = mat_logger(None,dir0)
+    
+    openLogger = mat_logger(None,dir0,args.clean,args.xlsOnly)
     openLogger.Show()
-    #if openLogger.ShowModal() == wx.ID_OK:
-    #    print ("OK")
-    #openLogger.Destroy()
     app.MainLoop()
-    #app.Destroy()
+
+    
+        
+  
+ 
+
+  
