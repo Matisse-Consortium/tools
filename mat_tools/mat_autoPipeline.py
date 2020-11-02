@@ -136,9 +136,9 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
     listRes = []
     for hdr,filename in zip(allhdr,listRaw):
         if ('HIERARCH ESO TPL START' in hdr and 'HIERARCH ESO DET CHIP NAME' in hdr) :
-        tplid    = hdr['HIERARCH ESO TPL ID']
-        tplstart = hdr['HIERARCH ESO TPL START']
-        chip     = hdr['HIERARCH ESO DET CHIP NAME']
+            tplid    = hdr['HIERARCH ESO TPL ID']
+            tplstart = hdr['HIERARCH ESO TPL START']
+            chip     = hdr['HIERARCH ESO DET CHIP NAME']
 
         if skipL == 0 and chip == 'HAWAII-2RG':
             # Append low resolution stuff in the front of the list
