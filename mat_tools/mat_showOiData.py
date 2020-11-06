@@ -29,6 +29,7 @@ import libShowOifits as msoi
 import os
 from matplotlib.backends.backend_pdf import PdfPages
 from tqdm import tqdm
+import argparse
 
 
 inch=1/2.54
@@ -279,52 +280,58 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
 
 
 if __name__ == '__main__':
-    filename=None
-    wlRange=None
-    showErr=False
-    pdf=False
-    merged=False
 
-    listArg = sys.argv
-    if len(listArg)>1:
-        if  listArg[1][0]!="-":
-            filename=listArg[1]
-    else :
-        listArg.append("--help")
+    parser = argparse.ArgumentParser(description="Plot in the same figure VIS2, VISPHI, T3PHI, FLUX, and UV plan for MATISSE files." 
+      "\nCan produce pdf per file or merged pdf for all files in a folder.")
 
-    for elt in listArg:
-        if ('--help' in elt):
-            print("Usage: mat_showOiData.py filenameOrDirectory [--wlRange=[min,max] in micron] [--showErr=FALSE] [--pdf] [--mergedpdf]")
+    parser.add_argument('filesOrDir', default="",help='A file, a list of files, or a directory')
+    parser.add_argument('--wlRange', default=0, help='The min and max wavelengths [min,max] for the plot (microns)')
+    parser.add_argument('--showErr', default=0, help='Plotting errors', action='store_true')
+    parser.add_argument('--pdf', default=0, help='Create pdf(s) for the file(s)', action='store_true')
+    parser.add_argument('--mergedpdf', default=0, help='Create a unique pdf for all the files', action='store_true')
+
+
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_showOiData.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+        print("\n     Example : python mat_showOiData.py . --mergedpdf")
+        sys.exit(0)
+
+    if args.wlRange!=0:
+        wlRange=[float(val) for val in args.wlRange.replace("[","").replace("]","").split(",")]      
+        
+        if  len(wlRange)!=2:
+            print("Error : wlRange should be a pair of numbers not {0}".format(wlRange))
+            parser.print_help()
+            
             sys.exit(0)
-        if ('--wlRange' in elt):
-            wlRange=elt.split("=")[1]
-        if ('--showErr' in elt):
-            showErr=elt.split("=")[1]
-        if ('--pdf' in elt):
-            pdf=True
-        if ('--mergedpdf' in elt):
-            merged=True
-
-
+    else:
+        wlRange=None
+    showErr=args.showErr
+    pdf=args.pdf
+    merged=args.mergedpdf
+    filesOrDir=args.filesOrDir
     if (pdf or merged):
         fig=plt.figure(figsize=(29.7*inch,21*inch))
     else:
         fig=None
 
-    if os.path.isdir(filename):
-        os.chdir(filename)
+    if os.path.isdir(filesOrDir):
+        os.chdir(filesOrDir)
         dir0=os.path.basename(os.getcwd())
-        filename=[fi for fi in os.listdir(filename) if ".fits" in fi]
+        filesOrDir=[fi for fi in os.listdir(filesOrDir) if ".fits" in fi]
     else:
-        filename=[filename]
-    nfiles=len(filename)
+        filesOrDir=[filesOrDir]
+    nfiles=len(filesOrDir)
 
     if merged:
         pdfname=dir0+'_plots.pdf'
         pdf = PdfPages(pdfname)
 
-    print("Processing {0} oifits files".format(len(filename)))
-    for filei in tqdm(filename):
+    print("Processing {0} oifits files".format(len(filesOrDir)))
+    for filei in tqdm(filesOrDir):
         fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig)
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
@@ -342,7 +349,3 @@ if __name__ == '__main__':
     if merged:
         print("Saving plots to {0}".format(pdfname))
         pdf.close()
-
-
-
-
