@@ -171,7 +171,8 @@ def open_oi(oi_file):
             dic['VIS']['CFLUX']    = hdu['OI_VIS'].data['CFXAMP']
             dic['VIS']['CFLUXERR'] = hdu['OI_VIS'].data['CFXAMPERR']
         except:
-            print("WARNING: No correlated fluxes in this OI_VIS table!")
+            pass
+            #print("WARNING: No correlated fluxes in this OI_VIS table!")
 
         dic['VIS']['U']         = hdu['OI_VIS'].data['UCOORD']
         dic['VIS']['V']         = hdu['OI_VIS'].data['VCOORD']
@@ -180,7 +181,8 @@ def open_oi(oi_file):
             dic['VIS']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['VIS']['STA_INDEX'] = hdu['OI_VIS'].data['STA_INDEX']
     except:
-        print("WARNING: No OI_VIS table!")
+        pass
+        #print("WARNING: No OI_VIS table!")
 
     try:
         dic['VIS2'] = {}
@@ -197,7 +199,8 @@ def open_oi(oi_file):
             print(np.shape(np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])))
         dic['VIS2']['STA_INDEX'] = hdu['OI_VIS2'].data['STA_INDEX']
     except:
-        print("WARNING: No OI_VIS2 table!")
+        pass
+        #print("WARNING: No OI_VIS2 table!")
 
     try:
         dic['TF2'] = {}
@@ -210,7 +213,8 @@ def open_oi(oi_file):
             dic['TF2']['TIME'] = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['TF2']['STA_INDEX'] = hdu['TF2'].data['STA_INDEX']
     except:
-        print("WARNING: No OI_TF2 table!")
+        pass
+        #print("WARNING: No OI_TF2 table!")
 
     try:
         dic['T3'] = {}
@@ -228,7 +232,8 @@ def open_oi(oi_file):
             dic['T3']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['T3']['STA_INDEX'] = hdu['OI_T3'].data['STA_INDEX']
     except:
-        print("WARNING: No OI_T3 table!")
+        pass
+        #print("WARNING: No OI_T3 table!")
 
     try:
         dic['FLUX'] = {}
@@ -240,7 +245,8 @@ def open_oi(oi_file):
             dic['FLUX']['TIME']      = np.full(len(hdu['OI_VIS'].data['MJD']), hdr['MJD-OBS'])
         dic['FLUX']['STA_INDEX'] = hdu['OI_FLUX'].data['STA_INDEX']
     except:
-        print("WARNING: No OI_FLUX table!")
+        pass
+        #print("WARNING: No OI_FLUX table!")
 
     return dic
 

@@ -28,6 +28,7 @@ import sys
 import libShowOifits as msoi
 import os
 from matplotlib.backends.backend_pdf import PdfPages
+from tqdm import tqdm
 
 
 inch=1/2.54
@@ -246,7 +247,7 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
 
     filename=filename.split("/")[-1]
 
-    fig.text(0.02,0.95,filename,fontsize=18)
+    fig.text(0.02,0.95,filename,fontsize=12)
     fig.text(0.03,0.92,"BAND = {0}".format(band))
     fig.text(0.03,0.90,"DISP = {0}".format(dic['DISP']))
     fig.text(0.03,0.88,"DIT = {0}s".format(dic['DIT']))
@@ -285,7 +286,6 @@ if __name__ == '__main__':
     merged=False
 
     listArg = sys.argv
-    print(listArg)
     if len(listArg)>1:
         if  listArg[1][0]!="-":
             filename=listArg[1]
@@ -322,16 +322,15 @@ if __name__ == '__main__':
     if merged:
         pdfname=dir0+'_plots.pdf'
         pdf = PdfPages(pdfname)
-        print("saving to {0}".format(pdfname))
 
-
-    for filei in filename:
+    print("Processing {0} oifits files".format(len(filename)))
+    for filei in tqdm(filename):
         fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig)
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
             plt.clf()
-            print("saving to {0}".format(pdfname))
+            tqdm.write("saving to {0}".format(pdfname))
         elif merged:
             pdf.savefig(fig)
             plt.clf()
@@ -341,6 +340,7 @@ if __name__ == '__main__':
             plt.show()
 
     if merged:
+        print("Saving plots to {0}".format(pdfname))
         pdf.close()
 
 
