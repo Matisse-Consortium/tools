@@ -95,12 +95,12 @@ def open_oi(oi_file):
     #dic['TARGET'] = resolve_target(dic)
 
     try:
-	catg=hdr['ESO PRO CATG']
-	if catg == "TARGET_RAW_INT":
-		target_category = "SCI"
-	else:
-		target_category = "CAL"
-	#target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
+        catg=hdr['ESO PRO CATG']
+        if catg == "TARGET_RAW_INT":
+            target_category = "SCI"
+        else:
+            target_category = "CAL"
+        #target_category = hdu['OI_TARGET'].data['CATEGORY'][0]  # "CAL" or "SCI"
     except KeyError:
         print ("Target category not found.")
         target_category = "CAL"

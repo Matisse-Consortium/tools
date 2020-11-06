@@ -169,11 +169,11 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
     if not(corrFlux):
         msoi.show_oi_vs_wlen(dic,key='FLUX',datatype="FLUX",plot_errorbars=showErr,subplotList=pltflx,colorList=colTel)
 
-
+    ncols=np.size(u)//len(cols)
     plts['UV']=fig.add_axes([0.675, 0.53, 0.22,0.22*1.41])
     plts['UV'].set_aspect('equal', 'box')
-    plts['UV'].scatter(u,v,c=cols,s=2)
-    plts['UV'].scatter(-u,-v,c=cols,s=2)
+    plts['UV'].scatter(u,v,c=cols*ncols,s=2)
+    plts['UV'].scatter(-u,-v,c=cols*ncols,s=2)
     plts['UV'].set_xlabel('U (m)')
     plts['UV'].set_ylabel('V (m)')
 
@@ -337,7 +337,7 @@ if __name__ == '__main__':
             plt.clf()
         else:
             fig=None
-   	if not(pdf or merged):
+    if not(pdf or merged):
             plt.show()
 
     if merged:
