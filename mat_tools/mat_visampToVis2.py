@@ -73,7 +73,8 @@ def mat_visampToVis2(something,save=False,verbose=True,dirOut="./VISAMP2VIS2"):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Move MATISSE coherent integration from OI_VIS VISAMP to OI_VIS2 VIS2DATA")
+    parser = argparse.ArgumentParser(description="Move MATISSE coherent" \
+      "integration from OI_VIS VISAMP to OI_VIS2 VIS2DATA (including errors and flag)")
     parser.add_argument('dirIn', default="",help='Input directory')
     parser.add_argument('--dirOut', default="VISAMP2VIS2",help='Output directory')
 
