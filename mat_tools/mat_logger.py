@@ -26,7 +26,7 @@
 from libAutoPipeline import matisseType
 import wx, wx.html
 import os, stat
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView import ObjectListView, ColumnDefn,Filter
 from astropy.io import fits
 import distutils.spawn
 import sys
@@ -80,6 +80,9 @@ class headerKeyword(object):
 class mat_showFitsHeader(wx.Frame):
     def __init__(self,parent,headerOrFilename):
 
+
+        
+
         if type(headerOrFilename)==type("") or  type(headerOrFilename)==type(u""):
             header=fits.getheader(headerOrFilename)
             filename=headerOrFilename
@@ -89,10 +92,16 @@ class mat_showFitsHeader(wx.Frame):
         wx.Frame.__init__(self, parent, title=filename,size=(800,700))
         self.tableView=ObjectListView(self,wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.tableView.rowFormatter=self.setRowColor
-        cols=[ColumnDefn("Keyword","left",250,"keyword",minimumWidth=100),ColumnDefn("Value","left",250,"value",minimumWidth=100),ColumnDefn("Comment","left",290,"comment",minimumWidth=100)]
-
+        cols=[ColumnDefn("Keyword","left",250,"keyword",minimumWidth=100),\
+              ColumnDefn("Value","left",250,"value",minimumWidth=100),\
+              ColumnDefn("Comment","left",290,"comment",minimumWidth=100)]
         self.tableView.SetColumns(cols)
 
+        self.searchField = wx.SearchCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER | wx.NO_BORDER)
+        self.searchField.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.OnSearchKeyDown)
+        self.searchField.Bind(wx.EVT_TEXT, self.OnSearchKeyDown)
+
+        self.searchFieldText=wx.StaticText(self,-1,label="Filtering :")
 
 
         self.keywords=[]
@@ -101,6 +110,24 @@ class mat_showFitsHeader(wx.Frame):
 
 
         self.tableView.SetObjects( self.keywords)
+        
+        
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox=  wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.searchFieldText,proportion=1)
+        hbox.Add(self.searchField,proportion=1)
+        
+        vbox.AddSizer(hbox)
+        vbox.Add(self.tableView,proportion=10)
+        self.SetSizer(vbox)
+        
+
+    def OnSearchKeyDown(self,Event):
+        #self.searchIdx+=1
+        searchTxt=self.searchField.GetValue()
+        filt=Filter.TextSearch(self.tableView,columns=(),text=searchTxt)
+        self.tableView.SetFilter(filt)
+        self.tableView.RepopulateList()
 
     def setRowColor(self,listItem, data):
 
@@ -487,18 +514,18 @@ class mat_logger(wx.Dialog):
         if cleanLog==False:
             if os.path.isfile(self.logfilename):
                 try:
-                    print "log file exist for {0} ... loading".format(self.logfilename)
+                    print("log file exist for {0} ... loading".format(self.logfilename))
                     pik=open(self.logfilename, 'rb')
                     self.tplList    = pickle.load(pik)
                     self.tplListObj = pickle.load(pik)
                     self.fileList   = pickle.load(pik)
                 except:
-                    print "log file seems corrupted... archiving it anyway".format(self.logfilename)
+                    print("log file seems corrupted... archiving it anyway".format(self.logfilename))
                     os.rename(self.logfilename,self.logfilename+"old")
             else:
-                print "No previous log file for {0} ...".format(self.date)
+                print("No previous log file for {0} ...".format(self.date))
         else:
-            print "Deleting previous log for {0} ...".format(self.date)
+            print("Deleting previous log for {0} ...".format(self.date))
 
         self.getInfosFromNight()
         
