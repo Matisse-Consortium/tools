@@ -46,7 +46,7 @@ def mat_visampToVis2(something,save=False,verbose=True,dirOut="./VISAMP2VIS2"):
 
     for di in data:
         visamp=di["OI_VIS"].data["VISAMP"]
-        visamperr=di["OI_VIS"].data["VISAMP"]
+        visamperr=di["OI_VIS"].data["VISAMPERR"]
         
         v2=di["OI_VIS"].data["VISAMP"]**2
         v2err=2*visamp*visamperr
