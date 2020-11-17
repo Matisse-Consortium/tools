@@ -25,6 +25,7 @@ import wx
 import argparse
 import sys
 import glob
+from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from   astropy.io import fits as fits
@@ -134,11 +135,8 @@ def get_UVs(files):
     TARG = []
     WLEN = []
 
-    for file in files:
-        print(file)
+    for file in tqdm(files, unit="file", unit_scale=False, desc="Working on"):
         bx, by, wl, targ, typ, ntels = get_UV(file)
-
-        print(typ, targ)
             
         if typ == 'CALIB_RAW_INT':
             continue
@@ -168,7 +166,7 @@ def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",tit
         BY = BY[:,None]/WLEN;
         
     uniques = set(TARG)
-    print(uniques)
+
     if len(uniques) < 4:
         nwiny = len(uniques)
         nwinx = 1
@@ -176,10 +174,6 @@ def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",tit
         nwin = int(np.sqrt(len(uniques)))
         nwiny = nwin;
         nwinx = nwin+1;
-
-    print(np.shape(WLEN))
-    print(np.shape(BX))
-    print(len(BY))
 
     for i,base in enumerate(BX0):
         for j,uni in enumerate(uniques):
@@ -213,7 +207,7 @@ def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",tit
 ###############################################################################
 
 if __name__ == '__main__':
-    print("Starting...")
+    print("Plotting UV...")
     
     #--------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description='(u,v) plane plot.')
@@ -255,5 +249,7 @@ if __name__ == '__main__':
     BX, BY, WLEN, TARG, ntels = get_UVs(files)
     plot_UV(BX, BY, WLEN, TARG, ntels,title=args.showtitle,color=args.color,
             freq=args.freq)
+
+    print("Done!")
     plt.show();
     
