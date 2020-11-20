@@ -23,6 +23,8 @@ def mat_readReductionLog(fname,showErrors=False,ret=False):
     
     ctime=os.path.getctime(fname)
     mtime=os.path.getmtime(fname)
+    print(time.ctime(ctime))
+    print(time.ctime(mtime))
     dt=mtime-ctime
     
     f=open(fname,mode="r")#,errors="ignore")
