@@ -7,11 +7,10 @@ Created on Tue Nov 17 17:49:37 2020
 """
 import argparse
 import sys
+import os
+import time
 
-dir0="D:\\Travail\\Etoiles\\BpeMATISSE\\testReduc\\testlog\\"
 
-fname=dir0+"logNew2.txt"
-fname=dir0+"log.log"
 
 def removeAll(string,chars):
     for char in chars:
@@ -22,8 +21,15 @@ def removeAll(string,chars):
 
 def mat_readReductionLog(fname,showErrors=False,ret=False):
     
+    ctime=os.path.getctime(fname)
+    mtime=os.path.getmtime(fname)
+    dt=mtime-ctime
+    
     f=open(fname,mode="r")#,errors="ignore")
     data=f.read()
+    
+    
+    
     f.close()  
     n=[]
     ntot=[]
@@ -59,7 +65,7 @@ def mat_readReductionLog(fname,showErrors=False,ret=False):
             print("{0}/{1}\t: err={2}".format(n[i],ntot[i],nerr[i]))
            
         print("-------------------------------")
-        print("Total of {0} recipes launched".format(sum(n)))
+        print("Total of {0} recipes launched in {1}min ({2} min/recipes)".format(sum(n),dt,dt/sum(n)))
     elif showErrors==True:
         for i in range(nred):
                 for errj in err[i]:
