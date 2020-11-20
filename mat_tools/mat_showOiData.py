@@ -81,7 +81,7 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
             #print(tely)
             axe.scatter(telx[0,0],tely[0,0],c=tcolor[i],s=40*symsize,zorder=3)
 
-def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
+def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
 
     try:
         dic=msoi.open_oi(filename)
@@ -196,6 +196,9 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None):
         minV2=np.min(v2)
         minV2=minV2 if minV2>-0.2 else -0.2
         plts['VIS2_0'].set_ylim(minV2,maxV2)
+    
+    if visRange!=None:
+        plts['VIS2_0'].set_ylim(visRange[0],visRange[1])
 
     maxphi=np.max(phi)
     maxphi=maxphi if maxphi<180 else 180
@@ -289,7 +292,8 @@ if __name__ == '__main__':
     parser.add_argument('--showErr', default=0, help='Plotting errors', action='store_true')
     parser.add_argument('--pdf', default=0, help='Create pdf(s) for the file(s)', action='store_true')
     parser.add_argument('--mergedpdf', default=0, help='Create a unique pdf for all the files', action='store_true')
-
+    parser.add_argument('--visRange', default=0, help='The min and max for visibility (or CorrFLux)')
+   
 
     try:
         args = parser.parse_args()
@@ -300,15 +304,23 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if args.wlRange!=0:
-        wlRange=[float(val) for val in args.wlRange.replace("[","").replace("]","").split(",")]      
-        
+        wlRange=[float(val) for val in args.wlRange.replace("[","").replace("]","").split(",")]         
         if  len(wlRange)!=2:
             print("Error : wlRange should be a pair of numbers not {0}".format(wlRange))
-            parser.print_help()
-            
+            parser.print_help()    
             sys.exit(0)
     else:
-        wlRange=None
+        wlRange=None    
+        
+    if args.visRange!=0:
+        visRange=[float(val) for val in args.visRange.replace("[","").replace("]","").split(",")]         
+        if  len(visRange)!=2:
+            print("Error : visRange should be a pair of numbers not {0}".format(visRange))
+            parser.print_help()    
+            sys.exit(0)            
+    else:
+        visRange=None
+        
     showErr=args.showErr
     pdf=args.pdf
     merged=args.mergedpdf
@@ -332,7 +344,7 @@ if __name__ == '__main__':
 
     print("Processing {0} oifits files".format(len(filesOrDir)))
     for filei in tqdm(filesOrDir):
-        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig)
+        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig,visRange=visRange)
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
