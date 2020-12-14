@@ -97,7 +97,6 @@ def mat_sortByTplStart(oifitsListOrDir):
 
 
 def mat_mergeOifits(oifitsList):
-    prin("booooooooooooooooooooooooo")
     data=[]
     if type(oifitsList[0])==type(""):
         data=[fits.open(oifitsi) for oifitsi in oifitsList]
