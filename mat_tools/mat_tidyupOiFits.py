@@ -22,14 +22,14 @@ knowledge of the CeCILL license and that you accept its terms.
 """
 
 import os
-import wx
+#import wx
 import sys
 import argparse
 from tqdm import tqdm
 #from tqdm import trange
 #import colorama
 from astropy.io import fits
-from mat_fileDialog import mat_FileDialog
+#from mat_fileDialog import mat_FileDialog
 from shutil import copyfile
 from fnmatch import fnmatch
 
