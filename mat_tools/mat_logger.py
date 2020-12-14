@@ -202,14 +202,14 @@ class mat_logData():
                     isImageAcq = "T"
         elif self.tplid == "MATISSE_hyb_obs" or self.tplid == "MATISSE_hse_obs" or  \
              self.tplid == "MATISSE_hyb_obs_ft" or  self.tplid == "MATISSE_hyb_obs_ft_test" or \
-             self.tplid == "MATISSE_hyb_obs_vis" or  self.tplid == "MATISSE_hyb_obs_coh":
+             self.tplid == "MATISSE_hyb_obs_ft_vis" or  self.tplid == "MATISSE_hyb_obs_ft_coh":
             if  self.tplid == "MATISSE_hyb_obs" :
                 tpltype="OBS-HYB"
             elif self.tplid == "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test":
                 tpltype="OBS-HYB-FT"
-            elif self.tplid == "MATISSE_hyb_obs_vis":
+            elif self.tplid == "MATISSE_hyb_obs_ft_vis":
                 tpltype="OBS-HYB-VIS"
-            elif  self.tplid == "MATISSE_hyb_obs_coh":
+            elif  self.tplid == "MATISSE_hyb_obs_ft_coh":
                  tpltype="OBS-HYB-COH"
             else:
                 tpltype="OBS-HSE"
