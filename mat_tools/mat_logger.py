@@ -1074,7 +1074,9 @@ class mat_logger(wx.Dialog):
 # Colour of text for tpl list
     def setRowColorTpl(self,listItem, data):
 
-        if data.tplid == "MATISSE_hyb_obs" or data.tplid == "MATISSE_hse_obs" or  data.tplid =="MATISSE_hyb_obs_ft" or  data.tplid == "MATISSE_hyb_obs_ft_test":
+        if data.tplid == "MATISSE_hyb_obs" or data.tplid == "MATISSE_hse_obs" or  \
+           data.tplid =="MATISSE_hyb_obs_ft" or  data.tplid == "MATISSE_hyb_obs_ft_test" or\
+           data.tplid =="MATISSE_hyb_obs_ft_vis" or  data.tplid == "MATISSE_hyb_obs_ft_coh":
                 txtcol=wx.Colour(116,196,147)
         elif data.tplid == "MATISSE_img_acq" or data.tplid == "MATISSE_img_acq_ft" :
                 txtcol=wx.Colour(116,147,196)
