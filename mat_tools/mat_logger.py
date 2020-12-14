@@ -208,12 +208,12 @@ class mat_logData():
             elif self.tplid == "MATISSE_hyb_obs_ft" or  "MATISSE_hyb_obs_ft_test":
                 tpltype="OBS-HYB-FT"
             elif self.tplid == "MATISSE_hyb_obs_ft_vis":
-                tpltype="OBS-HYB-VIS"
+                tpltype="OBS-HYB-FT-VIS"
             elif  self.tplid == "MATISSE_hyb_obs_ft_coh":
-                 tpltype="OBS-HYB-COH"
+                 tpltype="OBS-HYB-FT-COH"
             else:
                 tpltype="OBS-HSE"
-
+            print(tpltype)
             isPhotometry = "F"
             for f in self.listOfFiles:
                 seeing=f.seeing
