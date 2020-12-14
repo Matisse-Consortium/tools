@@ -104,7 +104,7 @@ def mat_mergeOifits(oifitsList):
         data=oifitsList
 
     nfile=len(data)
-
+    print("boooo")
 
     for datai in data:
         mat_removeBCD(datai)
@@ -133,6 +133,7 @@ def mat_mergeOifits(oifitsList):
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
+                    print("{0}-{1} => {2}".format(ifile,imod,temp.data["UCOORD"]))
                     vis22 = (vis22*norm + data[ifile]["OI_VIS2"].data["VIS2DATA"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                     norm+=1
         temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2+ np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
@@ -164,7 +165,7 @@ def mat_mergeOifits(oifitsList):
                     visampi =data[ifile]["OI_VIS"].data["VISAMP"][imod*nBmin:(imod+1)*nBmin,:]
                     visphii =np.deg2rad(data[ifile]["OI_VIS"].data["VISPHI"][imod*nBmin:(imod+1)*nBmin,:])
                     viscompl = (viscompl*norm + visampi*np.exp(np.complex(0,1)*visphii))/(norm+1)
-                    expvisphi +=  np.exp(np.complex(0,1)*visphii)
+                    expvisphi =  (expvisphi*norm + 1*np.exp(np.complex(0,1)*visphii))/(norm+1)
                     norm+=1
         temp.data["VISAMP"]=np.abs(viscompl)
         temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
@@ -194,6 +195,7 @@ def mat_mergeOifits(oifitsList):
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_T3"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_T3"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
+                    print("{0}-{1} => {2}".format(ifile,imod,temp.data["U1COORD"]))
                     expt3phi +=  np.exp(complex(0,1)*np.deg2rad(data[ifile]["OI_T3"].data["T3PHI"][imod*nBmin:(imod+1)*nBmin,:]))
                     norm+=1
         temp.data["T3PHI"]=np.rad2deg(np.angle(expt3phi))
