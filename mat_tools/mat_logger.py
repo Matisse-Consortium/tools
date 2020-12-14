@@ -213,7 +213,7 @@ class mat_logData():
                  tpltype="OBS-HYB-FT-COH"
             else:
                 tpltype="OBS-HSE"
-            print(tpltype)
+            print("{0} {1}".format(self.tplid,tpltype))
             isPhotometry = "F"
             for f in self.listOfFiles:
                 seeing=f.seeing
