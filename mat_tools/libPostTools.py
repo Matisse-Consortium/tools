@@ -104,7 +104,6 @@ def mat_mergeOifits(oifitsList):
         data=oifitsList
 
     nfile=len(data)
-    print("boooo")
 
     for datai in data:
         mat_removeBCD(datai)
@@ -195,7 +194,6 @@ def mat_mergeOifits(oifitsList):
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_T3"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_T3"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
-                    print("{0}-{1} => {2}".format(ifile,imod,temp.data["U1COORD"]))
                     expt3phi +=  np.exp(complex(0,1)*np.deg2rad(data[ifile]["OI_T3"].data["T3PHI"][imod*nBmin:(imod+1)*nBmin,:]))
                     norm+=1
         temp.data["T3PHI"]=np.rad2deg(np.angle(expt3phi))
