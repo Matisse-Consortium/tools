@@ -447,7 +447,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyTplStartCalib   =hdr['HIERARCH ESO TPL START']
                 
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
-                #print "BADPIX"
+                print "BADPIX"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -474,7 +474,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   (keyInsPinIdCalib    == "PHOTO" and
                    keyInsDinId         == keyInsDinIdCalib and
                    keyDetChipName      == "AQUARIUS")))):
-                #print "OBSFLAT"
+                print "OBSFLAT"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -499,7 +499,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                  (keyDetChipNameCalib    == "HAWAII-2RG" and
                   keyDetChipName         == "HAWAII-2RG" and
                   keyDetReadCurnameCalib == keyDetReadCurname))):
-                #print "NONLIN"
+                print "NONLIN"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -525,7 +525,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                    keyDetChipName == "HAWAII-2RG" and keyInsDilId == "HIGH+") or
                 (keyInsDinId    == keyInsDinIdCalib and
                    keyDetChipName == "AQUARIUS")))):
-                #print"SHIFT"
+                print"SHIFT"
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -687,7 +687,7 @@ def matisseRecipes(action, det, tel, resol):
                 options += " --spectralBinning=5"
             if resol == "HIGH":
                 options += " --spectralBinning=5"
-            if resol == "VHIGH":
+            if resol == "HIGH+":
                 options += " --spectralBinning=5"
                 
         return ["mat_raw_estimates",options]
