@@ -36,45 +36,47 @@ from multiprocessing.pool import Pool
 
 def make_sof(input_dir, output_dir, timespan=0.04):
 
-    FILE = [];
-    OBSTYPE = []
     SOFFILE = []
+    TPLST = []
+    CH = []
+    DI = []
     files =  glob.glob(input_dir+'/*.fits')
     #print input_dir#, files
 
     DIC = []
     # First read all files
     print("Scanning files in "+input_dir+" ...")
-    #print("Reading all files keywords...")
     for f in files:
         hdr     = fits.open(f)[0].header
         dic = {'hdr': hdr}
         DIC.append(dic)
-        #try:
+
     tplstartDone=[]
-
-    while True:
-        for i,f in enumerate(files):
-            hdri = DIC[i]['hdr']
-            obstype = hdri['ESO PRO CATG']
-
-            if obstype == 'TARGET_RAW_INT':
-                mjd  = hdri['MJD-OBS']
-                chip = hdri['ESO DET CHIP NAME']
-                dit  = hdri['ESO DET SEQ1 DIT']
-                tplstart = hdri['ESO TPL START']
-                if (tplstart not in tplstartDone):
-                    tplstartDone.append(tplstart)
-                    filename  = os.path.basename(f)
-                    name, ext = os.path.splitext(filename)
-                    token=name.split('_')
-                    str=token[0]+'_'+token[1]+'_'+token[2]+'_'+token[3]+'_'+token[4]
-                    fname ='%s/%s_cal_oifits.sof'%(output_dir, str)
-                    SOFFILE.append(fname)
-                    break
-                else:
-                    return SOFFILE
-
+    for i,f in enumerate(files):
+        hdri = DIC[i]['hdr']
+        obstype = hdri['ESO PRO CATG']
+        if obstype == 'TARGET_RAW_INT':
+            mjd  = hdri['MJD-OBS']
+            chip = hdri['ESO DET CHIP NAME']
+            dit  = hdri['ESO DET SEQ1 DIT']
+            tplstart = hdri['ESO TPL START']
+            if (tplstart not in tplstartDone):
+                tplstartDone.append(tplstart)
+                filename  = os.path.basename(f)
+                name, ext = os.path.splitext(filename)
+                token=name.split('_')
+                str=token[0]+'_'+token[1]+'_'+token[2]+'_'+token[3]+'_'+token[4]
+                fname ='%s/%s_cal_oifits.sof'%(output_dir, str)
+                SOFFILE.append(fname)
+                TPLST.append(tplstart)
+                CH.append(chip)
+                DI.append(dit)
+    for j,fname in enumerate(SOFFILE):
+        tplstart=TPLST[j]
+        chip=CH[j]
+        dit=DI[j]
+        FILE = []
+        OBSTYPE = []
         for i,f in enumerate(files):
             hdri = DIC[i]['hdr']
             obstype = hdri['ESO PRO CATG']
@@ -100,7 +102,7 @@ def make_sof(input_dir, output_dir, timespan=0.04):
             soffile.write('{} \t {} \n'.format("../"+fil,OBSTYPE[i]))
         soffile.close()
     
-    return []
+    return SOFFILE
 
 #------------------------------------------------------------------------------
 
