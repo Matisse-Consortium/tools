@@ -49,7 +49,7 @@ def runEsorex(cmd):
     print(cmd)
 #    resol = spl[1];
 #    print(resol)
-#    sys.stdout.flush()
+    sys.stdout.flush()
     item = cmd.split()
     out  = item[-1]+".log"
     err  = item[-1]+".err"
