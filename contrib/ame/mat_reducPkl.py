@@ -187,7 +187,7 @@ if __name__ == '__main__':
         n,ntot,nerr=mat_readReductionLog(args.logfile,ret=True)
         nred=len(n)
      
-    process = psutil.Process(os.getpid())
+    #process = psutil.Process(os.getpid())
     for i,fi in enumerate(pklfiles):
         #mem=process.memory_info().rss/1e6
         #print("Memory used : {0}Mo".format(mem))
