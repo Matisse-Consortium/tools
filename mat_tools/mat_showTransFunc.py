@@ -40,8 +40,17 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('in_dir', metavar='in_dir', type=str, \
     help='The path to the directory containing your oifits data.', default=None)
-    parser.add_argument('wlmin',  type=float, help='Minimum wavelength', default=3.5)
-    parser.add_argument('wlmax',  type=float, help='Maximum wavelength', default=4.2)
+    parser.add_argument('--wlmin',  type=float, help='Minimum wavelength', default=3)
+    parser.add_argument('--wlmax',  type=float, help='Maximum wavelength', default=11)
+    
+    #--------------------------------------------------------------------------
+    parser.add_argument('--pdf',   action="store_true",
+                        help='Create a pdf file for each target.')
+    #--------------------------------------------------------------------------
+       
+    parser.add_argument('--showvis', action="store_true",
+                        help='Plot visibilities instead of V squared.')
+    
     try:
         args = parser.parse_args()
     except:
@@ -55,6 +64,8 @@ if __name__ == '__main__':
     fig=plt.figure(figsize=(29.7*inch,19*inch))
 
     plts={}
+    
+
 
     print("Setting V2 windows...")
     #####################################################
@@ -80,10 +91,20 @@ if __name__ == '__main__':
         
     print("plotting...")        
     #####################################################
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,showvis=args.showvis,[args.wlmin,args.wlmax],key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
     
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,showvis=args.showvis,[args.wlmin,args.wlmax],key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
     
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],key="T3", datatype="CLOS",subplotList=pltcp)
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,showvis=args.showvis,[args.wlmin,args.wlmax],key="T3", datatype="CLOS",subplotList=pltcp)
     
-    plt.show()
+    if args.pdf:
+        pdfname = args.in_dir +  "\TransFunc"+band+".pdf"
+        plt.savefig(pdfname)
+        plt.close(fig)
+        print("saving to {0}".format(pdfname))
+
+   	if not(args.pdf):
+        plt.show()
+
+    if args.pdf:
+        pdf.close()
