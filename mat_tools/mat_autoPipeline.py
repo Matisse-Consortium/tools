@@ -452,7 +452,6 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
             cpt+=1
         print('%-40s' % ("Reduction Blocks to process:",),cptToProcess)
 
-
         
         if (listCmdEsorex != [] and iterNumber <= maxIter):
 
