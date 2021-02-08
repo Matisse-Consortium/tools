@@ -77,7 +77,6 @@ def mat_sortByTplStart(oifitsListOrDir):
         data=[fits.open(oifitsi) for oifitsi in oifitsListOrDir]
     else:
         data=oifitsListOrDir
-
     tplstart=[d[0].header["ESO TPL START"] for d in data]
 
     nfiles=len(data)
@@ -105,39 +104,42 @@ def mat_mergeOifits(oifitsList):
 
     nfile=len(data)
 
+
     for datai in data:
         mat_removeBCD(datai)
+
     #------------------- preparing merged container-------------
 
     extnames=[hdu.name for hdu in data[0]]
-
     avgFits=fits.HDUList([hdu.copy() for hdu in data[0]])
 
     #------------------------------OI_VIS2------------------------------------
     if "OI_VIS2" in extnames:
 
         nB=np.array([len(datai["OI_VIS2"].data) for datai in data])
+        #print('nB={0}').format(nB)
         nBmin=6
         temp=mat_hduCutRows(data[0]["OI_VIS2"],nBmin)
-
+        #print('temp.data[VIS2DATA][0]={0}').format(temp.data['VIS2DATA'][0])
         #mean of the square of vis2 to compute std(vis2) = sqrt(|<vis2>^2-<vis2^2>|)
         vis22=temp.data["VIS2DATA"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]//nBmin
+            nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) or (imod!=0):
+                if (ifile!=0) or (imod!=0): 
                     for key in ["VIS2DATA","VIS2ERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS2"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
-                    print("{0}-{1} => {2}".format(ifile,imod,temp.data["UCOORD"]))
                     vis22 = (vis22*norm + data[ifile]["OI_VIS2"].data["VIS2DATA"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                     norm+=1
-        temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2+ np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
+        #temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2+ np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)            
+        temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2/norm + np.abs(vis22- temp.data["VIS2DATA"]**2))
         #temp.data["VIS2ERR"]=np.sqrt(np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
         temp.data["INT_TIME"] *=norm
+        #print('(after) temp.data[VIS2DATA][0]={0}').format(temp.data['VIS2DATA'][0])
         avgFits["OI_VIS2"]=temp
 
     #----------------------------OI_VIS---------------------------------------
@@ -146,32 +148,36 @@ def mat_mergeOifits(oifitsList):
         nB=np.array([len(datai["OI_VIS"].data) for datai in data])
         nBmin=6
         temp=mat_hduCutRows(data[0]["OI_VIS"],nBmin)
-
-        #mean of the square of visamp and visphi to compute the std
+        #print('temp.data[VISAMP][0]={0}').format(temp.data['VISAMP'][0])
         viscompl=temp.data["VISAMP"]*np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
         expvisphi=np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
-
+        #mean of the square of visamp to compute the std
+        visampi2=temp.data["VISAMP"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]//nBmin
+            print('ifile = {0}').format(ifile)
+            print(data[ifile].filename())
+            nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) or (imod!=0):
-                    for key in ["VISAMPERR","VISPHIERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
+                if ((ifile!=0) or (imod!=0)): 
+                    print('Vis: calcul moyenne')
+                    for key in ["VISAMP","VISAMPERR","VISPHIERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
                     visampi =data[ifile]["OI_VIS"].data["VISAMP"][imod*nBmin:(imod+1)*nBmin,:]
+                    visampi2=(visampi2*norm+visampi**2)/(norm+1)
                     visphii =np.deg2rad(data[ifile]["OI_VIS"].data["VISPHI"][imod*nBmin:(imod+1)*nBmin,:])
                     viscompl = (viscompl*norm + visampi*np.exp(np.complex(0,1)*visphii))/(norm+1)
-                    expvisphi =  (expvisphi*norm + 1*np.exp(np.complex(0,1)*visphii))/(norm+1)
+                    expvisphi +=  np.exp(np.complex(0,1)*visphii)
                     norm+=1
-        temp.data["VISAMP"]=np.abs(viscompl)
-        temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
+        #temp.data["VISAMP"]=np.abs(viscompl)
+        #temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
         temp.data["VISPHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
-        temp.data["VISAMPERR"]/=np.sqrt(norm)  # no better estimation than that for now
+        #temp.data["VISAMPERR"]/=np.sqrt(norm)  # no better estimation than that for now
+        temp.data["VISAMPERR"]= np.sqrt(temp.data["VISAMPERR"]**2/norm + np.abs(visampi2- temp.data["VISAMP"]**2))
         temp.data["INT_TIME"] *=norm
-
         avgFits["OI_VIS"]=temp
 
     #-----------------------------OI_T3----------------------------------------
@@ -186,9 +192,9 @@ def mat_mergeOifits(oifitsList):
 
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]//nBmin
+            nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) or (imod!=0):
+                if (ifile!=0) or (imod!=0):  
                     for key in ["T3PHIERR","U1COORD","V1COORD","U2COORD","V2COORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_T3"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -207,20 +213,22 @@ def mat_mergeOifits(oifitsList):
         nB=np.array([len(datai["OI_FLUX"].data) for datai in data])
         nBmin=4
         temp=mat_hduCutRows(data[0]["OI_FLUX"],nBmin)
-
+        flux2=temp.data["FLUXDATA"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]//nBmin
+            nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) or (imod!=0):
+                if (ifile!=0) or (imod!=0):  #Problem here
                     for key in ["FLUXDATA","FLUXERR","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_FLUX"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
                         else:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_FLUX"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
+                    flux2 = (flux2*norm + data[ifile]["OI_FLUX"].data["FLUXDATA"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                     norm+=1
         #temp.data["FLUXDATA"]*=norm  # flux are added not averaged
-        temp.data["FLUXERR"]/=np.sqrt(norm)  # =/srqt(norm)*norm  => no better estimation than that for now
+        temp.data["FLUXERR"]= np.sqrt(temp.data["FLUXERR"]**2/norm + np.abs(flux2- temp.data["FLUXDATA"]**2))
+        #temp.data["FLUXERR"]*=np.sqrt(norm)  # =/srqt(norm)*norm  => no better estimation than that for now
         temp.data["INT_TIME"] *=norm
 
         avgFits["OI_FLUX"]=temp
@@ -236,9 +244,9 @@ def mat_mergeOifits(oifitsList):
         vis22=temp.data["TF2"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]//nBmin
+            nmod=nB[ifile]/nBmin
             for imod in range(nmod):
-                if (ifile!=0) or (imod!=0):
+                if (ifile!=0) or (imod!=0):  #Problem here
                     for key in ["TF2","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["TF2"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -246,7 +254,8 @@ def mat_mergeOifits(oifitsList):
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["TF2"].data[key][imod*nBmin:(imod+1)*nBmin])/(norm+1)
                     vis22 = (vis22*norm + data[ifile]["TF2"].data["TF2"][imod*nBmin:(imod+1)*nBmin,:]**2)/(norm+1)
                     norm+=1
-        temp.data["TF2ERR"]=np.sqrt(np.abs(vis22- temp.data["TF2"]**2))/np.sqrt(norm)
+        #temp.data["TF2ERR"]=np.sqrt(np.abs(vis22- temp.data["TF2"]**2))/np.sqrt(norm)
+        temp.data["TF2ERR"]= np.sqrt(temp.data["TF2ERR"]**2/norm + np.abs(vis22- temp.data["TF2"]**2))
         temp.data["INT_TIME"] *=norm
         avgFits["TF2"]=temp
 
@@ -279,7 +288,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 6
-            shift0 = (int(iB) // 6)*6
+            shift0 = (iB / 6)*6
             temp.data[iB2+shift0]=data["OI_VIS2"].data[BCD[bcd][iB2]+shift0]
             temp.data[iB2+shift0]["UCOORD"]*=BCDsign[bcd][iB2]
             temp.data[iB2+shift0]["VCOORD"]*=BCDsign[bcd][iB2]
@@ -295,7 +304,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 6
-            shift0 = (iB // 6)*6
+            shift0 = (iB / 6)*6
             temp.data[iB2+shift0]=data["OI_VIS"].data[BCD[bcd][iB2]+shift0]
             temp.data[iB2+shift0]["VISPHI"]*=BCDsign[bcd][iB2]
             temp.data[iB2+shift0]["UCOORD"]*=BCDsign[bcd][iB2]
@@ -313,14 +322,13 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 4
-            shift0 = (iB // 4)*4
-            shift0V2 = (iB // 4)*6
+            shift0 = (iB / 4)*4
             data["OI_T3"].data[BCDcp[bcd][iB2]+shift0]["T3PHI"]*=BCDcpsign[bcd][iB2]
             temp.data[iB2+shift0]=data["OI_T3"].data[BCDcp[bcd][iB2]+shift0]
-            temp.data[iB2+shift0]["U1COORD"]=data["OI_VIS2"].data["UCOORD"][uv1[iB2]+shift0V2]
-            temp.data[iB2+shift0]["V1COORD"]=data["OI_VIS2"].data["VCOORD"][uv1[iB2]+shift0V2]
-            temp.data[iB2+shift0]["U2COORD"]=data["OI_VIS2"].data["UCOORD"][uv2[iB2]+shift0V2]
-            temp.data[iB2+shift0]["V2COORD"]=data["OI_VIS2"].data["VCOORD"][uv2[iB2]+shift0V2]
+            temp.data[iB2+shift0]["U1COORD"]=data["OI_VIS2"].data["UCOORD"][uv1[iB2]]
+            temp.data[iB2+shift0]["V1COORD"]=data["OI_VIS2"].data["VCOORD"][uv1[iB2]]
+            temp.data[iB2+shift0]["U2COORD"]=data["OI_VIS2"].data["UCOORD"][uv2[iB2]]
+            temp.data[iB2+shift0]["V2COORD"]=data["OI_VIS2"].data["VCOORD"][uv2[iB2]]
             temp.data[iB2+shift0]["STA_INDEX"]=np.array([sta_index[sta_index_cp[iB2][i]] for i in range(3)])
 
         data["OI_T3"]=temp
@@ -337,7 +345,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 4
-            shift0 = (iB // 4)*4
+            shift0 = (iB / 4)*4
             temp.data[iB2+shift0]=data["OI_FLUX"].data[BCDflux[bcd][iB2]+shift0]
 
         data["OI_FLUX"]=temp
@@ -351,7 +359,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 6
-            shift0 = (iB // 6)*6
+            shift0 = (iB / 6)*6
             temp.data[iB2+shift0]=data["TF2"].data[BCD[bcd][iB2]+shift0]
             if BCDsign[bcd][iB2]==-1:
                 temp.data[iB2+shift0]["STA_INDEX"]=np.flip(temp.data[iB2+shift0]["STA_INDEX"],axis=0)
@@ -367,8 +375,7 @@ def mat_removeBCD(oifits,saveFits=False):
         #filenamein=data.filename()
         #filenameout= filenamein.split(".fits")[0]+"_noBCD.fits"
         data.writeto(data.filename())
-        
-    return data
+
 
 #=============================================================================
 
@@ -387,7 +394,6 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED",sepa
         data=[fits.open(oifitsi) for oifitsi in something]
     else:
         data=something
-
     tplstart,sortedData=mat_sortByTplStart(data)
     ntpl=len(tplstart)
 
@@ -423,14 +429,14 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED",sepa
             else:
                 print("number of files to merge : {0} for LM and {1} for N".format(len(idxL),len(idxN)))
 
-
-
         for idxi in [idxL,idxLChop,idxLNonChop,idxN]:
+            print("idxi = {0}").format(idxi)
             if len(idxi!=0):
                 datai=[sortedData[itpl][idata] for idata in idxi]
-                #filenames=[dataii.filename() for dataii in datai]
-                #print(filenames)
+                filenames=[dataii.filename() for dataii in datai]
+                print(filenames)
                 mergedi=mat_mergeOifits(datai)
+                print('mergedi = {0}').format(mergedi.filename())
                 mergedData.append(mergedi)
                 if save:
                     if not(os.path.exists(dirOut)):
@@ -452,7 +458,7 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED",sepa
 
 def mat_hduCutRows(hdu,nrows):
     cols = hdu.data.columns
-
+    print('cols = {0}').format(cols)
     shape=np.shape(hdu.data[cols[0].name])
     newcols=[]
     for coli in cols:
