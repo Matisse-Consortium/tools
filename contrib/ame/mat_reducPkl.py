@@ -15,7 +15,7 @@ import sys
 from tqdm import tqdm
 import gc
 from  mat_readReductionLog import mat_readReductionLog
-import psutil
+#import psutil
     
 _status=["NOT STARTED  ","PROCESSING...","PROCESSED  ","POSTPROCESSING...","COMPLETED    "]
 
@@ -189,8 +189,8 @@ if __name__ == '__main__':
      
     process = psutil.Process(os.getpid())
     for i,fi in enumerate(pklfiles):
-        mem=process.memory_info().rss/1e6
-        print("Memory used : {0}Mo".format(mem))
+        #mem=process.memory_info().rss/1e6
+        #print("Memory used : {0}Mo".format(mem))
         r=mat_dataReduction()    
         r.load(fi)
         if args.action=="RUN":
