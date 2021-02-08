@@ -67,6 +67,7 @@ if __name__ == '__main__':
     
 
 
+
     print("Setting V2 windows...")
     #####################################################
     pltv2=[]
@@ -103,7 +104,7 @@ if __name__ == '__main__':
         plt.close(fig)
         print("saving to {0}".format(pdfname))
 
-   	if not(args.pdf):
+    if not(args.pdf):
         plt.show()
 
     if args.pdf:
