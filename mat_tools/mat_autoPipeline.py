@@ -455,12 +455,12 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
         
         if (listCmdEsorex != [] and iterNumber <= maxIter):
 
-        # Create a process pool with a maximum of 10 worker processes
-        pool = Pool(processes=nbCore)
-        # Map our function to a data set - number 1 through 20
-        pool.map(runEsorex, listCmdEsorex)
-        pool.close()
-        pool.join()
+            # Create a process pool with a maximum of 10 worker processes
+            pool = Pool(processes=nbCore)
+            # Map our function to a data set - number 1 through 20
+            pool.map(runEsorex, listCmdEsorex)
+            pool.close()
+            pool.join()
 
         print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
         print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
