@@ -92,11 +92,11 @@ if __name__ == '__main__':
         
     print("plotting...")        
     #####################################################
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,showvis=args.showvis,[args.wlmin,args.wlmax],key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],showvis=args.showvis,key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
     
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,showvis=args.showvis,[args.wlmin,args.wlmax],key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],showvis=args.showvis,key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
     
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,showvis=args.showvis,[args.wlmin,args.wlmax],key="T3", datatype="CLOS",subplotList=pltcp)
+    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],showvis=args.showvis,key="T3", datatype="CLOS",subplotList=pltcp)
     
     if args.pdf:
         pdfname = args.in_dir +  "\TransFunc"+band+".pdf"
