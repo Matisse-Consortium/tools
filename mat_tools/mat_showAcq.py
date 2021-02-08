@@ -111,7 +111,7 @@ def mat_showAcq(filename,pdf=False):
 
 
     if detecteur == 'HAWAII-2RG':
-        m9x=(75.10-1)*a
+        m9x=(25.10-1)*a
         m9y=(11.85-1)*b
         m10x=(74.81-1)*a
         m10y=(11.51-1)*b
