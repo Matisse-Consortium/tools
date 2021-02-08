@@ -109,41 +109,88 @@ def mat_showAcq(filename,pdf=False):
         ctarget=np.append(ctarget,len(np.diff(target)))
 
 
+    try:
+        blabla=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
+        print('using updated ref pos, found the config file')
+        trouver=1
+    except:
+        print('using latest stored ref pos, file not found')
+        trouver=0
+    if trouver==1:
+        keywords=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
+        values=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
+        valuues=np.zeros(len(values),dtype=float)
+        for vv,v in enumerate(values):
+            valuues[vv]=float(v[:-2])
+        dicoref=dict(zip(keywords,valuues))
 
-    if detecteur == 'HAWAII-2RG':
-        m9x=(75.10-1)*a
-        m9y=(11.85-1)*b
-        m10x=(74.81-1)*a
-        m10y=(11.51-1)*b
-        m12x=(72.88-1)*a
-        m12y=(11.55-1)*b
-        m13x=(72.36-1)*a
-        m13y=(11.62-1)*b
+        if detecteur=='AQUARIUS':
+            m10x=(dicoref['OCS.DET2.IMG.REFX1']-1)*a
+            m9x=(dicoref['OCS.DET2.IMG.REFX2']-1)*a
+            m12x=(dicoref['OCS.DET2.IMG.REFX3']-1)*a
+            m13x=(dicoref['OCS.DET2.IMG.REFX4']-1)*a
+            m10y=(dicoref['OCS.DET2.IMG.REFY1']-1-100)*b
+            m9y=(dicoref['OCS.DET2.IMG.REFY2']-1-100)*b
+            m12y=(dicoref['OCS.DET2.IMG.REFY3']-1-100)*b
+            m13y=(dicoref['OCS.DET2.IMG.REFY4']-1-100)*b
+        if detecteur=='HAWAII-2RG':
+            m10x=(dicoref['OCS.DET1.IMG.REFX1']-1)*a
+            m9x=(dicoref['OCS.DET1.IMG.REFX2']-1)*a
+            m13x=(dicoref['OCS.DET1.IMG.REFX3']-1)*a
+            m12x=(dicoref['OCS.DET1.IMG.REFX4']-1)*a
+            m10y=(dicoref['OCS.DET1.IMG.REFY1']-1)*b
+            m9y=(dicoref['OCS.DET1.IMG.REFY2']-1)*b
+            m13y=(dicoref['OCS.DET1.IMG.REFY3']-1)*b
+            m12y=(dicoref['OCS.DET1.IMG.REFY4']-1)*b
+            
+    
     else:
-        m9x=(42.28-1)*a
-        m9y=(109.07-1)*b
-        m10x=(36.31-1)*a
-        m10y=(109.06-1)*b
-        m12x=(43.19-1)*a
-        m12y=(108.99-1)*b
-        m13x=(38.26-1)*a
-        m13y=(109.02-1)*b
+        if detecteur=='AQUARIUS':
+            m10x=(35.3-1)*a
+            m9x=(41.3-1)*a
+            m12x=(41.9-1)*a
+            m13x=(37.2-1)*a
+            m10y=(8-1)*b
+            m9y=(8-1)*b
+            m12y=(8-1)*b
+            m13y=(8-1)*b
+        if detecteur=='HAWAII-2RG':
+            m10x=(72.9-1)*a
+            m9x=(72.2-1)*a
+            m13x=(74.7-1)*a
+            m12x=(75.4-1)*a
+            m10y=(11.9-1)*b
+            m9y=(11.8-1)*b
+            m13y=(11.6-1)*b
+            m12y=(11.8-1)*b
+    
 
 
+   
 
     plt.figure(1,figsize=(15,7))
     for i in tqdm(range(len(csky)-1)):
 
         vecsky=sky[csky[i]+1:csky[i+1]+1]
         vectarget=target[ctarget[i]+1:ctarget[i+1]+1]
-        frame09=hdu['IMAGING_DATA'].data['DATA9'][vectarget,:,:].astype(float)
-        frame10=hdu['IMAGING_DATA'].data['DATA10'][vectarget,:,:].astype(float)
-        frame12=hdu['IMAGING_DATA'].data['DATA12'][vectarget,:,:].astype(float)
-        frame13=hdu['IMAGING_DATA'].data['DATA13'][vectarget,:,:].astype(float)
-        sky09=hdu['IMAGING_DATA'].data['DATA9'][vecsky,:,:].astype(float)
-        sky10=hdu['IMAGING_DATA'].data['DATA10'][vecsky,:,:].astype(float)
-        sky12=hdu['IMAGING_DATA'].data['DATA12'][vecsky,:,:].astype(float)
-        sky13=hdu['IMAGING_DATA'].data['DATA13'][vecsky,:,:].astype(float)
+        if detecteur=='HAWAII-2RG':
+            frame09=hdu['IMAGING_DATA'].data['DATA9'][vectarget,:,:].astype(float)
+            frame10=hdu['IMAGING_DATA'].data['DATA10'][vectarget,:,:].astype(float)
+            frame12=hdu['IMAGING_DATA'].data['DATA12'][vectarget,:,:].astype(float)
+            frame13=hdu['IMAGING_DATA'].data['DATA13'][vectarget,:,:].astype(float)
+            sky09=hdu['IMAGING_DATA'].data['DATA9'][vecsky,:,:].astype(float)
+            sky10=hdu['IMAGING_DATA'].data['DATA10'][vecsky,:,:].astype(float)
+            sky12=hdu['IMAGING_DATA'].data['DATA12'][vecsky,:,:].astype(float)
+            sky13=hdu['IMAGING_DATA'].data['DATA13'][vecsky,:,:].astype(float)
+        else:
+            frame09=hdu['IMAGING_DATA'].data['DATA9'][vectarget,100:120,:].astype(float)
+            frame10=hdu['IMAGING_DATA'].data['DATA10'][vectarget,100:120,:].astype(float)
+            frame12=hdu['IMAGING_DATA'].data['DATA12'][vectarget,100:120,:].astype(float)
+            frame13=hdu['IMAGING_DATA'].data['DATA13'][vectarget,100:120,:].astype(float)
+            sky09=hdu['IMAGING_DATA'].data['DATA9'][vecsky,100:120,:].astype(float)
+            sky10=hdu['IMAGING_DATA'].data['DATA10'][vecsky,100:120,:].astype(float)
+            sky12=hdu['IMAGING_DATA'].data['DATA12'][vecsky,100:120,:].astype(float)
+            sky13=hdu['IMAGING_DATA'].data['DATA13'][vecsky,100:120,:].astype(float)
 
 
         img9=np.mean(frame09,axis=0)-np.mean(sky09,axis=0)
@@ -158,10 +205,10 @@ def mat_showAcq(filename,pdf=False):
             params12 = (12,72,1,4,img12.max(),1e4)
             params13 = (11,72,1,4,img13.max(),1e4)
         else:
-            params9 = (109,40,1,4,img9.max(),1e4)
-            params10 = (109,40,1,4,img10.max(),1e4)
-            params12 = (109,40,1,4,img12.max(),1e4)
-            params13 = (109,40,1,4,img13.max(),1e4)
+            params9 = (9,40,1,4,img9.max(),1e4)
+            params10 = (9,40,1,4,img10.max(),1e4)
+            params12 = (9,40,1,4,img12.max(),1e4)
+            params13 = (9,40,1,4,img13.max(),1e4)
 
         errorfunction9 = lambda p: np.ravel(gaussian(*p)(*np.indices(img9.shape)) - img9)
         params9, success9 = opt.leastsq(errorfunction9, params9)
@@ -209,8 +256,10 @@ def mat_showAcq(filename,pdf=False):
         axes.add_artist(patches.Ellipse((m9x,m9y), tolx*a, toly*b , 0,edgecolor = 'orange', fill=False, zorder = 2))
         plt.xlim(m9x-DLx*a/2-2*a,m9x+DLx*a/2+2*a)
         plt.ylim(m9y-DLy*b/2-2*b ,m9y+DLy*b/2+2*b)
-        plt.ylabel('IP3,T2')
-
+        if detecteur=='AQUARIUS':
+            plt.ylabel('IP7')
+        else:
+            plt.ylabel('IP3')
 
         plt.subplot(2,2,2)
         plt.scatter(b10x*a,b10y*b ,marker='o',color="blue")
@@ -220,7 +269,10 @@ def mat_showAcq(filename,pdf=False):
         axes.add_artist(patches.Ellipse((m10x,m10y), tolx*a, toly*b , 0,edgecolor = 'orange', fill=False, zorder = 2))
         plt.xlim(m10x-DLx*a/2-2*a,m10x+DLx*a/2+2*a)
         plt.ylim(m10y-DLy*b/2-2*b,m10y+DLy*b/2+2*b)
-        plt.ylabel(' IP1,T1')
+         if detecteur=='AQUARIUS':
+            plt.ylabel('IP5')
+        else:
+            plt.ylabel('IP1')
 
         plt.subplot(2,2,3)
         plt.scatter(b12x*a,b12y*b ,marker='o',color="blue")
@@ -230,7 +282,10 @@ def mat_showAcq(filename,pdf=False):
         axes.add_artist(patches.Ellipse((m12x,m12y), tolx*a, toly*b , 0,edgecolor = 'orange', fill=False, zorder = 2))
         plt.xlim(m12x-DLx*a/2-2*a,m12x+DLx*a/2+2*a)
         plt.ylim(m12y-DLy*b/2-2*b,m12y+DLy*b/2+2*b)
-        plt.ylabel(' IP5,T3')
+        if detecteur=='AQUARIUS':
+            plt.ylabel('IP1')
+        else:
+            plt.ylabel('IP5')
 
         plt.subplot(2,2,4)
         plt.scatter(b13x*a,b13y*b ,marker='o',color="blue")
@@ -240,8 +295,11 @@ def mat_showAcq(filename,pdf=False):
         axes.add_artist(patches.Ellipse((m13x,m13y), tolx*a, toly*b , 0,edgecolor = 'orange', fill=False, zorder = 2))
         plt.xlim(m13x-DLx*a/2-2*a,m13x+DLx*a/2+2*a)
         plt.ylim(m13y-DLy*b/2-2*b,m13y+DLy*b/2+2*b)
-        plt.ylabel(' IP7,T4')
-
+        if detecteur=='AQUARIUS':
+            plt.ylabel('IP3')
+        else:
+            plt.ylabel('IP7')
+        plt.suptitle(etoile+' '+tplstart+' '+tracker)
 
     if pdf==False:
         plt.show()
