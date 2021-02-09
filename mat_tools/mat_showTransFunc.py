@@ -26,7 +26,7 @@ import sys
 #import mat_show_oifits as msoi
 import libShowOifits as msoi
 import os
-from matplotlib.backends.backend_pdf import PdfPages
+#from matplotlib.backends.backend_pdf import PdfPages
 
 
 inch=1/2.54
@@ -50,7 +50,15 @@ if __name__ == '__main__':
        
     parser.add_argument('--showvis', action="store_true",
                         help='Plot visibilities instead of V squared.')
-    
+ 
+    #--------------------------------------------------------------------------
+    parser.add_argument('--LM', action="store_true",
+                        help='Only plot LM bands data')
+                        
+    #--------------------------------------------------------------------------
+    parser.add_argument('--N', action="store_true",
+                        help='Only plot N band data')
+                        
     try:
         args = parser.parse_args()
     except:
@@ -63,7 +71,14 @@ if __name__ == '__main__':
     
     wl0=[[3.,4.1],[8.5,10.5]]
     
-    for band in ["LM","N"]:
+    if args.LM==True:
+        bands=["LM"]
+    elif agrs.N==True:
+        bands=["N"]
+    else:
+        bands=["LM","N"]
+    
+    for band in bands:
     
         if ((args.wlmin==0) | (args.wlmax==0)):
             if band=="LM":
@@ -73,55 +88,51 @@ if __name__ == '__main__':
         else:
             wl=[args.wlmin,args.wlmax]
         
-        try:
        
-            print("***************************{0}***************************".format(band))
-            filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts,bands=[band])
-            
-            fig=plt.figure(figsize=(29.7*inch,19*inch))
+        print("***************************{0}***************************".format(band))
+        filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts,bands=[band])
+        
+        fig=plt.figure(figsize=(29.7*inch,19*inch))
 
-            plts={}
-            
-            print("Setting V2 windows...")
-            #####################################################
-            pltv2=[]
-            for i in range(6):
-                if i==0:
-                    plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15])
-                else:
-                    plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
-                    plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
-                pltv2.append(plts['VIS2_{0}'.format(i)])
+        plts={}
+        
+        print("Setting V2 windows...")
+        #####################################################
+        pltv2=[]
+        for i in range(6):
+            if i==0:
+                plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15])
+            else:
+                plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
+                plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
+            pltv2.append(plts['VIS2_{0}'.format(i)])
 
-            print("Setting CP windows...")
-            #####################################################
-            pltcp=[]
-            for i in range(4):
-                if i==0:
-                    plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'])
-                else:
-                    plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'],sharey=plts['CP_0'])
-                    plts['CP_{0}'.format(i)].get_xaxis().set_visible(False)
-                pltcp.append(plts['CP_{0}'.format(i)])
-                
-            print("plotting...")        
-            #####################################################
-            msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
+        print("Setting CP windows...")
+        #####################################################
+        pltcp=[]
+        for i in range(4):
+            if i==0:
+                plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'])
+            else:
+                plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'],sharey=plts['CP_0'])
+                plts['CP_{0}'.format(i)].get_xaxis().set_visible(False)
+            pltcp.append(plts['CP_{0}'.format(i)])
             
-            msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
-            
-            msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="T3", datatype="CLOS",subplotList=pltcp)
-            
-            if args.pdf:
-                pdfname = args.in_dir +  "\TransFunc"+band+".pdf"
-                plt.savefig(pdfname)
-                plt.close(fig)
-                print("saving to {0}".format(pdfname))
+        print("plotting...")        
+        #####################################################
+        msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
+        
+        msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
+        
+        msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="T3", datatype="CLOS",subplotList=pltcp)
+        
+        if args.pdf:
+            pdfname = os.path.join(os.path.abspath( args.in_dir),"TransFunc_"+band+".pdf")
+            plt.savefig(pdfname)
+            plt.close(fig)
+            print("saving to {0}".format(pdfname))
 
-            if not(args.pdf):
-                plt.show()
+        if not(args.pdf):
+            plt.show()
 
-            if args.pdf:
-                pdf.close()
-        except:
-            print("nothing to plot for {0} band".format(band))
+
