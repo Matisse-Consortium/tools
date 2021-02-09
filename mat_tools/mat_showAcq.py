@@ -72,14 +72,14 @@ def mat_showAcq(filename,pdf=False):
     a=1
     b=1
     if detecteur == 'HAWAII-2RG':
-        DLx=18.0#19.68
-        DLy=5.0#4.92
+        DLx=19.68
+        DLy=4.92
         tolxG=5.1
         tolyG=1.3
 
     else:
-        DLx=24#31.5
-        DLy=6#7.87
+        DLx=31.5
+        DLy=7.87
         tolxO=5.1
         tolyO=1.3
         tolxG=3
@@ -118,15 +118,15 @@ def mat_showAcq(filename,pdf=False):
   
     
     try:
-        blabla=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
+        blabla=np.loadtxt('/data/users/fal/acquisition/mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
         print('using updated ref pos, found the config file')
         trouver=1
     except:
         print('using latest stored ref pos, file not found')
         trouver=0
     if trouver==1:
-        keywords=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
-        values=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
+        keywords=np.loadtxt('/data/users/fal/acquisition/mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
+        values=np.loadtxt('/data/users/fal/acquisition/mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
         valuues=np.zeros(len(values),dtype=float)
         for vv,v in enumerate(values):
             valuues[vv]=float(v[:-2])
