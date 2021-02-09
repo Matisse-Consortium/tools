@@ -165,7 +165,10 @@ if __name__ == '__main__':
         resultFiles = glob.glob('TARGET_CAL_INT_????.fits')
         for idx,f in enumerate(resultFiles):
             hdr = fits.open(f)[0].header
-            os.rename(f, name+"_"+hdr['ESO CFG BCD MODE']+'.fits')
+            if (hdr['ESO ISS CHOP ST'] == 'F'):
+                os.rename(f, name+"_"+hdr['ESO CFG BCD MODE']+'_nochop.fits')
+            else:
+                os.rename(f, name+"_"+hdr['ESO CFG BCD MODE']+'_chop.fits')   
         os.rename('TARGET_CAL_INT_noBCD.fits', name+'.fits')
 
     # cleanup intermediate files
