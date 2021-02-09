@@ -91,7 +91,7 @@ if __name__ == '__main__':
         pdf = PdfPages(pdfname)
         print("saving to {0}".format(pdfname))
 
-    for band in ["H","LM","N"]:
+    for band in ["LM","N"]:
         for target in targets:
             print("***************************{0}_{1}***************************".format(target,band))
             filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts,targets=[target],bands=[band])

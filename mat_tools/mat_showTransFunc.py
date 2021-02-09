@@ -40,8 +40,8 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('in_dir', metavar='in_dir', type=str, \
     help='The path to the directory containing your oifits data.', default=None)
-    parser.add_argument('--wlmin',  type=float, help='Minimum wavelength', default=3)
-    parser.add_argument('--wlmax',  type=float, help='Maximum wavelength', default=11)
+    parser.add_argument('--wlmin',  type=float, help='Minimum wavelength', default=0)
+    parser.add_argument('--wlmax',  type=float, help='Maximum wavelength', default=0)
     
     #--------------------------------------------------------------------------
     parser.add_argument('--pdf',   action="store_true",
@@ -59,53 +59,69 @@ if __name__ == '__main__':
 	sys.exit(0)
 
     list_of_dicts          = msoi.open_oi_dir(args.in_dir)
-    filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts)
+    #filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts)
     
-    fig=plt.figure(figsize=(29.7*inch,19*inch))
-
-    plts={}
+    wl0=[[3.,4.1],[8.5,10.5]]
     
-
-
-
-    print("Setting V2 windows...")
-    #####################################################
-    pltv2=[]
-    for i in range(6):
-        if i==0:
-            plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15])
+    for band in ["LM","N"]:
+    
+        if ((args.wlmin==0) | (args.wlmax==0)):
+            if band=="LM":
+                wl=wl0[0]
+            else:
+                wl=wl0[1]
         else:
-            plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
-            plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
-        pltv2.append(plts['VIS2_{0}'.format(i)])
-
-    print("Setting CP windows...")
-    #####################################################
-    pltcp=[]
-    for i in range(4):
-        if i==0:
-            plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'])
-        else:
-            plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'],sharey=plts['CP_0'])
-            plts['CP_{0}'.format(i)].get_xaxis().set_visible(False)
-        pltcp.append(plts['CP_{0}'.format(i)])
+            wl=[args.wlmin,args.wlmax]
         
-    print("plotting...")        
-    #####################################################
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],showvis=args.showvis,key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
-    
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],showvis=args.showvis,key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
-    
-    msoi.show_oi_vs_time(filtered_list_of_dicts ,[args.wlmin,args.wlmax],showvis=args.showvis,key="T3", datatype="CLOS",subplotList=pltcp)
-    
-    if args.pdf:
-        pdfname = args.in_dir +  "\TransFunc"+band+".pdf"
-        plt.savefig(pdfname)
-        plt.close(fig)
-        print("saving to {0}".format(pdfname))
+        try:
+       
+            print("***************************{0}***************************".format(band))
+            filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts,bands=[band])
+            
+            fig=plt.figure(figsize=(29.7*inch,19*inch))
 
-    if not(args.pdf):
-        plt.show()
+            plts={}
+            
+            print("Setting V2 windows...")
+            #####################################################
+            pltv2=[]
+            for i in range(6):
+                if i==0:
+                    plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15])
+                else:
+                    plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.15*(i+0.5), 0.35,0.15],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
+                    plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
+                pltv2.append(plts['VIS2_{0}'.format(i)])
 
-    if args.pdf:
-        pdf.close()
+            print("Setting CP windows...")
+            #####################################################
+            pltcp=[]
+            for i in range(4):
+                if i==0:
+                    plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'])
+                else:
+                    plts['CP_{0}'.format(i)]=fig.add_axes([0.575, 0.2*(i+0.5), 0.35,0.2],sharex=plts['VIS2_0'],sharey=plts['CP_0'])
+                    plts['CP_{0}'.format(i)].get_xaxis().set_visible(False)
+                pltcp.append(plts['CP_{0}'.format(i)])
+                
+            print("plotting...")        
+            #####################################################
+            msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="VIS2", datatype="VIS2",subplotList=pltv2,calColor='lightgray')
+            
+            msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="TF2", datatype="TF2",subplotList=pltv2,calColor='blue')
+            
+            msoi.show_oi_vs_time(filtered_list_of_dicts ,wl,showvis=args.showvis,key="T3", datatype="CLOS",subplotList=pltcp)
+            
+            if args.pdf:
+                pdfname = args.in_dir +  "\TransFunc"+band+".pdf"
+                plt.savefig(pdfname)
+                plt.close(fig)
+                print("saving to {0}".format(pdfname))
+
+            if not(args.pdf):
+                plt.show()
+
+            if args.pdf:
+                pdf.close()
+        except:
+            print("nothing to plot for {0} band".format(band))

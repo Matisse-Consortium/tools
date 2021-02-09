@@ -181,6 +181,7 @@ if __name__ == '__main__':
             #print("renaming",fi, name+"_"+str(idx+1)+'.fits')
             os.rename(fi, name+"_"+str(idx)+'.fits')
 
+    os.chdir(args.out_dir)
     # cleanup intermediate files
     try :
         os.remove("CAL_CPHASE.fits")
