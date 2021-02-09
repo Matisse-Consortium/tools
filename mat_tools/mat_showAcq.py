@@ -335,6 +335,7 @@ if  __name__== '__main__' :
     h=fits.open(args.filename)
     chopping=h[0].header['HIERARCH ESO ISS CHOP ST']
     dprtype=h[0].header['HIERARCH ESO DPR TYPE']
+    print(chopping,dprtype)
     if chopping=='T':
         print('chopping = T')
         print(os.getcwd())
