@@ -12,10 +12,11 @@ import argparse
 import sys
 #import datetime 
 #import time
-from tqdm import tqdm
+#from tqdm import tqdm
 import gc
 from  mat_readReductionLog import mat_readReductionLog
 #import psutil
+import numpy as np
     
 _status=["NOT STARTED  ","PROCESSING...","PROCESSED  ","POSTPROCESSING...","COMPLETED    "]
 
@@ -178,7 +179,7 @@ if __name__ == '__main__':
         sys.exit(0)
         
         
-    pklfiles=[os.path.abspath(os.path.join(args.dir,fi)) for fi in os.listdir(args.dir) if ".pkl" in fi]
+    pklfiles=np.sort([os.path.abspath(os.path.join(args.dir,fi)) for fi in os.listdir(args.dir) if ".pkl" in fi])
     
     print("{0} pkl files founded in directory".format(len(pklfiles)))
    
