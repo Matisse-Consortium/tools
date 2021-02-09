@@ -339,7 +339,7 @@ if  __name__== '__main__' :
         print('chopping = T')
         print(os.getcwd())
         mat_showAcq(args.filename,pdf=args.pdf)
-
+    print(dprtype,chopping)
     if chopping=='F' and dprtype=='SKY':
         print('you are trying to plot a SKY acquisition, please choose a target file')
         exit()
