@@ -40,8 +40,31 @@ import scipy.optimize as opt
 import argparse
 from tqdm import tqdm
 
-
-
+def getSkyFile(filename):
+    h=fits.open(filename)
+    print(filename)
+    print(os.getcwd())
+    dprtype=h[0].header['HIERARCH ESO DPR TYPE']
+    
+    if dprtype=='SKY':
+        print('you are trying to plot a SKY acquisition, please choose a target file')
+        exit()
+    if dprtype=='STD' or dprtype=='OBJECT':
+        tpl=h[0].header['HIERARCH ESO TPL START']
+        detec=h[0].header['HIERARCH ESO DET CHIP NAME']
+        print('no chopping')
+        os.system('rm -rf lefiles.txt')
+        os.system('dfits *.fits | fitsort dpr.type tpl.start det.chip.name | grep '+detec+'| grep '+tpl+' | grep SKY > lefiles.txt')
+        if file_is_empty('lefiles.txt'):
+            print('missing sky for this unchopped acquisiiton')
+            print('can not continue')
+            exit()
+        else:
+            skyfile=np.loadtxt('lefiles.txt',usecols=0,dtype=str)
+            os.system('rm -rf lefiles.txt')
+            print(skyfile)
+        
+    return str(skyfile)
 
     
 def reference(detecteur):
@@ -131,6 +154,9 @@ def file_is_empty(path):
     return os.stat(path).st_size==0
 
 def mat_showAcq(filename,pdf=False):
+    print('new version')
+    a=1
+    b=1
     sky=[]
     target=[]
     undy=[]
@@ -256,8 +282,11 @@ def mat_showAcq(filename,pdf=False):
         plt.savefig(savename,bbox_inches = "tight")
 
 
-def mat_showAcq_nochop(filename,skyfile,pdf=False):
-   
+def mat_showAcq_nochop(filename,pdf=False):
+
+
+    skyfile=getSkyFile(filename)
+    
     h=fits.open(filename)
     hd=fits.open(skyfile)
     a=1
@@ -315,7 +344,6 @@ def mat_showAcq_nochop(filename,skyfile,pdf=False):
 
         
 if  __name__== '__main__' :
-    print('je suis dans le main')
     parser = argparse.ArgumentParser(description='mat_showAcq.py : compute and show photocenter of MATISSE image acqusition')
     
     parser.add_argument('filename', default="",  \
@@ -333,8 +361,9 @@ if  __name__== '__main__' :
         print("\n     Example : python mat_showAcq.py  MATIS.2019-11-07T06:25:21.184.fits")
         sys.exit(0)
     
-    print(args.filename)
     arg=sys.argv
+    mat_showAcq(args.filename,pdf=args.pdf)
+    """
     h=fits.open(args.filename)
     chopping=h[0].header['HIERARCH ESO ISS CHOP ST']
     dprtype=h[0].header['HIERARCH ESO DPR TYPE']
@@ -364,7 +393,7 @@ if  __name__== '__main__' :
             print(skyfile)
             mat_showAcq_nochop(args.filename,str(skyfile),pdf=args.pdf)
   
-
+    """
 
 
 
