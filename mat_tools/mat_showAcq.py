@@ -314,6 +314,7 @@ def mat_showAcq_nochop(filename,skyfile,pdf=False):
 
         
 if  __name__== '__main__' :
+    print('je suis dans le main')
     parser = argparse.ArgumentParser(description='mat_showAcq.py : compute and show photocenter of MATISSE image acqusition')
     
     parser.add_argument('filename', default="",  \
