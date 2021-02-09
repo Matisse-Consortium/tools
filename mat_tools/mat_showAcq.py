@@ -22,9 +22,6 @@ licence in the LICENCE.md file.
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 """
-
-
-
 import os,time,stat
 from datetime import datetime
 import sys
@@ -42,6 +39,9 @@ from scipy import ndimage
 import scipy.optimize as opt
 import argparse
 from tqdm import tqdm
+
+
+
 a=1
 b=1
 try:
@@ -330,8 +330,9 @@ if  __name__== '__main__' :
         parser.print_help()
         print("\n     Example : python mat_showAcq.py  MATIS.2019-11-07T06:25:21.184.fits")
         sys.exit(0)
+        
     print(args.filename)
-    arg=sys.argv
+    args=sys.argv
     h=fits.open(args.filename)
     chopping=h[0].header['HIERARCH ESO ISS CHOP ST']
     dprtype=h[0].header['HIERARCH ESO DPR TYPE']
