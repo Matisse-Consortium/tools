@@ -125,8 +125,8 @@ def mat_showAcq(filename,pdf=False):
         print('using latest stored ref pos, file not found')
         trouver=0
     if trouver==1:
-        keywords=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
-        values=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
+        keywords=np.loadtxt('/data/users/fal/acquisition/mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
+        values=np.loadtxt('/data/users/fal/acquisition/mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
         valuues=np.zeros(len(values),dtype=float)
         for vv,v in enumerate(values):
             valuues[vv]=float(v[:-2])
