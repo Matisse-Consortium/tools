@@ -155,12 +155,12 @@ def mat_mergeOifits(oifitsList):
         visampi2=temp.data["VISAMP"]**2
         norm=1
         for ifile in range(nfile):
-            print('ifile = {0}').format(ifile)
-            print(data[ifile].filename())
+            #print('ifile = {0}').format(ifile)
+            #print(data[ifile].filename())
             nmod=nB[ifile]/nBmin
             for imod in range(nmod):
                 if ((ifile!=0) or (imod!=0)): 
-                    print('Vis: calcul moyenne')
+                    #print('Vis: calcul moyenne')
                     for key in ["VISAMP","VISAMPERR","VISPHIERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
                         if len(np.shape(temp.data[key]))==2:
                             temp.data[key]= (temp.data[key]*norm + data[ifile]["OI_VIS"].data[key][imod*nBmin:(imod+1)*nBmin,:])/(norm+1)
@@ -173,7 +173,7 @@ def mat_mergeOifits(oifitsList):
                     expvisphi +=  np.exp(np.complex(0,1)*visphii)
                     norm+=1
         #temp.data["VISAMP"]=np.abs(viscompl)
-        #temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
+        temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
         temp.data["VISPHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
         #temp.data["VISAMPERR"]/=np.sqrt(norm)  # no better estimation than that for now
         temp.data["VISAMPERR"]= np.sqrt(temp.data["VISAMPERR"]**2/norm + np.abs(visampi2- temp.data["VISAMP"]**2))
@@ -405,9 +405,9 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED",sepa
     for itpl in range(ntpl):
         band=np.array([d[0].header["ESO DET NAME"] for d in sortedData[itpl]])
         chop=np.array([d[0].header["ESO ISS CHOP ST"] for d in sortedData[itpl]])
-        print(chop)
+        #print(chop)
 
-        print(chop=='F')
+        #print(chop=='F')
         idxN=np.where(band=="MATISSE-N")[0]
 
         if separateChopping:
@@ -430,13 +430,13 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED",sepa
                 print("number of files to merge : {0} for LM and {1} for N".format(len(idxL),len(idxN)))
 
         for idxi in [idxL,idxLChop,idxLNonChop,idxN]:
-            print("idxi = {0}").format(idxi)
+            #print("idxi = {0}").format(idxi)
             if len(idxi!=0):
                 datai=[sortedData[itpl][idata] for idata in idxi]
                 filenames=[dataii.filename() for dataii in datai]
-                print(filenames)
+                #print(filenames)
                 mergedi=mat_mergeOifits(datai)
-                print('mergedi = {0}').format(mergedi.filename())
+                #print('mergedi = {0}').format(mergedi.filename())
                 mergedData.append(mergedi)
                 if save:
                     if not(os.path.exists(dirOut)):
@@ -458,7 +458,7 @@ def mat_mergeByTplStart(something,save=False,verbose=True,dirOut="./MERGED",sepa
 
 def mat_hduCutRows(hdu,nrows):
     cols = hdu.data.columns
-    print('cols = {0}').format(cols)
+    #print('cols = {0}').format(cols)
     shape=np.shape(hdu.data[cols[0].name])
     newcols=[]
     for coli in cols:
