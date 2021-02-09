@@ -173,7 +173,7 @@ def mat_mergeOifits(oifitsList):
                     expvisphi +=  np.exp(np.complex(0,1)*visphii)
                     norm+=1
         #temp.data["VISAMP"]=np.abs(viscompl)
-        #temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
+        temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
         temp.data["VISPHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
         #temp.data["VISAMPERR"]/=np.sqrt(norm)  # no better estimation than that for now
         temp.data["VISAMPERR"]= np.sqrt(temp.data["VISAMPERR"]**2/norm + np.abs(visampi2- temp.data["VISAMP"]**2))
