@@ -72,14 +72,14 @@ def mat_showAcq(filename,pdf=False):
     a=1
     b=1
     if detecteur == 'HAWAII-2RG':
-        DLx=18.0#19.68
-        DLy=5.0#4.92
+        DLx=19.68
+        DLy=4.92
         tolxG=5.1
         tolyG=1.3
 
     else:
-        DLx=24#31.5
-        DLy=6#7.87
+        DLx=31.5
+        DLy=7.87
         tolxO=5.1
         tolyO=1.3
         tolxG=3
