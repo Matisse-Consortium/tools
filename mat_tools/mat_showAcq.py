@@ -221,7 +221,7 @@ def mat_showAcq(filename,pdf=False):
             titretitre=titrehawa
         else:
             titretitre=titreaqua
-        refs=reference(detecteur,dicoref,trouver)
+        refs=reference(detecteur)
         voie=['9','10','12','13']
         for kkk in range(4):
             img=np.mean(vars()['frame'+voie[kkk]],axis=0)-np.mean(vars()['sky'+voie[kkk]],axis=0)
@@ -263,7 +263,7 @@ def mat_showAcq_nochop(filename,skyfile,pdf=False):
     a=1
     b=1
     detecteur=h[0].header['HIERARCH ESO DET CHIP NAME']
-    refs=reference(detecteur,dicoref,trouver)
+    refs=reference(detecteur)
     dims=dimension(detecteur)
     etoile=h[0].header['HIERARCH ESO OBS TARG NAME']
     tplstart=h[0].header['HIERARCH ESO TPL START']
