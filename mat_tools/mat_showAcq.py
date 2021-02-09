@@ -42,25 +42,26 @@ from tqdm import tqdm
 
 
 
-a=1
-b=1
-try:
-    blabla=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
-    print('using updated ref pos, found the config file')
-    trouver=1
-except:
-    print('using latest stored ref pos, file not found')
-    trouver=0
-if trouver==1:
-    keywords=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
-    values=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
-    valuues=np.zeros(len(values),dtype=float)
-    for vv,v in enumerate(values):
-        valuues[vv]=float(v[:-2])
-    dicoref=dict(zip(keywords,valuues))
 
-def reference(detecteur,dicoref,trouver):
+    
+def reference(detecteur):
+    a=1
+    b=1
+    try:
+        blabla=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
+        print('using updated ref pos, found the config file')
+        trouver=1
+    except:
+        print('using latest stored ref pos, file not found')
+        trouver=0
     if trouver==1:
+        keywords=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)[11:]
+        values=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=1,dtype=str)[11:]
+        valuues=np.zeros(len(values),dtype=float)
+        for vv,v in enumerate(values):
+            valuues[vv]=float(v[:-2])
+        dicoref=dict(zip(keywords,valuues))
+
         if detecteur=='AQUARIUS':
             m10x=(dicoref['OCS.DET2.IMG.REFX1']-1)*a
             m9x=(dicoref['OCS.DET2.IMG.REFX2']-1)*a
@@ -331,7 +332,7 @@ if  __name__== '__main__' :
         parser.print_help()
         print("\n     Example : python mat_showAcq.py  MATIS.2019-11-07T06:25:21.184.fits")
         sys.exit(0)
-    """
+    
     print(args.filename)
     arg=sys.argv
     h=fits.open(args.filename)
@@ -362,9 +363,7 @@ if  __name__== '__main__' :
             os.system('rm -rf '+directory+'/lefiles.txt')
             print(skyfile)
             mat_showAcq_nochop(args.filename,str(skyfile),pdf=args.pdf)
-    """
-    mat_showAcq_nochop(args.filename,args.filename,pdf=args.pdf)
-
+  
 
 
 
