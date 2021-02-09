@@ -118,7 +118,7 @@ def mat_showAcq(filename,pdf=False):
   
     
     try:
-        blabla=np.loadtxt('mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
+        blabla=np.loadtxt('/data/users/fal/acquisition/mtmcfgINS_REF_IMG.cfg',usecols=0,dtype=str)
         print('using updated ref pos, found the config file')
         trouver=1
     except:
