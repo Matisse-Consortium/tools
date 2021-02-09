@@ -330,7 +330,7 @@ if  __name__== '__main__' :
         parser.print_help()
         print("\n     Example : python mat_showAcq.py  MATIS.2019-11-07T06:25:21.184.fits")
         sys.exit(0)
-
+    print(args.filename)
     arg=sys.argv
     h=fits.open(args.filename)
     chopping=h[0].header['HIERARCH ESO ISS CHOP ST']
