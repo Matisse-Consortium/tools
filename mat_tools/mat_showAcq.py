@@ -46,8 +46,8 @@ def getSkyFile(filename):
     print(os.getcwd())
     dprtype=h[0].header['HIERARCH ESO DPR TYPE']
     
-    if dprtype=='SKY':
-        print('you are trying to plot a SKY acquisition, please choose a target file')
+    if dprtype=='SKY' or dprtype=='SEARCH,SKY':
+        print('you are trying to plot a SEARCH/SKY acquisition, please choose a target file')
         exit()
     if dprtype=='STD' or dprtype=='OBJECT':
         tpl=h[0].header['HIERARCH ESO TPL START']
