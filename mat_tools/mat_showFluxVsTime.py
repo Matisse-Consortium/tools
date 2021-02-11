@@ -48,9 +48,12 @@ def mat_showFluxVsTime(filename, skyfilename="",unchop=False):
         else:
             mode = "HISENS"
 
-    print(h['ESO INS MODE'])
-    print(h['ESO DET NAME'])
-    print(mode)
+    if (mode.strip() =="IMAGING" ):
+        mode="SIPHOT"
+            
+
+    print('mode ',h['ESO INS MODE'])
+    print('detecteur ',h['ESO DET NAME'])
 
     if mode== "HISENS":
         regions=[5]
@@ -75,7 +78,6 @@ def mat_showFluxVsTime(filename, skyfilename="",unchop=False):
         meanflux.append(np.mean(fluxi))
     print(np.array(stddev)/np.array(meanflux))
     print(meanflux)
-
     col=["violet","skyblue","salmon","peru","olive"]
     if mode == "SIPHOT":
         #renormalization of the interferometric channel

@@ -42,6 +42,7 @@ from openpyxl.styles import Font,PatternFill
 from mat_showFluxVsTime import mat_showFluxVsTime
 from mat_showDLOffset import mat_showDLOffset
 from mat_showAcq import mat_showAcq
+from mat_showAcq import mat_showAcq_nochop
 import shutil
 from datetime import datetime
 from mat_showRawData import mat_showRawData
@@ -839,9 +840,15 @@ class mat_logger(wx.Dialog):
         idx      = self.fileListWidget.GetItem(itemNum).GetData()
         l        = self.fileListWidget.GetObjects()
         filename = l[idx].filename
-
+        h=fits.open(filename)
+        chopping=h[0].header['HIERARCH ESO ISS CHOP ST']
         print("Plotting Acquisition for file "+ filename+"...")
-        mat_showAcq(filename)
+        if chopping=='T':
+            print('runnin mat_showAcq')
+            mat_showAcq(filename)
+        else:
+            print('running mat_showAcq_nochop')
+            mat_showAcq_nochop(filename)
 
 
 #------------------------------------------------------------------------------
