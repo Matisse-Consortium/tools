@@ -14,6 +14,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from astropy import units as u
 from astropy.modeling import models
+import os
 mas2rad=np.pi/180./3600./1000.
 
 
@@ -93,12 +94,10 @@ def _kuruczFitloglog(wl,Teff,diam):
         ll=np.interp(np.log10(wl),np.log10(k.wl),np.log10(flx))
     return 10**ll
 """
+##############################################################################################
 
 
 def _blackbodyFit(wl,Teff,diam):
-    #bb=st.blackBodyStarAngular(wl,Teff,diam)
-    #flx=(bb*u.W/u.m**3).to(u.Jy,equivalencies=u.spectral_density(wl*u.m)).value
-    #flx=st.fluxConverter(bb,"W/m2/m","Jy",wl=wl)["f"]    
     bbfunc = models.BlackBody(temperature=Teff*u.K)
     flx=(bbfunc(wl*u.m)*np.pi*(diam/2*u.mas)**2).to(u.Jy).value  
     return flx
@@ -145,7 +144,7 @@ def mat_querySimbad(star):
         mag.append(res['FLUX_{0}'.format(filt)][0])
     return {"filters":filts,"mag":mag,"sptype":spType,"plx":plx,"plx_err":plx_err,"dist":dist,"dist_err":dist_err}
 
-
+##############################################################################################
 
 """
 mat_createTheoreticalSED :
@@ -164,7 +163,7 @@ mat_createTheoreticalSED :
 """
 
 def mat_createTheoreticalSED(star,fluxModel="bb",fit=False,Teff="Gaia",
-                             diam="JSDC",wl=None,filename=None,query="cds"):
+                             diam="JSDC",wl=None,filename=None,query="cds",verbose=False):
 
     doQueryCruz=False
     doQuerySimbad=False
@@ -228,6 +227,10 @@ def mat_createTheoreticalSED(star,fluxModel="bb",fit=False,Teff="Gaia",
     hdu.name="FLUX_THEORETICAL"
     primary_hdu = fits.PrimaryHDU()
     hdul = fits.HDUList([primary_hdu,hdu])
+    
+    if verbose==True:
+        print("Found {0} {1:.0f}K {2:.2f}Ro model={3}".format(star,Teff,diam,fluxModel))
+    
 
     if fit==True:
         mes_wl=cruzData["wl"]
@@ -281,11 +284,249 @@ def mat_createTheoreticalSED(star,fluxModel="bb",fit=False,Teff="Gaia",
         hdu3.name="FLUX_FITTED"
         hdul.append(hdu3)
 
+        if verbose==True:
+            print("Fitted {0} {1:.0f}K {2:.2f}Ro model={3}".format(star,Teff_fitted,diam_fitted,fluxModel))
+    
 
     if filename!=None:
         hdul.writeto(filename,overwrite=True)
 
     return hdul
+
+
+
+def mat_CreateTFinFlux(oifitsCalOrFilename,fluxModel="bb",fit=True,Teff="Gaia",diam="JSDC"
+                       ,save=True,filename=None,filenameThFlux=None,query="cds",
+                       verbose=False,overwrite=True):   
+    
+    if (type(oifitsCalOrFilename)==type("")) | (type(oifitsCalOrFilename)==np.str_):
+        oifitsCal=fits.open(oifitsCalOrFilename,mode="update")
+    else:
+        oifitsCal=oifitsCalOrFilename
+    
+    filename0=oifitsCal.filename()
+    if filename==None:
+        filename=filename0
+    calname=oifitsCal[0].header["HIERARCH ESO PRO JSDC NAME"]
+    
+
+
+    try:
+        oifitsCal.pop("TF_FLUX")
+    except:
+        pass
+    try:
+        oifitsCal.pop("FCAL_T")
+    except:
+        pass
+    try:
+        oifitsCal.pop("FCAL_M")
+    except:
+        pass
+    try:
+        oifitsCal.pop("FCAL_F")
+    except:
+        pass        
+
+    extnamesCal= [hdui.name for hdui in oifitsCal]
+    
+    """
+    if "TF_FLUX"  in extnamesCal and overwrite==False:  
+        print("The File {0} already contains a TF_FLUX table.".format(os.path.basename(filename0)))
+        print("Using this table. Use overwrite option to recompute the TF_FLUX table")
+    """    
+        
+
+    
+    if "OI_FLUX"  in extnamesCal:    
+        if verbose==True:
+           print("Calibrator = {0}".format(calname))
+        
+        wl=oifitsCal["OI_WAVELENGTH"].data["EFF_WAVE"]
+    
+        dfluxCal=mat_createTheoreticalSED(calname,fluxModel=fluxModel,fit=fit,Teff=Teff,diam=diam,wl=wl,filename=filenameThFlux,query=query,verbose=verbose)
+        if fit==False:
+            fCal=dfluxCal["FLUX_THEORETICAL"].data["FLUX"]
+        else:
+            fCal=dfluxCal["FLUX_FITTED"].data["FLUX"]
+        
+        TFFlux=oifitsCal["OI_FLUX"].copy()      
+        nTel=np.shape(oifitsCal["OI_FLUX"].data["FLUXDATA"])[0]  
+        for iTel in range(nTel):
+            TFFlux.data["FLUXDATA"][iTel,:] = TFFlux.data["FLUXDATA"][iTel,:]/fCal
+            #TODO add error of flux calibration
+            TFFlux.data["FLUXERR"][iTel,:] =  TFFlux.data["FLUXERR"][iTel,:]/fCal 
+            
+        TFFlux.name="TF_FLUX"
+        oifitsCal.append(TFFlux)
+        
+        oifitsCal["TF_FLUX"].columns["FLUXDATA"].unit="ADU/Jy"
+        oifitsCal["TF_FLUX"].columns["FLUXERR"].unit="ADU/Jy"     
+        
+     
+        for hdu in dfluxCal:
+            append=False
+            if hdu.name=="FLUX_THEORETICAL":
+                hdu.name="FCAL_T"
+                append=True
+            elif  hdu.name=="FLUX_MEASURED":
+                hdu.name="FCAL_M"
+                append=True
+            elif  hdu.name=="FLUX_FITTED":
+                hdu.name="FCAL_F"
+                append=True
+            if append==True:
+                oifitsCal.append(hdu)
+              
+        if save==True:
+            oifitsCal.flush()
+        
+        
+    else:
+        print("Error : No OI_FLUX table in file")
+    
+    return oifitsCal
+
+################################################################################
+
+
+def mat_calibrateTotalFlux_old(oifitsSci,oifitsCal,fluxModel="bb",fit=True,Teff="Gaia",
+                           diam="JSDC",filename=None,filenameTF=None,filenameThFlux=None,
+                           query="cds",avgTel=True,verbose=False,saveTF=False,overwriteTF=False):
+
+    if type(oifitsSci)==type(""):
+        oifitsSci=fits.open(oifitsSci)
+
+    
+    oifitsCal=mat_CreateTFinFlux(oifitsCal,fluxModel="bb",fit=fit,Teff="Gaia",diam="JSDC",
+                       filename=filenameTF,filenameThFlux=filenameThFlux,
+                       query="cds",verbose=verbose,save=saveTF,overwrite=overwriteTF)
+
+
+    extnamesSci= [hdui.name for hdui in oifitsSci]
+
+    if "OI_FLUX" in extnamesSci:
+        nTel=np.shape(oifitsSci["OI_FLUX"].data["FLUXDATA"])[0]  
+        calflux=oifitsCal["TF_FLUX"].data["FLUXDATA"] 
+        #calfluxErr=oifitsCal["TF_FLUX"].data["FLUXERR"] 
+        for iTel in range(nTel):
+            oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]
+            #TODO add error of flux calibration
+            oifitsSci["OI_FLUX"].data["FLUXERR"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]
+            
+
+        oifitsSci["OI_FLUX"].columns["FLUXDATA"].unit="Jy"
+        oifitsSci["OI_FLUX"].columns["FLUXERR"].unit="Jy"           
+    
+        if avgTel==True:
+            flxerr=np.sqrt(np.std(oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)**2+np.mean(oifitsSci["OI_FLUX"].data["FLUXERR"],axis=0)**2)/2
+            flx=np.median( oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)
+            
+            cols=[]
+            for col in oifitsSci["OI_FLUX"].columns:
+                if col.name=="FLUXDATA":
+                    newcol=fits.Column(name='FLUXDATA',format='D',array=flx,unit="Jy")
+                    cols.append(newcol)
+                elif col.name=="FLUXERR":
+                    newcol=fits.Column(name='FLUXERR',format='D',array=flxerr,unit="Jy")
+                    cols.append(newcol)
+                else:
+                    cols.append(col)
+            newhdu = fits.BinTableHDU.from_columns(fits.ColDefs(cols)) 
+            newhdu.header= oifitsSci["OI_FLUX"].header
+            oifitsSci["OI_FLUX"]=newhdu
+                
+    if filename!=None:
+        oifitsSci.writeto(filename,overwrite=True)
+
+    return oifitsSci
+
+################################################################################
+
+def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
+                           weight=[],outdir="_FLXCALIBRATED",avgTel=True,verbose=False):
+
+    if (type(oifitsSciOrFilename)==type("")) | (type(oifitsSciOrFilename)==np.str_):
+        oifitsSci=fits.open(oifitsSciOrFilename)
+    else:
+        oifitsSci=oifitsSciOrFilename
+
+
+
+    if (type(oifitsCalOrFilenameOrList)==type([])) | (type(oifitsCalOrFilenameOrList)==np.ndarray):
+        oifitsCal=[]
+        for eli in oifitsCalOrFilenameOrList:
+
+            if (type(eli)==type("")) | (type(eli)==np.str_):
+                oifitsCal.append(fits.open(eli,mode="update"))
+            else:
+                oifitsCal.append(eli)
+    elif (type(oifitsCalOrFilenameOrList)==type("")) | (type(oifitsCalOrFilenameOrList)==np.str_):
+        oifitsCal=[fits.open(oifitsCalOrFilenameOrList,mode="update")]
+    else:
+        oifitsCal=[oifitsCal]
+        
+        
+    if len(weight)==0:
+        l=len(oifitsCal)
+        weight=np.ones(l)/l
+
+    extnamesSci= [hdui.name for hdui in oifitsSci]
+    
+    extnamesCal= [[hdui.name for hdui in oifitsCali] for oifitsCali in oifitsCal]
+    if ("OI_FLUX" in extnamesSci) :
+        nTel=np.shape(oifitsSci["OI_FLUX"].data["FLUXDATA"])[0]  
+        calflux=None
+        for iCal,oifitsCali in enumerate(oifitsCal):
+            if ("TF_FLUX" in extnamesCal[iCal]):
+                calfluxi=oifitsCali["TF_FLUX"].data["FLUXDATA"] *weight[iCal]
+                print("Cal{0} median ADU/Jy={1:.0f}".format(iCal,np.median(calfluxi)/weight[iCal]))
+                if iCal==0:
+                    calflux=calfluxi
+                else:
+                    calflux+=calfluxi
+                #TODO add error with std on calibrators     
+        print("weighted mean : median ADU/Jy={0:.0f}".format(np.median(calflux)))
+        
+        for iTel in range(nTel):
+            oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]
+                #TODO add error from flux calibration
+            oifitsSci["OI_FLUX"].data["FLUXERR"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]
+            
+
+        oifitsSci["OI_FLUX"].columns["FLUXDATA"].unit="Jy"
+        oifitsSci["OI_FLUX"].columns["FLUXERR"].unit="Jy"           
+    
+        if avgTel==True:
+            flxerr=np.sqrt(np.std(oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)**2+np.mean(oifitsSci["OI_FLUX"].data["FLUXERR"],axis=0)**2)/2
+            flx=np.median( oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)
+            
+            cols=[]
+            for col in oifitsSci["OI_FLUX"].columns:
+                if col.name=="FLUXDATA":
+                    newcol=fits.Column(name='FLUXDATA',format='D',array=flx,unit="Jy")
+                    cols.append(newcol)
+                elif col.name=="FLUXERR":
+                    newcol=fits.Column(name='FLUXERR',format='D',array=flxerr,unit="Jy")
+                    cols.append(newcol)
+                else:
+                    cols.append(col)
+            newhdu = fits.BinTableHDU.from_columns(fits.ColDefs(cols)) 
+            newhdu.header= oifitsSci["OI_FLUX"].header
+            newhdu.update()
+            oifitsSci["OI_FLUX"]=newhdu
+    
+                
+    fname=oifitsSci.filename()
+    dir0=os.path.dirname(fname)
+    outname=os.path.join(dir0,outdir,os.path.basename(fname))
+    print("saving to {0}".format(outname))
+    
+    oifitsSci.writeto(outname,overwrite=True)
+
+    return oifitsSci
+
+################################################################################
 
 """
 mat_calibrateCorrFlux :
@@ -304,7 +545,7 @@ mat_calibrateCorrFlux :
 """
 
 
-def mat_calibrateCorrFlux(oifits,fluxModel="bb",fit=False,Teff="Gaia",diam="JSDC",filename=None,filenameThFlux=None,query="cds"):
+def mat_calibrateCorrFlux(oifits,fluxModel="bb",fit=True,Teff="Gaia",diam="JSDC",filename=None,filenameThFlux=None,query="cds"):
 
     if type(oifits)==type(""):
         oifits=fits.open(oifits)
@@ -355,85 +596,6 @@ def mat_calibrateCorrFlux(oifits,fluxModel="bb",fit=False,Teff="Gaia",diam="JSDC
         oifits.writeto(filename,overwrite=True)
 
     return oifits
-
-################################################################################
-
-
-def mat_calibrateTotalFlux(oifitsSci,oifitsCal,fluxModel="bb",fit=False,Teff="Gaia",diam="JSDC",filename=None,filenameThFlux=None,query="cds",avgTel=False):
-
-    if type(oifitsSci)==type(""):
-        oifitsSci=fits.open(oifitsSci)
-        
-    if type(oifitsCal)==type(""):
-        oifitsCal=fits.open(oifitsCal)
-        
-        
-    calname=oifitsCal[0].header["ESO OBS TARG NAME"]
-   
-    
-    wl=oifitsSci["OI_WAVELENGTH"].data["EFF_WAVE"]
-
-    dfluxCal=mat_createTheoreticalSED(calname,fluxModel=fluxModel,fit=fit,Teff=Teff,diam=diam,wl=wl,filename=filenameThFlux,query=query)
-
-    if fit==False:
-        fCal=dfluxCal["FLUX_THEORETICAL"].data["FLUX"]
-    else:
-        fCal=dfluxCal["FLUX_FITTED"].data["FLUX"]
-
-    extnamesSci= [hdui.name for hdui in oifitsSci]
-    extnamesCal= [hdui.name for hdui in oifitsCal]
-    
-    if "OI_FLUX" in extnamesSci and "OI_FLUX" in extnamesCal:
-        nTel=np.shape(oifitsSci["OI_FLUX"].data["FLUXDATA"])[0]  
-        calflux=oifitsCal["OI_FLUX"].data["FLUXDATA"] 
-        #calfluxErr=oifitsCal["OI_FLUX"].data["FLUXERR"] 
-        for iTel in range(nTel):
-            oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]*fCal
-            #TODO add error of flux calibration
-            oifitsSci["OI_FLUX"].data["FLUXERR"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]*fCal 
-    
-        oifitsSci["OI_FLUX"].columns["FLUXDATA"].unit="Jy"
-        oifitsSci["OI_FLUX"].columns["FLUXERR"].unit="Jy"           
-   
-    
-        if avgTel==True:
-            flxerr=np.sqrt(np.std(oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)**2+np.mean(oifitsSci["OI_FLUX"].data["FLUXERR"],axis=0)**2)
-            flx=np.median( oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)
-
-            cols=[]
-            for col in oifitsSci["OI_FLUX"].columns:
-                if col.name=="FLUXDATA":
-                    newcol=fits.Column(name='FLUXDATA',format='D',array=flx,unit="Jy")
-                    cols.append(newcol)
-                elif col.name=="FLUXERR":
-                    newcol=fits.Column(name='FLUXERR',format='D',array=flxerr,unit="Jy")
-                    cols.append(newcol)
-                else:
-                    cols.append(col)
-            newhdu = fits.BinTableHDU.from_columns(fits.ColDefs(cols)) 
-            newhdu.header= oifitsSci["OI_FLUX"].header
-            oifitsSci["OI_FLUX"]=newhdu
-                
-
-        
-        for hdu in dfluxCal:
-            append=False
-            if hdu.name=="FLUX_THEORETICAL":
-                hdu.name="FCAL_T"
-                append=True
-            elif  hdu.name=="FLUX_MEASURED":
-                hdu.name="FCAL_M"
-                append=True
-            elif  hdu.name=="FLUX_FITTED":
-                hdu.name="FCAL_F"
-                append=True
-            if append==True:
-                oifitsSci.append(hdu)
-              
-    if filename!=None:
-        oifitsSci.writeto(filename,overwrite=True)
-
-    return oifitsSci
 
 
 ################################################################################
