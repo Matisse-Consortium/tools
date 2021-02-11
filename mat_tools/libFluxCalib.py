@@ -96,12 +96,20 @@ def _kuruczFitloglog(wl,Teff,diam):
 """
 ##############################################################################################
 
+# To be used with python 3
+
+#def _blackbodyFit(wl,Teff,diam):
+#    bbfunc = models.BlackBody(temperature=Teff*u.K)
+#    flx=(bbfunc(wl*u.m)*np.pi*(diam/2*u.mas)**2).to(u.Jy).value  
+#    return flx
+
+##############################################################################################
+# To be used with python 2.7 (but also work with python 3)
 
 def _blackbodyFit(wl,Teff,diam):
-    bbfunc = models.BlackBody(temperature=Teff*u.K)
-    flx=(bbfunc(wl*u.m)*np.pi*(diam/2*u.mas)**2).to(u.Jy).value  
+    bbfunc = models.BlackBody1D(temperature=Teff*u.K)
+    flx=(bbfunc(wl*u.m)*(diam/2*u.mas/u.rad)**2).to(u.Jy).value*5.670374e-8*Teff**4*1000
     return flx
-
 ###############################################################################
 
 def mat_queryCruzalebes(star,where="cds"):
