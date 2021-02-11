@@ -526,8 +526,8 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
     
                 
     fname=oifitsSci.filename()
-    dir0=os.path.dirname(fname)
-    outname=os.path.join(dir0,outdir,os.path.basename(fname))
+    #dir0=os.path.dirname(fname)
+    outname=os.path.join(outdir,os.path.basename(fname))
     print("saving to {0}".format(outname))
     
     oifitsSci.writeto(outname,overwrite=True)
