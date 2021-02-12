@@ -316,27 +316,33 @@ def mat_CreateTFinFlux(oifitsCalOrFilename,fluxModel="bb",fit=True,Teff="Gaia",d
     if filename==None:
         filename=filename0
     calname=oifitsCal[0].header["HIERARCH ESO PRO JSDC NAME"]
-    
-
-
-    try:
-        oifitsCal.pop("TF_FLUX")
-    except:
-        pass
-    try:
-        oifitsCal.pop("FCAL_T")
-    except:
-        pass
-    try:
-        oifitsCal.pop("FCAL_M")
-    except:
-        pass
-    try:
-        oifitsCal.pop("FCAL_F")
-    except:
-        pass        
+    if verbose==True:
+        print([hdui.name for hdui in oifitsCal])
+    for i in range(20):
+        try:
+            idx=oifitsCal.index_of("TF_FLUX")
+            if verbose==True:
+                print("Found TF_FLUX table at idx={0} removing it".format(idx))
+            oifitsCal.pop(oifitsCal.index_of("TF_FLUX"))
+            
+        except:
+            pass
+        try:
+            oifitsCal.pop(oifitsCal.index_of("FCAL_T"))
+        except:
+            pass
+        try:
+            oifitsCal.pop(oifitsCal.index_of("FCAL_M"))
+        except:
+            pass
+        try:
+            oifitsCal.pop(oifitsCal.index_of("FCAL_F"))
+        except:
+            pass        
 
     extnamesCal= [hdui.name for hdui in oifitsCal]
+    if verbose==True:
+        print(extnamesCal)
     
     """
     if "TF_FLUX"  in extnamesCal and overwrite==False:  
@@ -488,13 +494,15 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
         for iCal,oifitsCali in enumerate(oifitsCal):
             if ("TF_FLUX" in extnamesCal[iCal]):
                 calfluxi=oifitsCali["TF_FLUX"].data["FLUXDATA"] *weight[iCal]
-                print("Cal{0} median ADU/Jy={1:.0f}".format(iCal,np.median(calfluxi)/weight[iCal]))
+                if verbose:
+                    print("Cal{0} median ADU/Jy={1:.0f}".format(iCal,np.median(calfluxi)/weight[iCal]))
                 if iCal==0:
                     calflux=calfluxi
                 else:
                     calflux+=calfluxi
-                #TODO add error with std on calibrators     
-        print("weighted mean : median ADU/Jy={0:.0f}".format(np.median(calflux)))
+                #TODO add error with std on calibrators  
+        if verbose:        
+            print("weighted mean : median ADU/Jy={0:.0f}".format(np.median(calflux)))
         
         for iTel in range(nTel):
             oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]
@@ -504,7 +512,7 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
 
         oifitsSci["OI_FLUX"].columns["FLUXDATA"].unit="Jy"
         oifitsSci["OI_FLUX"].columns["FLUXERR"].unit="Jy"           
-    
+
         if avgTel==True:
             flxerr=np.sqrt(np.std(oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)**2+np.mean(oifitsSci["OI_FLUX"].data["FLUXERR"],axis=0)**2)/2
             flx=np.median( oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)
@@ -523,11 +531,15 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
             newhdu.header= oifitsSci["OI_FLUX"].header
             newhdu.update()
             oifitsSci["OI_FLUX"]=newhdu
+
+            
+            
+           
     
                 
     fname=oifitsSci.filename()
     dir0=os.path.dirname(fname)
-    outname=os.path.join(dir0,outdir,os.path.basename(fname))
+    outname=os.path.join(outdir,os.path.basename(fname))
     print("saving to {0}".format(outname))
     
     oifitsSci.writeto(outname,overwrite=True)
