@@ -138,7 +138,7 @@ def mat_autoCalibFlux(dirUncalibrated,dirCalibrated,dirout="_FLXCALIBRATED",avgT
                         weights=np.array([1])
                         ids=np.array([ip])
                      
-                     
+                        
                     if verbose:
                         weigthTxt=["{0:.1f}".format(wi) for wi in weights]
                         if verbose==True :
