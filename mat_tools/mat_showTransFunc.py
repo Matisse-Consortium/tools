@@ -18,16 +18,13 @@ in the LICENCE.md file.
 The fact that you are presently reading this means that you have had
 knowledge of the CeCILL license and that you accept its terms.
 """
-import matplotlib.pyplot as plt
 import argparse
 import numpy as np
-from astropy.io import fits
 import sys
-#import mat_show_oifits as msoi
-import libShowOifits as msoi
 import os
-#from matplotlib.backends.backend_pdf import PdfPages
-
+import matplotlib
+from astropy.io import fits
+     
 
 inch=1/2.54
 
@@ -65,6 +62,22 @@ if __name__ == '__main__':
         print("\n\033[93mRunning mat_ashowTransFunc.py --help to be kind with you:\033[0m\n")
         parser.print_help()
 	sys.exit(0)
+    
+    #Pyplot needs to be imported after setting up the matplotlib backend.
+    #The standard backend can produce  pdf but not if the script if  
+    #launched in background and the users disconnect himself. 
+    if args.pdf==True:
+        matplotlib.use('PDF')
+    else:
+        matplotlib.use('WXAgg')
+       
+    
+    import matplotlib.pyplot as plt
+    import libShowOifits as msoi  
+    
+    print(matplotlib.get_backend())
+    
+
 
     list_of_dicts          = msoi.open_oi_dir(args.in_dir)
     #filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts)
@@ -73,7 +86,7 @@ if __name__ == '__main__':
     
     if args.LM==True:
         bands=["LM"]
-    elif agrs.N==True:
+    elif args.N==True:
         bands=["N"]
     else:
         bands=["LM","N"]
