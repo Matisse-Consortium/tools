@@ -278,6 +278,15 @@ def mat_removeBCD(oifits,saveFits=False):
         #print("no bcd")
         return
 
+    data[0].header["ESO INS BCD1 NAME"]="OUT"
+    data[0].header["ESO INS BCD2 NAME"]="OUT"
+    data[0].header["ESO INS BCD1 ID"]="OUT"
+    data[0].header["ESO INS BCD2 ID"]="OUT"   
+    data[0].header["ESO INS BCD1 NO"]=1
+    data[0].header["ESO INS BCD1 NO"]=1
+    data[0].header["HIERARCH ESO DET BCD STATE"]=0
+    data[0].header["HIERARCH ESO CFG BCD MODE"]="OUT-OUT"
+    
     extnames=[hdu.name for hdu in data]
 
     #------------------OI_VIS2-------------------------
