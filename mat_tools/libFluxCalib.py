@@ -16,7 +16,7 @@ from astropy import units as u
 from astropy.modeling import models
 import os
 mas2rad=np.pi/180./3600./1000.
-
+import time
 
 
 ###############################################################################
@@ -237,7 +237,7 @@ def mat_createTheoreticalSED(star,fluxModel="bb",fit=False,Teff="Gaia",
     hdul = fits.HDUList([primary_hdu,hdu])
     
     if verbose==True:
-        print("Found {0} {1:.0f}K {2:.2f}Ro model={3}".format(star,Teff,diam,fluxModel))
+        print("Found \t {0:.0f}K \t {1:.2f}Ro".format(Teff,diam))
     
 
     if fit==True:
@@ -293,7 +293,7 @@ def mat_createTheoreticalSED(star,fluxModel="bb",fit=False,Teff="Gaia",
         hdul.append(hdu3)
 
         if verbose==True:
-            print("Fitted {0} {1:.0f}K {2:.2f}Ro model={3}".format(star,Teff_fitted,diam_fitted,fluxModel))
+            print("Fitted \t {0:.0f}K \t {1:.2f}Ro \t (model={2})".format(Teff_fitted,diam_fitted,fluxModel))
     
 
     if filename!=None:
@@ -316,13 +316,13 @@ def mat_CreateTFinFlux(oifitsCalOrFilename,fluxModel="bb",fit=True,Teff="Gaia",d
     if filename==None:
         filename=filename0
     calname=oifitsCal[0].header["HIERARCH ESO PRO JSDC NAME"]
-    if verbose==True:
-        print([hdui.name for hdui in oifitsCal])
+    
+    extnames0=[hdui.name for hdui in oifitsCal]
     for i in range(20):
         try:
             idx=oifitsCal.index_of("TF_FLUX")
             if verbose==True:
-                print("Found TF_FLUX table at idx={0} removing it".format(idx))
+                print("Found previous TF_FLUX table at idx={0}. Removing it".format(idx))
             oifitsCal.pop(oifitsCal.index_of("TF_FLUX"))
             
         except:
@@ -340,21 +340,19 @@ def mat_CreateTFinFlux(oifitsCalOrFilename,fluxModel="bb",fit=True,Teff="Gaia",d
         except:
             pass        
 
-    extnamesCal= [hdui.name for hdui in oifitsCal]
-    if verbose==True:
-        print(extnamesCal)
-    
-    """
-    if "TF_FLUX"  in extnamesCal and overwrite==False:  
-        print("The File {0} already contains a TF_FLUX table.".format(os.path.basename(filename0)))
-        print("Using this table. Use overwrite option to recompute the TF_FLUX table")
-    """    
-        
 
+
+
+    extnamesCal= [hdui.name for hdui in oifitsCal]
     
+    ntable=len(extnames0)-len(extnamesCal)
+    if verbose==True:
+        print("Removed {0} Tables to oifits files".format(ntable))
+        
     if "OI_FLUX"  in extnamesCal:    
         if verbose==True:
-           print("Calibrator = {0}".format(calname))
+           print("Star = {0}".format(calname))
+           print("Diam taken from {0} and Teff from {1}".format(diam,Teff))
         
         wl=oifitsCal["OI_WAVELENGTH"].data["EFF_WAVE"]
     
@@ -377,6 +375,8 @@ def mat_CreateTFinFlux(oifitsCalOrFilename,fluxModel="bb",fit=True,Teff="Gaia",d
         oifitsCal["TF_FLUX"].columns["FLUXDATA"].unit="ADU/Jy"
         oifitsCal["TF_FLUX"].columns["FLUXERR"].unit="ADU/Jy"     
         
+        
+
      
         for hdu in dfluxCal:
             append=False
@@ -394,8 +394,12 @@ def mat_CreateTFinFlux(oifitsCalOrFilename,fluxModel="bb",fit=True,Teff="Gaia",d
               
         if save==True:
             oifitsCal.flush()
-        
-        
+            
+            
+        extnames2=[hdui.name for hdui in oifitsCal]
+        if verbose==True:            
+            ntable=len(extnames2)-len(extnamesCal)
+            print("Added {0} Tables to oifits files".format(ntable))
     else:
         print("Error : No OI_FLUX table in file")
     
@@ -488,6 +492,11 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
     extnamesSci= [hdui.name for hdui in oifitsSci]
     
     extnamesCal= [[hdui.name for hdui in oifitsCali] for oifitsCali in oifitsCal]
+    
+    calNames=[oifitsCali[0].header["HIERARCH ESO PRO JSDC NAME"] for oifitsCali in oifitsCal]
+      
+    
+    
     if ("OI_FLUX" in extnamesSci) :
         nTel=np.shape(oifitsSci["OI_FLUX"].data["FLUXDATA"])[0]  
         calflux=None
@@ -495,14 +504,14 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
             if ("TF_FLUX" in extnamesCal[iCal]):
                 calfluxi=oifitsCali["TF_FLUX"].data["FLUXDATA"] *weight[iCal]
                 if verbose:
-                    print("Cal{0} median ADU/Jy={1:.0f}".format(iCal,np.median(calfluxi)/weight[iCal]))
+                    print("Cal{0}: {1} => median ADU/Jy={2:.1f}".format(iCal,calNames[iCal],np.median(calfluxi)/weight[iCal]))
                 if iCal==0:
                     calflux=calfluxi
                 else:
                     calflux+=calfluxi
                 #TODO add error with std on calibrators  
         if verbose:        
-            print("weighted mean : median ADU/Jy={0:.0f}".format(np.median(calflux)))
+            print("weighted mean on the calibrators: median ADU/Jy={0:.1f}".format(np.median(calflux)))
         
         for iTel in range(nTel):
             oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:] = oifitsSci["OI_FLUX"].data["FLUXDATA"][iTel,:]/calflux[iTel,:]
@@ -514,36 +523,40 @@ def mat_calibrateTotalFlux(oifitsSciOrFilename,oifitsCalOrFilenameOrList,
         oifitsSci["OI_FLUX"].columns["FLUXERR"].unit="Jy"           
 
         if avgTel==True:
-            flxerr=np.sqrt(np.std(oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)**2+np.mean(oifitsSci["OI_FLUX"].data["FLUXERR"],axis=0)**2)/2
-            flx=np.median( oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)
-            
+            flxerr=(np.sqrt(np.std(oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0)**2+np.mean(oifitsSci["OI_FLUX"].data["FLUXERR"],axis=0)**2)/2).reshape(1, -1)
+            flx=np.median( oifitsSci["OI_FLUX"].data["FLUXDATA"],axis=0).reshape(1, -1)
+            flag=np.sum(oifitsSci["OI_FLUX"].data["FLAG"],axis=0).astype(bool).reshape(1, -1) # True if True on any Tel 
             cols=[]
+            nlam=np.size(flx)           
             for col in oifitsSci["OI_FLUX"].columns:
                 if col.name=="FLUXDATA":
-                    newcol=fits.Column(name='FLUXDATA',format='D',array=flx,unit="Jy")
+                    newcol=fits.Column(name='FLUXDATA',format='{0}D'.format(nlam),array=flx,unit="Jy")
                     cols.append(newcol)
                 elif col.name=="FLUXERR":
-                    newcol=fits.Column(name='FLUXERR',format='D',array=flxerr,unit="Jy")
+                    newcol=fits.Column(name='FLUXERR',format='{0}D'.format(nlam),array=flxerr,unit="Jy")
                     cols.append(newcol)
+                elif col.name=="FLAG":
+                    newcol=fits.Column(name='FLAG',format='{0}L'.format(nlam),array=flag)
+                    cols.append(newcol)               
                 else:
-                    cols.append(col)
-            newhdu = fits.BinTableHDU.from_columns(fits.ColDefs(cols)) 
+                    datai=(oifitsSci["OI_FLUX"].data[col.name].copy()[0]).reshape(1, -1) 
+                    newcol=fits.Column(name=col.name,format=col.format[-1],array=datai)           
+                    cols.append(newcol)
+            newhdu = fits.BinTableHDU.from_columns(fits.ColDefs(cols))   
             newhdu.header= oifitsSci["OI_FLUX"].header
             newhdu.update()
             oifitsSci["OI_FLUX"]=newhdu
-
             
             
            
     
                 
-    fname=oifitsSci.filename()
-    dir0=os.path.dirname(fname)
-    outname=os.path.join(outdir,os.path.basename(fname))
-    print("saving to {0}".format(outname))
-    
-    oifitsSci.writeto(outname,overwrite=True)
-
+        fname=oifitsSci.filename()
+        outname=os.path.join(outdir,os.path.basename(fname))
+        print("saving to {0}".format(outname))
+        oifitsSci.writeto(outname,overwrite=True)
+    else:
+        print("No OI_FLUX table for science target, skipping it!")
     return oifitsSci
  
 

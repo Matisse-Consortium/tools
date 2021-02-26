@@ -57,15 +57,21 @@ def mat_autoCalibFlux(dirUncalibrated,dirCalibrated,dirout="_FLXCALIBRATED",avgT
     sci_tplstart_list=[h["HIERARCH ESO TPL START"] for h in sci_headers]
     
     
+    try:
+        os.mkdir(dirout)
+    except:
+        for fi in os.listdir(dirout):
+            os.remove(os.path.join(dirout,fi)) 
+    
     for (igroup,grouped_filenamei) in enumerate(grouped_filenames):
         nfilei=len(grouped_filenamei)
         chopi="No Chopping" if igroup<4 else "   Chopping"        
         BCDi=BCDs[igroup % 4]
         if nfilei!=0:
             if verbose==True :
-                print("\n\n**************************************************************************")  
-                print("************************** {0} BCD {1} ************************".format(chopi,BCDi)) 
-                print("**************************************************************************")              
+                print("\n\n*****************************************************************************")  
+                print("***************************** {0} BCD {1} ***************************".format(chopi,BCDi)) 
+                print("*********************************************************************************")              
                 print("{0} files found".format(nfilei))
         
             names=[]
@@ -90,90 +96,79 @@ def mat_autoCalibFlux(dirUncalibrated,dirCalibrated,dirout="_FLXCALIBRATED",avgT
             filesi=filesi[idx]
             headersi=headersi[idx]
             
+            if verbose==True :            
+                for j in range(len(filesi)):
+                    print("[{0}] \t {1:.2f} \t {2} \t {3} \t".format(j,MJDs[j],names[j].ljust(10),filesi[j]))   
             if verbose==True :
-                print(filesi)
-                print(MJDs)
-                print(names)
-            
-            if verbose==True :
-                print("\n---------------------------------------------------------------------------")
-                print("------------------------------ Creating TFFs ------------------------------")  
+                print("\n----------------------------------------------------------------------------------")
+                print("------------------------ Creating TFFs  for calibrators ----------------------------")  
             #creating the TFF for the CALIB files (modif saved on TF_FLUX table)
             for ifile in range(nfilei):
                 if tartypes[ifile]=="CALIB_RAW_INT":
                     if verbose:
-                        print("------------------------------------------------------------------------\n")
+                        print("-------------------------------------------------------------------------------\n")
                         print("Computing TF in Flux for {0}".format(os.path.basename(filesi[ifile])))
                     
                     mat_CreateTFinFlux(filesi[ifile],fluxModel="bb",fit=True,Teff="Gaia",
                             diam="JSDC",filename=None,filenameThFlux=None,query="cds",
                             verbose=verbose,save=True,overwrite=True)
             if verbose==True :
-                print("---------------------------------------------------------------------------")
-                print("-------------------------- Calibrating Targets ----------------------------")  
-            try:
-                os.mkdir(dirout)
-            except:
-                for fi in os.listdir(dirout):
-                    os.remove(os.path.join(dirout,fi)) 
+                print("----------------------------------------------------------------------------------")
+                print("----------------------------- Calibrating Targets --------------------------------")  
+
             #Calibrating TARGET files
             for ifile in range(nfilei):   
                 if verbose==True :
-                    print("------------------------------------------------------------------------")
-                    print("Checking {0} idx={1}".format(filesi[ifile],ifile))
+                    print("-------------------------------------------------------------------------------")
+                    print("[{0}] Checking {1} ".format(ifile,filesi[ifile]))
                 if tartypes[ifile]=="TARGET_RAW_INT": 
-                    if verbose==True :
-                        print("Calibrating Flux for {0} idx={1}".format(filesi[ifile],ifile))
+                    #if verbose==True :
+                    #    print("Calibrating Flux for {0} idx={1}".format(filesi[ifile],ifile))
                     #determining the CALIB files to use and their weights
                     im=_findCalIndex(ifile,tartypes,-1)
-                    ip=_findCalIndex(ifile,tartypes,1)                
-                    if (ip!=-1) & (im!=-1):
-                        weights=np.array([MJDs[ip]-MJDs[ifile],MJDs[ifile]-MJDs[im]])
-                        weights=weights/np.sum(weights) 
-                        ids=np.array([im,ip])
-                    elif ip==-1:
-                        weights=np.array([1])
-                        ids=np.array([im])
-                    else: #im==-1
-                        weights=np.array([1])
-                        ids=np.array([ip])
-                     
-                        
-                    if verbose:
-                        weigthTxt=["{0:.1f}".format(wi) for wi in weights]
-                        if verbose==True :
-                            print("Using calibrators at indices {0} with weights={1}".format(ids,weigthTxt))
-                    #find the calibrated sci file corresponding to the uncalibrated one
-                    hi=headersi[ifile]
-                    tplstart=hi["HIERARCH ESO TPL START"]
+                    ip=_findCalIndex(ifile,tartypes,1)        
 
-                    w1=(np.array(sci_tplstart_list)==tplstart)
-                    w2=(np.array(sci_BCD_list)==(igroup%4))
-                    w3=(np.array(sci_chop_list)==(igroup//4))
-                    """
-                    print(sci_tplstart_list)
-                    print(sci_BCD_list)
-                    print(sci_chop_list)
-                    print(w1)
-                    print(w2)
-                    print(w3)
-                    print(tplstart)
-                    """
-                    
-                    
-                    
-                    ww=np.where(w1 & w2 & w3)[0]
-
-                    if len(ww)==0:
-                        if verbose==True :
-                            print("Skipping {0} idx={1}".format(scifname,ifile))
+                    if (ip==-1) & (im==-1):
+                        if verbose==True:
+                            print("No calibrator found. Skipping sci file")
                     else:
-                        ww=ww[0]
-                        scifname=sci_filenames[ww]
-                        calfnames=[filesi[idi] for idi in ids]
+                        if (ip!=-1) & (im!=-1):
+                            weights=np.array([MJDs[ip]-MJDs[ifile],MJDs[ifile]-MJDs[im]])
+                            weights=weights/np.sum(weights) 
+                            ids=np.array([im,ip])
+                        elif ip==-1:
+                            weights=np.array([1])
+                            ids=np.array([im])
+                        elif im==-1:
+                            weights=np.array([1])
+                            ids=np.array([ip])
+                         
+                            
                         if verbose:
-                            print("Calibrating Flux for {0} idx={1}".format(scifname,ifile))
-                        mat_calibrateTotalFlux(scifname,calfnames,outdir=dirout,weight=weights,verbose=verbose,avgTel=avgTel)
+                            weigthTxt=["{0:.1f}".format(wi) for wi in weights]
+                            if verbose==True :
+                                print("Using calibrators at indices {0} with weights={1}".format(ids,weigthTxt))
+                        #find the calibrated sci file corresponding to the uncalibrated one
+                        hi=headersi[ifile]
+                        tplstart=hi["HIERARCH ESO TPL START"]
+
+                        w1=(np.array(sci_tplstart_list)==tplstart)
+                        w2=(np.array(sci_BCD_list)==(igroup%4))
+                        w3=(np.array(sci_chop_list)==(igroup//4))
+                          
+                        
+                        ww=np.where(w1 & w2 & w3)[0]
+
+                        if len(ww)==0:
+                            if verbose==True :
+                                print("Skipping {0}".format(filesi[ifile]))
+                        else:
+                            ww=ww[0]
+                            scifname=sci_filenames[ww]
+                            calfnames=[filesi[idi] for idi in ids]
+                            if verbose:
+                                print("Calibrating Flux for {0}".format(scifname))
+                            mat_calibrateTotalFlux(scifname,calfnames,outdir=dirout,weight=weights,verbose=verbose,avgTel=avgTel)
                 else:
                     if verbose:
                         print("=>Calibrator")
