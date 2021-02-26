@@ -34,7 +34,52 @@ from multiprocessing.pool import Pool
 
 #------------------------------------------------------------------------------
 
-def make_sof(input_dir, output_dir, timespan=0.04):
+
+def findClosestCal(DIC,i):
+    hdri = DIC[i]['hdr']
+    mjd  = hdri['MJD-OBS']
+    bcd1 = hdri['ESO INS BCD1 NAME']
+    bcd2 = hdri['ESO INS BCD2 NAME']
+    chip = hdri['ESO DET CHIP NAME']
+    dit  = hdri['ESO DET SEQ1 DIT'] 
+    try:
+        chop = hdri['ESO ISS CHOP ST']
+    except:
+        chop = 'F'
+        print("error")
+        
+        
+    goodCalIdx=[]    
+    mjds=[]
+    
+    for j,DICj in enumerate(DIC):       
+        hdrj = DIC[j]['hdr']
+        obstypec = hdrj['ESO PRO CATG']
+        mjdc  = hdrj['MJD-OBS']
+        bcd1c = hdrj['ESO INS BCD1 NAME']
+        bcd2c = hdrj['ESO INS BCD2 NAME']
+        chipc = hdrj['ESO DET CHIP NAME']
+        ditc  = hdrj['ESO DET SEQ1 DIT']  
+        try:
+            chopc = hdrj['ESO ISS CHOP ST']
+        except:
+            chopc = 'F'
+            print("error") 
+
+        if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
+            goodCalIdx.append(j)
+            mjds.append(mjdc)
+            
+    diff=np.abs(np.array(mjds)-mjd) 
+    idx=np.argmin(diff)
+    
+    return goodCalIdx[idx]
+                
+
+    
+
+
+def make_sof(input_dir, output_dir, timespan=0.04,useClosest=False):
 
     SOFFILE = [];
     files =  glob.glob(input_dir+'/*.fits')
@@ -47,9 +92,10 @@ def make_sof(input_dir, output_dir, timespan=0.04):
     for f in files:
         hdr     = fits.open(f)[0].header
         dic = {'hdr': hdr}
-        DIC.append(dic)
+        DIC.append(dic)    
         #try:
     for i,f in enumerate(files):
+            
             hdri = DIC[i]['hdr']
             obstype = hdri['ESO PRO CATG']
 
@@ -80,29 +126,35 @@ def make_sof(input_dir, output_dir, timespan=0.04):
                 SOFFILE.append(fname)
                 soffile.write('{} \t {} \n'.format(f,obstype))
                 calcount = 0;
-                for j,fcal in enumerate(files):
-                    if fcal != f:
-                        hdrj = DIC[j]['hdr']
-                        obstypec = hdrj['ESO PRO CATG']
-                        mjdc  = hdrj['MJD-OBS']
-                        bcd1c = hdrj['ESO INS BCD1 NAME']
-                        bcd2c = hdrj['ESO INS BCD2 NAME']
-                        chipc = hdrj['ESO DET CHIP NAME']
-                        ditc  = hdrj['ESO DET SEQ1 DIT']
-                        try:
-                            chopc = hdrj['ESO ISS CHOP ST']
-                        except:
-                            chopc = 'F'
-                            print("error")
-                        dif = mjd - mjdc
-                        absdif = np.abs(dif)
-                        if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
-                            if (absdif < float(timespan)):
-                                #print(fcal)
-                                #print(mjdc)
-                                #print(dif)
-                                soffile.write('{} \t {} \n'.format(fcal,obstypec))
-                                calcount+=1
+                
+                if useClosest==True:
+                    j=findClosestCal(DIC,i)
+                    fcal=files[j]
+                    soffile.write('{} \t {} \n'.format(fcal,'CALIB_RAW_INT'))
+                else:
+                    for j,fcal in enumerate(files):
+                        if fcal != f:
+                            hdrj = DIC[j]['hdr']
+                            obstypec = hdrj['ESO PRO CATG']
+                            mjdc  = hdrj['MJD-OBS']
+                            bcd1c = hdrj['ESO INS BCD1 NAME']
+                            bcd2c = hdrj['ESO INS BCD2 NAME']
+                            chipc = hdrj['ESO DET CHIP NAME']
+                            ditc  = hdrj['ESO DET SEQ1 DIT']
+                            try:
+                                chopc = hdrj['ESO ISS CHOP ST']
+                            except:
+                                chopc = 'F'
+                                print("error")
+                            dif = mjd - mjdc
+                            absdif = np.abs(dif)
+                            if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
+                                if (absdif < float(timespan)):
+                                    #print(fcal)
+                                    #print(mjdc)
+                                    #print(dif)
+                                    soffile.write('{} \t {} \n'.format(fcal,obstypec))
+                                    calcount+=1
 
                 soffile.close()
                 #print("Found",calcount,"suitable calibrators")
@@ -139,6 +191,9 @@ if __name__ == '__main__':
     parser.add_argument('--timespan', dest='timespan', metavar='Timespan of calibs', type=str, default='.', \
     help='The time search interval for selecting calibrators around the science star')
     #--------------------------------------------------------------------------
+    parser.add_argument('--useClosest', default=False,  action='store_true', \
+    help='Use this option to force to use only the closest calibrateur (mandatory to calibrate corr. flux)')
+    #--------------------------------------------------------------------------
 
     try:
         args = parser.parse_args()
@@ -153,12 +208,13 @@ if __name__ == '__main__':
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 
+
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
     if (args.timespan=='.'):
-        targsof = make_sof(args.in_dir, args.out_dir)
+        targsof = make_sof(args.in_dir, args.out_dir,useClosest=args.useClosest)
     else:
-        targsof = make_sof(args.in_dir, args.out_dir, args.timespan)
+        targsof = make_sof(args.in_dir, args.out_dir, args.timespan,useClosest=args.useClosest)
 
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------
