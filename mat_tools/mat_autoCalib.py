@@ -35,7 +35,7 @@ from multiprocessing.pool import Pool
 #------------------------------------------------------------------------------
 
 
-def findClosestCal(DIC,i):
+def findClosestCal(DIC,i,way=0):
     hdri = DIC[i]['hdr']
     mjd  = hdri['MJD-OBS']
     bcd1 = hdri['ESO INS BCD1 NAME']
@@ -70,16 +70,31 @@ def findClosestCal(DIC,i):
             goodCalIdx.append(j)
             mjds.append(mjdc)
             
-    diff=np.abs(np.array(mjds)-mjd) 
-    idx=np.argmin(diff)
+    diff=np.array(mjds)-mjd
+
+    if way==0: #closet cal
+        idx=np.argmin(np.abs(diff))
+    if way==1: #closet cal after
+        if mjd<np.max(mjds):
+            idx=np.where(diff>0,diff,np.inf).argmin()
+        else:
+            idx=-1
+    if way==-1:  #closet cal before
+        if mjd>np.min(mjds):
+            idx=np.where(diff<0,diff,-np.inf).argmax()   
+        else:
+            idx=-1
     
-    return goodCalIdx[idx]
+    if idx!=-1:
+        return goodCalIdx[idx]
+    else:
+        return -1
                 
 
     
 
 
-def make_sof(input_dir, output_dir, timespan=0.04,useClosest=False):
+def make_sof(input_dir, output_dir, timespan=0.04,interpType="MEAN"):
 
     SOFFILE = [];
     files =  glob.glob(input_dir+'/*.fits')
@@ -127,11 +142,26 @@ def make_sof(input_dir, output_dir, timespan=0.04,useClosest=False):
                 soffile.write('{} \t {} \n'.format(f,obstype))
                 calcount = 0;
                 
-                if useClosest==True:
-                    j=findClosestCal(DIC,i)
+                if interpType=="NEAREST":
+                    j=findClosestCal(DIC,i,way=0)
                     fcal=files[j]
                     soffile.write('{} \t {} \n'.format(fcal,'CALIB_RAW_INT'))
-                else:
+                    
+                elif interpType=="LINEAR":
+                    jm=findClosestCal(DIC,i,way=-1)
+                    jp=findClosestCal(DIC,i,way=1)
+                    if jm!=-1:
+                        fcal=files[jm]
+                        soffile.write('{} \t {} \n'.format(fcal,'CALIB_RAW_INT'))
+                       
+                    
+                    if jp!=-1:
+                        fcal=files[jp]
+                        soffile.write('{} \t {} \n'.format(fcal,'CALIB_RAW_INT'))                   
+                    
+                    
+                    
+                else:# interpType="MEAN"
                     for j,fcal in enumerate(files):
                         if fcal != f:
                             hdrj = DIC[j]['hdr']
@@ -173,7 +203,7 @@ if __name__ == '__main__':
     print("Starting...")
 
     #--------------------------------------------------------------------------
-    parser = argparse.ArgumentParser(description='Wrapper to run the calibration steps of the MATISSE DRS on a given directory containong raw OIFITS files.')
+    parser = argparse.ArgumentParser(description='Wrapper to run the calibration steps of the MATISSE DRS on a given directory containing raw OIFITS files.')
 
     #--------------------------------------------------------------------------
     parser.add_argument('in_dir', metavar='in_dir', type=str, \
@@ -189,10 +219,10 @@ if __name__ == '__main__':
 
     #--------------------------------------------------------------------------
     parser.add_argument('--timespan', dest='timespan', metavar='Timespan of calibs', type=str, default='.', \
-    help='The time search interval for selecting calibrators around the science star')
+    help='The time search interval for selecting calibrators around the science star (only used for --interpType=MEAN)')
     #--------------------------------------------------------------------------
-    parser.add_argument('--useClosest', default=False,  action='store_true', \
-    help='Use this option to force to use only the closest calibrateur (mandatory to calibrate corr. flux)')
+    parser.add_argument('--interpType', default="MEAN", \
+    help='interpolation type of the Transfer Function : should be either MEAN(default), NEAREST or LINEAR ')
     #--------------------------------------------------------------------------
 
     try:
@@ -212,15 +242,19 @@ if __name__ == '__main__':
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
     if (args.timespan=='.'):
-        targsof = make_sof(args.in_dir, args.out_dir,useClosest=args.useClosest)
+        targsof = make_sof(args.in_dir, args.out_dir,interpType=args.interpType)
     else:
-        targsof = make_sof(args.in_dir, args.out_dir, args.timespan,useClosest=args.useClosest)
+        targsof = make_sof(args.in_dir, args.out_dir, args.timespan,interpType=args.interpType)
 
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------
     for isof in tqdm(targsof, unit="file", unit_scale=False, desc="Calibrating"):
+        if args.interpType=="LINEAR":
+            add="--tfInterp=2"
+        else:
+            add=""
         #print 'Running mat_cal_oifits on sof:%s'%(isof)
-        call("esorex --output-dir=%s mat_cal_oifits %s >> log.log"%(args.out_dir,isof), shell=True)
+        call("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof), shell=True)
 
         # Create a process pool with a maximum of 10 worker processes
 	#pool = Pool(processes=8)
