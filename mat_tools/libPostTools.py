@@ -125,7 +125,7 @@ def mat_mergeOifits(oifitsList):
         vis22=temp.data["VIS2DATA"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]/nBmin
+            nmod=nB[ifile]//nBmin
             for imod in range(nmod):
                 if (ifile!=0) or (imod!=0): 
                     for key in ["VIS2DATA","VIS2ERR","UCOORD","VCOORD","TIME","MJD","INT_TIME"]:
@@ -157,7 +157,7 @@ def mat_mergeOifits(oifitsList):
         for ifile in range(nfile):
             #print('ifile = {0}').format(ifile)
             #print(data[ifile].filename())
-            nmod=nB[ifile]/nBmin
+            nmod=nB[ifile]//nBmin
             for imod in range(nmod):
                 if ((ifile!=0) or (imod!=0)): 
                     #print('Vis: calcul moyenne')
@@ -192,7 +192,7 @@ def mat_mergeOifits(oifitsList):
 
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]/nBmin
+            nmod=nB[ifile]//nBmin
             for imod in range(nmod):
                 if (ifile!=0) or (imod!=0):  
                     for key in ["T3PHIERR","U1COORD","V1COORD","U2COORD","V2COORD","TIME","MJD","INT_TIME"]:
@@ -216,7 +216,7 @@ def mat_mergeOifits(oifitsList):
         flux2=temp.data["FLUXDATA"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]/nBmin
+            nmod=nB[ifile]//nBmin
             for imod in range(nmod):
                 if (ifile!=0) or (imod!=0):  #Problem here
                     for key in ["FLUXDATA","FLUXERR","TIME","MJD","INT_TIME"]:
@@ -289,7 +289,7 @@ def mat_removeBCD(oifits,saveFits=False):
     
     extnames=[hdu.name for hdu in data]
 
-    #------------------OI_VIS2-------------------------
+        #------------------OI_VIS2-------------------------
     if "OI_VIS2" in extnames:
 
         temp=data["OI_VIS2"].copy()
@@ -297,7 +297,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 6
-            shift0 = (iB / 6)*6
+            shift0 = (int(iB) // 6)*6
             temp.data[iB2+shift0]=data["OI_VIS2"].data[BCD[bcd][iB2]+shift0]
             temp.data[iB2+shift0]["UCOORD"]*=BCDsign[bcd][iB2]
             temp.data[iB2+shift0]["VCOORD"]*=BCDsign[bcd][iB2]
@@ -313,7 +313,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 6
-            shift0 = (iB / 6)*6
+            shift0 = (iB // 6)*6
             temp.data[iB2+shift0]=data["OI_VIS"].data[BCD[bcd][iB2]+shift0]
             temp.data[iB2+shift0]["VISPHI"]*=BCDsign[bcd][iB2]
             temp.data[iB2+shift0]["UCOORD"]*=BCDsign[bcd][iB2]
@@ -331,13 +331,14 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 4
-            shift0 = (iB / 4)*4
+            shift0 = (iB // 4)*4
+            shift0V2 = (iB // 4)*6
             data["OI_T3"].data[BCDcp[bcd][iB2]+shift0]["T3PHI"]*=BCDcpsign[bcd][iB2]
             temp.data[iB2+shift0]=data["OI_T3"].data[BCDcp[bcd][iB2]+shift0]
-            temp.data[iB2+shift0]["U1COORD"]=data["OI_VIS2"].data["UCOORD"][uv1[iB2]]
-            temp.data[iB2+shift0]["V1COORD"]=data["OI_VIS2"].data["VCOORD"][uv1[iB2]]
-            temp.data[iB2+shift0]["U2COORD"]=data["OI_VIS2"].data["UCOORD"][uv2[iB2]]
-            temp.data[iB2+shift0]["V2COORD"]=data["OI_VIS2"].data["VCOORD"][uv2[iB2]]
+            temp.data[iB2+shift0]["U1COORD"]=data["OI_VIS2"].data["UCOORD"][uv1[iB2]+shift0V2]
+            temp.data[iB2+shift0]["V1COORD"]=data["OI_VIS2"].data["VCOORD"][uv1[iB2]+shift0V2]
+            temp.data[iB2+shift0]["U2COORD"]=data["OI_VIS2"].data["UCOORD"][uv2[iB2]+shift0V2]
+            temp.data[iB2+shift0]["V2COORD"]=data["OI_VIS2"].data["VCOORD"][uv2[iB2]+shift0V2]
             temp.data[iB2+shift0]["STA_INDEX"]=np.array([sta_index[sta_index_cp[iB2][i]] for i in range(3)])
 
         data["OI_T3"]=temp
@@ -354,7 +355,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 4
-            shift0 = (iB / 4)*4
+            shift0 = (iB // 4)*4
             temp.data[iB2+shift0]=data["OI_FLUX"].data[BCDflux[bcd][iB2]+shift0]
 
         data["OI_FLUX"]=temp
@@ -368,7 +369,7 @@ def mat_removeBCD(oifits,saveFits=False):
         nB=len(temp.data)
         for iB in range(nB):
             iB2=iB % 6
-            shift0 = (iB / 6)*6
+            shift0 = (iB // 6)*6
             temp.data[iB2+shift0]=data["TF2"].data[BCD[bcd][iB2]+shift0]
             if BCDsign[bcd][iB2]==-1:
                 temp.data[iB2+shift0]["STA_INDEX"]=np.flip(temp.data[iB2+shift0]["STA_INDEX"],axis=0)
@@ -384,6 +385,8 @@ def mat_removeBCD(oifits,saveFits=False):
         #filenamein=data.filename()
         #filenameout= filenamein.split(".fits")[0]+"_noBCD.fits"
         data.writeto(data.filename())
+        
+    return data
 
 
 #=============================================================================
