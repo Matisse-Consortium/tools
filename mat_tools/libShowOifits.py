@@ -38,6 +38,7 @@ from astropy.io import fits
 from os.path import expanduser
 from matplotlib.ticker import *
 from matplotlib import cm
+from statistics import median
 
 home = expanduser("~")
 
@@ -253,7 +254,7 @@ def open_oi(oi_file):
 ###############################################################################
 
 def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
-                    subplotCP=None,useFlag=True, color='lightgray',
+                    subplotCP=None, useFlag=True, color='lightgray',
                     plot_errorbars=True,plotfreq='as',
                     closlim=[-200,200],vislim=[-0.1,1.1],freqlim=None):
     wl    = dic['WLEN'];
@@ -301,6 +302,8 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
         elif plotfreq=='m':
             freq=r;
             freqlabel='Baseline (m)'
+
+        
         if useFlag==True:
             test = ~vis2f[i, :]
         else:
@@ -351,17 +354,34 @@ def show_oi_vs_freq(dic, wlenRange=[], log=False,showvis=False, subplotV2=None,
         r1 = np.sqrt(u1[i] ** 2 + v1[i] ** 2);
         r2 = np.sqrt(u2[i] ** 2 + v2[i] ** 2);
         r3 = np.sqrt((u1[i] + u2[i]) ** 2 + (v1[i] + v2[i]) ** 2);
+
+        maxr = max(r1,r2,r3);
+        minr = min(r1,r2,r3);
+        rat = maxr/minr;
+        avgr_geometric = (r1 * r2 * r3)**(1./3.);
+        avgr_arithmetic = (r1 + r2 + r3)/3.;
+        normr = np.sqrt(r1*r1 + r2*r2 + r3*r3);
+        med = median([r1, r2, r3]);
+        
+        #base = normr;
+        #base = 1./rat*normr;
+        #base = maxr;
+        #base = avgr_geometric;
+        base = avgr_arithmetic;
+        #base = med;
+        #base = r1;
+        
         if plotfreq == 'rad':
             #freq = np.maximum(np.maximum(r1, r2), r3) / wl;
-            freq = (r1 * r2 * r3)**(1./3.) / wl
+            freq = base / wl
         elif plotfreq=='as':
             #freq = np.maximum(np.maximum(r1, r2), r3) / wl * math.pi/180/3600
-            freq = (r1 * r2 * r3)**(1./3.) / wl * math.pi/180/3600;
+            freq = base / wl * math.pi/180/3600;
             #freq = (r1 + r2 + r3)/3. / wl * math.pi/180/3600;
         elif plotfreq=='m':
             #freq = np.maximum(np.maximum(r1, r2), r3);
-            freq = (r1 * r2 * r3)**(1./3.)
-
+            freq = base
+            
         if useFlag==True:
             test = ~cpf[i, :]
         else:
@@ -1654,8 +1674,9 @@ def open_oi_dir(input_dir, verbose=True):
 # DIT_range: [min,max] (s)
 # targets = []
 
-def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[], DIT_range=[],
-targets=[], BCD1=[], BCD2=[], WLEN_range=[],file_pattern=[]):
+def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[],
+                   DIT_range=[],targets=[], BCD1=[], BCD2=[], WLEN_range=[],
+                   file_pattern=[]):
     filtered_list_of_dicts = []
     if bands:
         # print  'old:',bands
@@ -1704,23 +1725,39 @@ targets=[], BCD1=[], BCD2=[], WLEN_range=[],file_pattern=[]):
 
             # filter oifits files on wavelength
             if WLEN_range:
-                wl1 = WLEN_range[0];
-                wl2 = WLEN_range[1];
-                dic['VIS2']['VIS2']      = dic['VIS2']['VIS2'][wl1:wl2]
-                dic['VIS2']['VIS2ERR']   = dic['VIS2']['VIS2ERR'][wl1:wl2]
-                dic['VIS']['VISAMP']     = dic['VIS']['VISAMP'][wl1:wl2]
-                dic['VIS']['VISAMPERR']  = dic['VIS']['VISAMPERR'][wl1:wl2]
-                dic['VIS']['DPHI']       = dic['VIS']['DPHI'][wl1:wl2]
-                dic['VIS']['DPHIERR']    = dic['VIS']['DPHIERR'][wl1:wl2]
-                dic['TF2']['TF2']        = dic['TF2']['TF2'][wl1:wl2]
-                dic['TF2']['TF2ERR']     = dic['TF2']['TF2ERR'][wl1:wl2]
-                dic['T3']['T3AMP']       = dic['T3']['T3AMP'][wl1:wl2]
-                dic['T3']['T3AMPERR']    = dic['T3']['T3AMPERR'][wl1:wl2]
-                dic['T3']['T3CLOS']      = dic['T3']['CLOS'][wl1:wl2]
-                dic['T3']['T3CLOSERR']   = dic['T3']['CLOSERR'][wl1:wl2]
-                dic['FLUX']['FLUX']      = dic['T3']['CLOS'][wl1:wl2]
-                dic['FLUX']['T3CLOSERR'] = dic['T3']['CLOSERR'][wl1:wl2]
+                wlen = dic['WLEN'];
+                difwl = np.average(wlen[1:]-wlen[:-1]);
 
+                if(difwl > 0):
+                    wl1 = np.where(wlen > WLEN_range[0])[0][-1];
+                    wl2 = np.where(wlen < WLEN_range[1])[0][0];
+                else:
+                    wl2 = np.where(wlen > WLEN_range[0])[0][-1];
+                    wl1 = np.where(wlen < WLEN_range[1])[0][0];
+
+                dic['WLEN'] = dic['WLEN'][wl1:wl2]
+                dic['VIS2']['VIS2']      = dic['VIS2']['VIS2'][:,wl1:wl2]
+                dic['VIS2']['VIS2ERR']   = dic['VIS2']['VIS2ERR'][:,wl1:wl2]
+                dic['VIS2']['FLAG']   = dic['VIS2']['FLAG'][:,wl1:wl2]
+                dic['VIS']['VISAMP']     = dic['VIS']['VISAMP'][:,wl1:wl2]
+                dic['VIS']['VISAMPERR']  = dic['VIS']['VISAMPERR'][:,wl1:wl2]
+                dic['VIS']['DPHI']       = dic['VIS']['DPHI'][:,wl1:wl2]
+                dic['VIS']['DPHIERR']    = dic['VIS']['DPHIERR'][:,wl1:wl2]
+                dic['VIS']['FLAG']   = dic['VIS']['FLAG'][:,wl1:wl2]
+                dic['T3']['T3AMP']       = dic['T3']['T3AMP'][:,wl1:wl2]
+                dic['T3']['T3AMPERR']    = dic['T3']['T3AMPERR'][:,wl1:wl2]
+                dic['T3']['CLOS']      = dic['T3']['CLOS'][:,wl1:wl2]
+                dic['T3']['CLOSERR']   = dic['T3']['CLOSERR'][:,wl1:wl2]
+                dic['T3']['FLAG']   = dic['T3']['FLAG'][:,wl1:wl2]
+                dic['FLUX']['FLUX']      = dic['T3']['CLOS'][:,wl1:wl2]
+                dic['FLUX']['FLUXERR'] = dic['T3']['CLOSERR'][:,wl1:wl2]
+
+                try:
+                    dic['TF2']['TF2']        = dic['TF2']['TF2'][wl1:wl2]
+                    dic['TF2']['TF2ERR']     = dic['TF2']['TF2ERR'][wl1:wl2]
+                except:
+                    print("No transfer function")
+                    
     return filtered_list_of_dicts
 
 ###############################################################################

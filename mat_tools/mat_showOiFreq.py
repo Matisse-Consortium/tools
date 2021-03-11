@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -56,6 +56,9 @@ if __name__ == '__main__':
     parser.add_argument('--showcrap',   action="store_true",
                         help='Show the flagged data as a light gray line')
     #--------------------------------------------------------------------------
+    parser.add_argument('--wl', nargs="+",type=float,
+                        default=[0,1], help='Select a wavelength interval')
+    #--------------------------------------------------------------------------
     parser.add_argument('--showtitle', metavar='showtitle', type=str,
                         help='Display a title with the name of the star or not.',
                         default=True)
@@ -89,7 +92,7 @@ if __name__ == '__main__':
     for band in ["LM","N"]:
         for target in targets:
             print("***************************{0}_{1}***************************".format(target,band))
-            filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts,targets=[target],bands=[band])
+            filtered_list_of_dicts = msoi.filter_oi_list(list_of_dicts,targets=[target],bands=[band],WLEN_range=args.wl)
             print("number of files = {0}".format(len(filtered_list_of_dicts)))
             if len(filtered_list_of_dicts) == 0:
                 break;
@@ -116,5 +119,5 @@ if __name__ == '__main__':
                 plt.close(fig)
                 print("saving to {0}".format(pdfname))
 
-   	if not(args.pdf):
+        if not(args.pdf):
             plt.show()
