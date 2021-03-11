@@ -86,11 +86,6 @@ if __name__ == '__main__':
     print(targets)
 
 
-    if args.pdf:
-        pdfname=dir0+"/"+ os.path.basename(dir0) +'_plots_freq.pdf'
-        pdf = PdfPages(pdfname)
-        print("saving to {0}".format(pdfname))
-
     for band in ["LM","N"]:
         for target in targets:
             print("***************************{0}_{1}***************************".format(target,band))
@@ -123,7 +118,3 @@ if __name__ == '__main__':
 
    	if not(args.pdf):
             plt.show()
-
-    if args.pdf:
-        pdf.close()
-
