@@ -69,27 +69,28 @@ def findClosestCal(DIC,i,way=0):
         if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
             goodCalIdx.append(j)
             mjds.append(mjdc)
-            
-    diff=np.array(mjds)-mjd
-
-    if way==0: #closet cal
-        idx=np.argmin(np.abs(diff))
-    if way==1: #closet cal after
-        if mjd<np.max(mjds):
-            idx=np.where(diff>0,diff,np.inf).argmin()
+    if len(mjds)!=0:     
+        diff=np.array(mjds)-mjd     
+        
+        if way==0: #closet cal
+            idx=np.argmin(np.abs(diff))
+        if way==1: #closet cal after
+            if mjd<np.max(mjds):
+                idx=np.where(diff>0,diff,np.inf).argmin()
+            else:
+                idx=-1
+        if way==-1:  #closet cal before
+            if mjd>np.min(mjds):
+                idx=np.where(diff<0,diff,-np.inf).argmax()   
+            else:
+                idx=-1
+        
+        if idx!=-1:
+            return goodCalIdx[idx]
         else:
-            idx=-1
-    if way==-1:  #closet cal before
-        if mjd>np.min(mjds):
-            idx=np.where(diff<0,diff,-np.inf).argmax()   
-        else:
-            idx=-1
-    
-    if idx!=-1:
-        return goodCalIdx[idx]
+            return -1
     else:
         return -1
-                
 
     
 
@@ -250,7 +251,8 @@ if __name__ == '__main__':
     #----- Run the Recipes ----------------------------------------------------
     for isof in tqdm(targsof, unit="file", unit_scale=False, desc="Calibrating"):
         if args.interpType=="LINEAR":
-            add="--tfInterp=2"
+            #add="--tfInterp=2" # COMMENTED as the tfInterp=2 option give weird results for now
+            add=""
         else:
             add=""
         #print 'Running mat_cal_oifits on sof:%s'%(isof)
