@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -183,6 +183,6 @@ if __name__ == '__main__':
                         change_oifitsFile_name(os.path.join(newdir,fifil))
                 except:
                     do_nothing = 1;
-                    print("Not a fits file!")
+                    #print("Not a fits file!")
 
     print("I made my job!")
