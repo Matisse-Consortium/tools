@@ -231,7 +231,7 @@ if __name__ == '__main__':
     except:
         print("\n\033[93mRunning mat_autoCalib.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-	sys.exit(0)
+        sys.exit(0)
 
     if args.out_dir == None:
         args.out_dir = os.path.dirname(args.in_dir) + "_CALIBRATED"
@@ -259,9 +259,9 @@ if __name__ == '__main__':
         call("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof), shell=True)
 
         # Create a process pool with a maximum of 10 worker processes
-	#pool = Pool(processes=8)
-	# Map our function to a data set - number 1 through 20
-	#pool.map(runEsorex, listCmdEsorex)
+        #pool = Pool(processes=8)
+        # Map our function to a data set - number 1 through 20
+        #pool.map(runEsorex, listCmdEsorex)
 
         name, ext = os.path.splitext(isof)
         #print(name)
