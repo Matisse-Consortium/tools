@@ -527,7 +527,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                    keyDetChipName == "HAWAII-2RG" and keyInsDilId == "HIGH+") or
                 (keyInsDinId    == keyInsDinIdCalib and
                    keyDetChipName == "AQUARIUS")))):
-                print"SHIFT"
+                print("SHIFT")
                 idx=-1
                 cpt=0
                 for elt2 in res:
