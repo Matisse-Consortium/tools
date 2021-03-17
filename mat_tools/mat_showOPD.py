@@ -101,7 +101,7 @@ def mat_show_opd(input_path="",output_path=""):
     fig1.savefig(outputfig + '.png', dpi=300)
     fig1.savefig(outputfig + '.eps', format='eps', dpi=300)
     plt.close(fig1)
-    print 'READY'
+    print('READY')
 
 if __name__ == '__main__':
     list_arg = sys.argv
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         out_path = list_arg[2]
         mat_show_opd(in_path,out_path)
     else:
-        print "Wrong number of arguments."
+        print("Wrong number of arguments.")
 
 
 

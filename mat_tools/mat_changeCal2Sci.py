@@ -65,7 +65,7 @@ class changeKey(wx.Frame):
 
     def OnClicked(self, event):
         btn = event.GetEventObject().GetLabel()
-        print "Label of pressed button = ",btn
+        print ("Label of pressed button = ",btn)
 
     def OnLoadFiles(self,event):
         openFileDialog = mat_FileDialog(None, 'Select a directory',self.dir)

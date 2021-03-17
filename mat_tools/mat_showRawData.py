@@ -116,7 +116,7 @@ class mat_showRawData():
                     bottom = ypos + np.shape(img)[0]
 
                     if iy == 1 and ix == 1 and auto == True:
-                        print ("min = {0} max = {1}".format(self.sliderMax.val,self.sliderMin.val))
+                        print("min = {0} max = {1}".format(self.sliderMax.val,self.sliderMin.val))
                         image_histogram, bins = np.histogram(img.flatten(),
                              int(np.sqrt(len(img.flatten()))), normed=False)
                         maximg = image_histogram - np.median(image_histogram) > 15
@@ -125,7 +125,7 @@ class mat_showRawData():
                         maxi = mini + (maxi - mini)/3
                         self.sliderMax.set_val(maxi)
                         self.sliderMin.set_val(mini)
-                        print ("min = {0} max = {1}".format(self.sliderMin.val,self.sliderMax.val))
+                        print("min = {0} max = {1}".format(self.sliderMin.val,self.sliderMax.val))
 
                     if maxi<=mini:
                         maxi = mini+1
@@ -135,7 +135,7 @@ class mat_showRawData():
                     self.ax.imshow(img,extent=[left,right,top,bottom],
                       vmin=mini,vmax=maxi, interpolation = 'nearest',
                                                         cmap = 'afmhot')
-                    print ("iregion = {0} : [{1},{2},{3},{4}]".format(iregion,left,right,top,bottom))
+                    print("iregion = {0} : [{1},{2},{3},{4}]".format(iregion,left,right,top,bottom))
 
                     xpos += np.shape(img)[1]+5
                 ypos += np.shape(img)[0]+5
@@ -153,9 +153,9 @@ if __name__ == '__main__':
 
     try:
         if (arg[1]=="--help" or arg[1]== "-h"):
-            print "mat_show_rawdata script to visualize raw data"
-            print "Usage : filename [-options]"
-            print "options :"
+            print("mat_show_rawdata script to visualize raw data")
+            print("Usage : filename [-options]")
+            print("options :")
         else:
             filename=arg[1]
     except:

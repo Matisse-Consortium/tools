@@ -71,11 +71,11 @@ if  __name__== '__main__' :
     arg=sys.argv
 
     if (arg[1]=="--help" or arg[1]== "-h"):
-        print "mat_plotRmnecOpd script to visualize OD offset from RMNREC file"
-        print "Usage : filename [-options]"
-        print "options :"
-        print " --removeAvg [True False]"
-        print " --relative [True False]"
+        print( "mat_plotRmnecOpd script to visualize OD offset from RMNREC file")
+        print( "Usage : filename [-options]")
+        print( "options :")
+        print( " --removeAvg [True False]")
+        print( " --relative [True False]")
     else:
         filename=arg[1]
 
@@ -83,7 +83,7 @@ if  __name__== '__main__' :
         narg=len(arg)
         removeAvg=False
         relative=False
-        #print arg
+        
         for i in range(2,narg):
             if (arg[i] == '--removeAvg' ):
                 removeAvg=arg[i+1]

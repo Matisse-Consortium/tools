@@ -105,11 +105,11 @@ if  __name__== '__main__' :
     arg=sys.argv
 
     if (arg[1]=="--help" or arg[1]== "-h"):
-        print "mat_fringe_flux_plot script to visualize flux vs time on fringes exposures"
-        print "Usage : filename [-options]"
-        print "options :"
-        print " --sky skyfilename"
-        print " --unchop"
+        print( "mat_fringe_flux_plot script to visualize flux vs time on fringes exposures")
+        print( "Usage : filename [-options]")
+        print( "options :")
+        print( " --sky skyfilename")
+        print( " --unchop")
     else:
         filename=arg[1]
 
@@ -117,7 +117,7 @@ if  __name__== '__main__' :
         narg=len(arg)
         unchop=False
         skyfilename=""
-        #print arg
+        
         for i in range(2,narg):
             if (arg[i] == '--sky' ):
                 skyfilename=arg[i+1]

@@ -96,8 +96,8 @@ def show_kappa(filename):
     axarr[0].set_title(configType,fontsize=12)
 
     for i in range(nBeam):
-        print np.mean(coefKappa[i][szSpectral[i]+85:szSpectral[i]+135])
-        print np.std(coefKappa[i][szSpectral[i]+85:szSpectral[i]+135])
+        print(np.mean(coefKappa[i][szSpectral[i]+85:szSpectral[i]+135]))
+        print(np.std(coefKappa[i][szSpectral[i]+85:szSpectral[i]+135]))
     #    axarr[1].plot(wavelength,coefKappa[i][szSpectral[i]:2*szSpectral[i]],label=regName[i],marker=(4,i,0),linestyle='-')
         #axarr[1].plot(wavelength,coefKappa[i][szSpectral[i]:2*szSpectral[i]],label=regName[i],linestyle='-')
         axarr[1].errorbar(wavelength,coefKappa[i][szSpectral[i]:2*szSpectral[i]],yerr=errCoefKappa[i][szSpectral[i]:2*szSpectral[i]],label=regName[i],linestyle='-')
@@ -135,7 +135,7 @@ def show_kappa(filename):
 app = wx.App()
 openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
 if openFileDialog.ShowModal() == wx.ID_OK:
-    print openFileDialog.GetPaths()
+    print( openFileDialog.GetPaths())
     filename = openFileDialog.GetPaths()[0]
 
 show_kappa(filename)
