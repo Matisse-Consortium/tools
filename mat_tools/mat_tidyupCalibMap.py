@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -140,4 +140,4 @@ if __name__ == '__main__':
                     except:
                         print("Not a proper fits file!")
         
-print("I made my job, baby!")
+print("I made my job!")
