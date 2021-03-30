@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -36,7 +36,7 @@ import filecmp
 from libAutoPipeline import *
 from multiprocessing.pool import Pool
 from functools import partial
-#from astroquery.vizier import Vizier
+from astroquery.vizier import Vizier
 
 #import pdb
 
@@ -72,7 +72,7 @@ def removeDoubleParamater(p):
 
 def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0, tplstartsel="", tplidsel=""):
 
-    #v = Vizier(columns=["med-Lflux","med-Mflux","med-Nflux"], catalog="II/361")
+    v = Vizier(columns=["med-Lflux","med-Mflux","med-Nflux"], catalog="II/361")
     # Print meaningful error messages if something is wrong in the command line
     print("------------------------------------------------------------------------")
     if (dirRaw == ""):
@@ -311,13 +311,13 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                 elt["param"]    = param
             elt["tplstart"] = keyTplStartCurrent
         # Fill with GRA4MAT data
-        '''print("Searching GRA4MAT data...")
+        print("Searching GRA4MAT data...")
         for elt in listRedBlocks:
             hdr  = elt["input"][0][2]
             keyTplStartCurrent=hdr['HIERARCH ESO TPL START']
             for fileGV,hdrGV in zip(listGRA4MAT, listhdrGRA4MAT):
                 if (hdrGV['HIERARCH ESO TPL START'] == keyTplStartCurrent):
-                    elt["input"].append([fileGV,"GRAVITY",hdrGV])'''
+                    elt["input"].append([fileGV,"RMNREC",hdrGV])
 
         # Fill the list of calib in the Reduction Blocks List from dirCalib
         print("listing calibrations in the reduction blocks...")
@@ -465,7 +465,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
         print('%-40s' % ("Reduction Blocks processed:",),cptStatusOne)
         print('%-40s' % ("Reduction Blocks not processed:",),cptStatusZero)
 
-        '''# Add MDFC Fluxes to CALIB_RAW_INT and TARGET_RAW_INT
+        # Add MDFC Fluxes to CALIB_RAW_INT and TARGET_RAW_INT
         listOifitsFiles = glob.glob(repIter+"/*.rb/*_RAW_INT*.fits")
         for elt in listOifitsFiles:
             hdu = fits.open(elt, mode='update')
@@ -481,7 +481,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                 hdu.flush()
             except:
                 print("Object "+targetname+" not found in MDFC catalog")                
-            hdu.close()'''
+            hdu.close()
             
         if (listCmdEsorex == [] or iterNumber == maxIter):
             print(" ")
