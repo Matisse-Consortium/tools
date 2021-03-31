@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -29,35 +29,35 @@ import numpy as np
 from astropy.io import fits
 import fnmatch
 from libAutoPipeline import matisseType
+from tqdm import tqdm
+import argparse
 
-RES_LM = []
-RES_N = []
-obsTypes = ["TARGET_RAW", "CALIB_RAW", "SKY_RAW"]
-
-for root, dir, files in os.walk("."):
-        print(root)
-        print("")
-        for file in fnmatch.filter(files, "*.fits*"):
-            print((file), end=' ')
-        
+def listDITs(inDir):
+    RES_LM   = []
+    RES_N    = []
+    obsTypes = ["TARGET_RAW", "CALIB_RAW", "SKY_RAW","TARGET_RAW_INT", "CALIB_RAW_INT"]
+    
+    for root, dir, files in os.walk(inDir):
+        print("Looking for observing files in "+root)
+        for file in tqdm(fnmatch.filter(files, "*.fits*"),unit=" file", unit_scale=False, desc="Working on"):
             header  = fits.open(os.path.join(root,file))[0].header
             type = matisseType(header)
             
             for typ in obsTypes:
                 if type == typ:
-                    print((typ), end=' ')
+                   # print((typ), end=' ')
                     try:
                         dit  = header['HIERARCH ESO DET SEQ1 DIT']
                         chip = header["HIERARCH ESO DET CHIP NAME"]
                         mod  = header["HIERARCH ESO DET READ CURNAME"]
                     except:
-                        pass
+                        continue
                     if chip == "HAWAII-2RG":
                         try:
                             res     = header["HIERARCH ESO INS DIL NAME"]
                             strin = chip+" "+res+" "+mod+" "+str(dit)
                             RES_LM   = np.append(RES_LM, strin)
-                            print(strin)
+                          #  print(strin)
                         except:
                             pass
                     elif chip == "AQUARIUS":
@@ -65,14 +65,37 @@ for root, dir, files in os.walk("."):
                             res     = header["HIERARCH ESO INS DIN NAME"]
                             strin = chip+" "+res+" "+mod+" "+str(dit)
                             RES_N   = np.append(RES_N, strin)
-                            print(strin)
+                         #   print(strin)
                         except:
-                            pass
+                            continue
                         
-                        
-            print(' ')
+    res, idx = np.unique(RES_LM, return_index=True)
+    print("DITs LM",res)
+    res, idx = np.unique(RES_N, return_index=True)
+    print("DITs N", res)
 
-res, idx = np.unique(RES_LM, return_index=True)
-print(("DITs LM",res))
-res, idx = np.unique(RES_N, return_index=True)
-print(("DITs N", res))
+    return res;
+
+
+if __name__ == '__main__':
+    print("Starting mat_listDITs...")
+
+    #--------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='A small utility tool to list DITs in a data directory.')
+
+    #--------------------------------------------------------------------------
+    parser.add_argument('matFitsDir', default="",  \
+    help='The path to the file or directory containing your MATISSE fits data.')
+
+    try:
+        args = parser.parse_args()
+    except:
+        print("\n\033[93mRunning mat_listDITs.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+        print("\n     Example : python mat_listDITs.py /data/2018-05-19")
+        sys.exit(0)
+        
+    if os.path.isdir(args.matFitsDir):
+        print("Listing files in directory "+args.matFitsDir+"...")
+
+        listDITs(args.matFitsDir);
