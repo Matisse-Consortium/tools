@@ -40,6 +40,7 @@ def make_sof(input_dir, output_dir, timespan=0.04):
     TPLST = []
     CH = []
     DI = []
+    MJD = []
     files =  glob.glob(input_dir+'/*.fits')
     #print input_dir#, files
 
@@ -71,12 +72,14 @@ def make_sof(input_dir, output_dir, timespan=0.04):
                 TPLST.append(tplstart)
                 CH.append(chip)
                 DI.append(dit)
+                MJD.append(mjd)
     for j,fname in enumerate(SOFFILE):
         tplstart=TPLST[j]
         chip=CH[j]
         dit=DI[j]
         FILE = []
         OBSTYPE = []
+        mjd=MJD[j]
         for i,f in enumerate(files):
             hdri = DIC[i]['hdr']
             obstype = hdri['ESO PRO CATG']
