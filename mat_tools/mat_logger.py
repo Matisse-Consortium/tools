@@ -828,7 +828,6 @@ class mat_logger(wx.Dialog):
         idx      = self.fileListWidget.GetItem(itemNum).GetData()
         l        = self.fileListWidget.GetObjects()
         filename = l[idx].filename
-
         print("Plotting flux vs time for file "+ filename+"...")
         mat_showFluxVsTime(filename)
 
