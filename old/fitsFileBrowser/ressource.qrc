@@ -1,9 +1,0 @@
-<RCC>
-  <qresource prefix="icons">
-    <file>open_data.ico</file>
-    <file>view_data.ico</file>
-    <file>view_header.ico</file>
-    <file>filter_tool.ico</file>
-    <file>filter_data.ico</file>
-  </qresource>
-</RCC>
