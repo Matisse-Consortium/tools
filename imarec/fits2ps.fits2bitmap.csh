@@ -26,7 +26,7 @@ else
 	echo "------------------ fits2ps.fits2bitmap.csh --------- 2 -----------"
   set flag = `uname -a | awk '{ flag=0; if($0 ~ "Ubuntu") {flag=1;}; print flag; }'`
 #  if( $flag == 1 ) then
-  if( 2 == 1 ) then
+   if( 2 == 1 ) then
 #   Ubuntu
     fits2bitmap --cmap $colormap --scale "$disp" $fits
 	echo "------------------ fits2ps.fits2bitmap.csh --------- 3 -----------"
@@ -37,7 +37,7 @@ else
   endif
 	echo "------------------ fits2ps.fits2bitmap.csh --------- 4 -----------"
 #  if( $flag == 0 ) then
-  if( 1 == 1 ) then
+   if( 1 == 1 ) then
 #   Fedora or other
     rm -f {$fits:r}mr180.fits; imrot -l -r 180 $fits
     rm -f $fits.ORIG; mv $fits $fits.ORIG; mv {$fits:r}mr180.fits $fits

@@ -1,8 +1,8 @@
 #
-# Parameter file of the image reconstruction script "mat_cal_imarec_all.2.csh"
-# ============================================================================"
+# Parameter file of the image reconstruction script "mat_cal_imarec_all.csh"
+# =========================================================================="
 #
-# start of the script:  $SCRIPTS/mat_cal_imarec_all.2.csh  parfile (a template of parfile is $SCRIPTS/mat_cal_imarec_all.2.par)
+# start of the script:  $SCRIPTS/mat_cal_imarec_all.csh  parfile (a template of parfile is $SCRIPTS/mat_cal_imarec_all.par)
 #
 # ------------------------------------------------------------------------------------
 # ----------- START of INPUT ------------------------------------------------------------
@@ -10,17 +10,16 @@
 #
 # INPUT data
 set objname       = TargetName # name of the target (note: underscore _ in the string is not allowed, i.e. use RCar and NOT R_Car)
-set data          = (data/{*fits})  # liste of all interferometric data used for image reconstruction (with oifits format)
-set lambdaList    = (0.1 20000.) # (4.0 4.8) # (2.162 2.1625) # (0.1 20) # defining the wavelength intervalls used for the reconstruction of one 2D image:
+set data          = (data/{*fits})   # list of all interferometric data used for image reconstruction (with oifits format)
+set lambdaList    = (0.1 20000) # (2.162 2.1625) # defining the wavelength intervalls used for the reconstruction of one 2D image:
                                 # a list of lambda ranges (pairs of lower and upper wavelengths, i.e. a  monotonicially increasing set of numbers);
                                 # it is a sequence of space separated floating point numbers.
 # SWITCH: guess = 1: image reconstruction parameter; guess = 0: image reconstruction run
-# --------------------------------------------------------------------------------------
-set guess         = 1             # Flag (integer !=0) --> estimation of image reconstruction parameter, e.g. FOV, model fit; the results are stored in directory Parameter.Estimation/
-                                  #  --> UV coverage in postscript file Parameter.Estimation/uv.ps; wavelength channels used plotted in Parameter.Estimation/wavelengths.ps
-                                  #  --> info about the interferometric data and image reconstruction parameters are given in the ASCII file Parameter.Estimation/data.parameter
+set guess         = 0             # Flag (integer !=0) --> estimation of image reconstruction parameter, e.g. FOV, model fit; the results are stored in directory Parameter.Estimation/
+				  #  --> UV coverage in postscript file Parameter.Estimation/uv.ps; wavelength channels used plotted in Parameter.Estimation/wavelengths.ps
+				  #  --> info about the interferometric data and image reconstruction parameters are given in the ASCII file Parameter.Estimation/data.parameter
 				  # Flag (integer ==0) --> image reconstruction run
-set fitfwhm2      = 20.0          # 2.35 # 40.0 # 0.1           # Start FWHM for the model fit (in mas)
+set fitfwhm2      = 2.0          # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
 #
 #
 # ------------------------------------------------------------------------------------
@@ -30,40 +29,33 @@ set algoMode      = 1           # Specifies if bispectrum or complex visibilitie
                                 # 3 = use bispectrum and complex visibilities. [1]
 set engine        = 2           # Specifies the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
 set costFunc      = 1           # Specifies the chi square function Q[ok(x)] of the measured data which should be minimized (ok(x) is the actual iterated image):
-				# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
-				#    var(u,v) the variance of mbis(u,v)
-				# 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with
-				#    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
-				#    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
-				#    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
-				# 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
-				#    ipow(u) & mpow(u) the iterated and measured power spectrum, repectively, and varpow(u) the variance of mpow(u), and
-				#    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
-set fov           = 120         # Field of view for the reconstructed image in [mas].
-set npix          = 128         # Size of the reconstructed image in pixels. Powers of 2 should be used (speeds up the FFT), but this is not mandatory.
-set oradiusStart  = 35.0        # start radius of the object mask [mas]
-set stepSize      = 3.0         # step size for the object mask radius scan [mas]; next radius = actual radius + stepsize
-set oradiusNumber = 6           # number of object mask radius scans
-                                # oradius(n) = oradiusStart + (n-1)*stepSize  (n = 1..oradiusNumber)
-				# IRBis runs with the object mask radius list $oradiusStart, $stepSize, $oradiusNumber
-# start values of the hyperparameter mu loop:
-# - different start values of the hyperparameter mu will be tested until the first minimum of qrec is reached
-#   (qrec is a measure of the quality of the reconstrcution derived from Chi^2 and residual ratio values)
-# - the tested start hyperparameters are $muStart (next) = $muStart (actual) * $muFactor, starting with the first start hyperparameter $muStart0
-# - the last tested start hyperparameter is the one with qrec > qrec_min
-# - two different qrec modes can be applied:
-#      * qrecmode = 1 : qrec is formed by the chi^2/residual ratios of the measured phases (CP or Fourier phase) and squared visibilities,
-#      * qrecmode = 2 : qrec is formed by the chi^2/residual ratios of the measured phases (CP or Fourier phase) only
-# - IRBis runs with the hyperparameter list $muStart, $muFactor, $muNumber.
-set qrecmode      = 2
-set muStart0      = 1.0 # 10.0 # 1.0   # Test of different muStart values $muStart(next) = $muStart(actual) * $muFactor0 beginning with $muStart0 in the loop below
-set muFactor0     = 0.5 # 0.1    # for the test of different muStart values in the loop below
-set muFactor      = 0.5 # 0.1    # next mu value is actual mu multiplied with mufactor (for IRBis call only)
-set muNumber      = 12 # 6       # number of regularization parameter runs (for IRBis call only)
+                                # 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
+                                #    var(u,v) the variance of mbis(u,v)
+                                # 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with
+                                #    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
+                                #    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
+                                #    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
+                                # 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
+                                #    ipow(u) & mpow(u) the iterated and measured power spectrum, repectively, and varpow(u) the variance of mpow(u), and
+                                #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
+set fov           = 66         # Field of view for the reconstructed image in [mas].
+set npix          = 64          # Size of the reconstructed image in pixels. Powers of 2 should be used (speeds up the FFT), but this is not mandatory.
+set oradiusStart  = 20.0         # start radius of the object mask [mas]
+set stepSize      = 1.0          # step size for the object mask radius scan [mas]; next radius = actual radius + stepsize
+set oradiusNumber = 6            # number of object mask radius scans
+                                 # oradius(n) = oradiusStart + (n-1)*stepSize  (n = 1..oradiusNumber)
+				 # IRBis runs with the object mask radius list $oradiusStart, $stepSize, $oradiusNumber
+set muStarts      = (1.0 0.5 0.25 0.125) # (1.0 0.5 0.25 0.125 0.063 0.031 0.015 0.0075) # (10.0 1.0 0.1 0.01)   # Test of different start values in the loop below
+set muFactor      = 0.5 # 0.1    # next mu value is actual mu multiplied with mufactor
+set muNumber      = 12 # 6       # number of regularization parameter runs 
                                  # mu(n) = muStart*muFactor^(n-1)  (n = 1..muNumber)
-				 # IRBis runs with the regularization parameter list $muStart, $muFactor, $muNumber (with $muStart as calculated above)
+				 # IRBis runs with the regularization parameter list $muStart, $muFactor, $muNumber (with $muStart from the list $muStarts)
+set qrecmode      = 2            #      * qrecmode = 1 : qrec is formed by the chi^2/residual ratios of the measured phases (CP or Fourier phase) and squared visibilities,
+				 #      * qrecmode = 2 : qrec is formed by the chi^2/residual ratios of the measured phases (CP or Fourier phase) only
+				 # all reconstrcutions displayed in *.lin.ps, *.sqrt.ps, and *.log.ps are sorted according to the increasing qrec measure
+				 # as listed in E.liste.
 
-set regFuncs      = (-3 -4 -5) # (-1 -2 -3 -4 -5 -6) # (4 -4 3 -3 2 5 -5 6) # (-4)         # regularisation function(s) (0 = no regularization)
+set regFuncs      = (-3 0) # (-3 -4 -6 0) # (-2 -3 -4 -6) # (-1 -2 -3 -4 -5 -6) # (4 -4 3 -3 2 5 -5 6) # (-4)         # regularisation function(s) (0 = no regularization)
                                  # = 1: pixel intensity quadratic:  H(x,y) := Sum{|ok(x,y)|^2/prior(x,y)}
                                  # = 2: maximum entropy:            H(x,y) := Sum{ok(x,y)*alog(ok(x,y)/prior(x,y)) - ok(x,y) + prior(x,y)}
                                  # = 3: pixel difference quadratic: H(x,y) := Sum{[|ok(x,y)-ok(x+dx,y)|^2 + |ok(x,y)-ok(x,y+dy)|^2] / prior(x,y)}
@@ -71,11 +63,11 @@ set regFuncs      = (-3 -4 -5) # (-1 -2 -3 -4 -5 -6) # (4 -4 3 -3 2 5 -5 6) # (-
                                  # = 5: smoothness:                 H(x,y) := Sum{|ok(x,y)-ok(x+dx,y+dy)|^2}/prior(x,y)
                                  # = 6: quadratic Tikhonov:         H(x,y) := Sum{[|ok(x,y,z)-prior(x,y,z)|^2}
                                  # If a negative number (for example -4) is used, the prior image is set to a constant image (no estimate of the target).
-set regEps        = 0.01          # Epsilon for regularisation function 4 (edge preserving) only
+set regEps        = 0.001           # Epsilon for regularisation function 4 (edge preserving) only
 set weightPower   = 0.5 # 0.0          # power for the uv density weight
 
-set startmode     = 3      # 2            # 0 = read from file, 1 = point source, 2 = gaussian disc, 3 = uniform disc, 4 = fully darkened disc, 5 = modified Lorentz function
-set startparam    = 36.965 # 100          # startmode=0 -> scale [mas/px], mode=2 -> FWHM [mas], mode=3 -> diameter [mas], mode=4 -> diameter [mas], mode=5 -> FWHM [mas].
+set startmode     = 5            # 0 = read from file, 1 = point source, 2 = gaussian disc, 3 = uniform disc, 4 = fully darkened disc, 5 = modified Lorentz function
+set startparam    = 0.223        # startmode=0 -> scale [mas/px], mode=2 -> FWHM [mas], mode=3 -> diameter [mas], mode=4 -> diameter [mas], mode=5 -> FWHM [mas]
 
 set priormode     = $startmode   # 0 = read from file, 1 = point source, 2 = gaussian disc, 3 = uniform disc, 4 = fully darkened disc.
 set priorparam    = $startparam  # mode=0 -> scale [mas/px], mode=2 -> FWHM [mas], mode=3 -> diameter [mas], mode=4 -> diameter [mas].
@@ -84,7 +76,7 @@ set priorparam    = $startparam  # mode=0 -> scale [mas/px], mode=2 -> FWHM [mas
 #  !!startmode and priormode define the default start and prior image, respectively!!
 #
 # INPUT - images
-set model              = no # Gap-0213.10.5mu.px1.5mas.20deg.cut128.fits # no    # unconvolved model image (only for simulated interferometric data; i.e. input target of ASPRO2) or no
+set model              = no # Gap-0213.10.5mu.px1.5mas.20deg.cut128.fits # no  # unconvolved model image (only for simulated interferometric data; i.e. input target of ASPRO2) or no
 set modelPixelScale    = 1.5     # pixel size of the model image [mas]
 set startima           = no      # start image unconvolved or no
 set startimaPixelScale = 2.0     # pixel size of the start image [mas]
@@ -105,13 +97,13 @@ set gradTol     = 0.00000000001 # Tolerance value for ASA_CG [1e-11]
 set factr       = 10.0          # L-BFGS-B tolerance for termination test. [10.0]
 set pgTol       = 0.000001      # L-BFGS-B projected gradient tolerance for termination test. [1e-06]
 set ncorr       = 5             # Number of  corrections for L-BFGS-B. [5]
-set startselect = 4       #  startimage is 4: the reconstruction of the run before; 0: the default image 3: the best reconstruction up to now [4]
-set priorselect = 4       #  priorimage is 4: the reconstruction of the run before; 0: the default image 3: the best reconstruction up to now [4]
-set convScale   = -2.0 # -1.0    # the reconstruction is convolved with the ideal PSF of a single-dish telescope with a diamater which is identical
-                          # to the length of the longest baseline of the data (--> reconstruction with interferometric resolution);
-                          # optionally this PSF is scaled using convScale: convScale=1.0 means interferometric resolution;
-                          # convScale>1.0 means super resolution: positive values correspond to an ideal telescope PSF; negative values correspond to a Gaussian PSF
-set fitfwhm       = $fitfwhm2 # 2.35   # 0.1    # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
+set startselect = 4        #  startimage is 4: the reconstruction of the run before; 0: the default image 3: the best reconstruction up to now [4]
+set priorselect = 4        #  priorimage is 4: the reconstruction of the run before; 0: the default image 3: the best reconstruction up to now [4]
+set convScale   = -1.0     # the reconstruction is convolved with the ideal PSF of a single-dish telescope with a diamater which is identical
+                           # to the length of the longest baseline of the interferometric data (--> reconstruction with interferometric resolution);
+                           # optionally this PSF is scaled using convScale: convScale=1.0 means interferometric resolution;
+                           # convScale>1.0 means super resolution: positive values correspond to an ideal telescope PSF; negative values correspond to a Gaussian PSF
+set fitfwhm       = $fitfwhm2  # Start FWHM for the model fit (in mas) [2.35482004503095 mas]
 set precision     = 0      # Number of digits after decimal point for gradient and cost value (precision < 0 : round relative, precision == 0 : no round, precision > 0 : round absolute). [0]
 set bltol         = 0.05   # Maximum allowed baseline difference (in meter?) for finding a VIS2 element for a T3 element. [0.05]
 set mjdtol        = 0.0001 # Maximum allowed MJD difference (in days?) for finding a VIS2 element for a T3 element. [0.0001]
@@ -131,3 +123,4 @@ set bltol2        = 0.05          # Maximum allowed baseline difference (in mete
 # ------------------------------------------------------------------------------------
 # ----------- END of INPUT ------------------------------------------------------------
 # ------------------------------------------------------------------------------------
+

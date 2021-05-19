@@ -74,12 +74,26 @@
     set oits = ($oits $oit)
   @ i++
   end
-  set posbis = 0
-  set posft  = 0
+  set posbiss = ()
+  set posfts  = ()
   foreach oit ($oits)
+    set posbis = 0
+    set posft  = 0
     echo "oit = $oit"
     if(($oit == 1)||($oit == 2)) set posbis = 1
     if(($oit == 1)||($oit == 3)||($oit == 4)) set posft  = 1
+    set posbiss = ($posbiss $posbis)
+    set posfts  = ($posfts  $posft)
+  end
+# estimation, if OI_T3 and OI_VIS2 are available in each OIFITS file  --> bispectrum reconstruction is tested below
+  set posbis = 1
+  foreach posbis0 ($posbiss)
+    set posbis1 = `echo $posbis $posbis0 | awk '{print $1*$2;}'`; set posbis = $posbis1
+  end
+# estimation, if OI_VIS and OI_VIS2 are available in each OIFITS file  --> complex visibility reconstruction is tested below
+  set posft  = 1
+  foreach posft0 ($posfts)
+    set posft1 = `echo $posft $posft0 | awk '{print $1*$2;}'`; set posft = $posft1
   end
 #  echo "posbis, posft = " $posbis $posft
 #  echo "weiter [cr]"; set ja = $<

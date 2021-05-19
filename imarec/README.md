@@ -27,6 +27,9 @@ or
      or 
         `$HEADAS/headas-init.sh`
 
+   - The Image Utility Programs from WCSTools (see http://tdc-www.harvard.edu/software/wcstools/wcsprogsi.html),
+     especially imrot (to rotate and reflect fits images).
+
    - Our scripts need the following LINUX programs, too:
      `gnuplot`, `awk`, `latex`, `convert`, `sort`, `psmerge`.
      You can check if all this software is available with:
@@ -35,9 +38,9 @@ or
 4. Overall reconstruction procedure.
    During the run, this software automatically uses different image reconstruction parameters to find the "best" reconstruction.
    These parameters are:
-     - a number of regularisation functions `$regFuncs`
-     - different regularisation hyperparameters `$mu`, which control the strength of the regularisation
-     - a number of radii of a circular binary object mask, which resctricts the image space, where the reconstruction can have a non-zero values
+     - a number of regularisation functions $regFuncs
+     - different regularisation hyperparameters $mu, which control the strength of the regularisation
+     - a number of radii of a circular binary object mask, which resctricts the image space, where the reconstruction can have non-zero values
 
    You can use one of the two scripts `mat_cal_imarec_all.csh` or `mat_cal_imarec_all.2.csh`, their difference is explained below.
    Both scripts use a parameter file (`mat_cal_imarec_all.par` or `mat_cal_imarec_all.2.par`) where all parameters of the reconstruction run are described.
@@ -55,7 +58,7 @@ or
 	>                  #mu and regularization function
 	>                  Calculate its qrec ("quality" parameter of the reconstruction,
 	>										 explained below)
-	>                  Manage a internal list of all reconstructions sorted by qrec 
+	>                  Manage an internal list of all reconstructions sorted by qrec 
 	>               ENDFOR (mu)
 	>            ENDFOR (oradius)
 	>            RETURN reconstruction with the best (=smallest) qrec (explained below)
@@ -72,7 +75,7 @@ or
    There are two versions how qrec is calculated:
    * `$qrecmode=1`: it is calculated using the $\chi^2$ and the residual ratio values of both the visibilities and the phases (Closure or Fourier phase)
     * `$qrecmode=2`: it is calculated using the $\chi^2$ and the residual ratio values of only phases (Closure or Fourier phase)
---> experience shows, usually the qrec from $qrecmode=2 yields better results than qrec from $qrecmode=1!
+--> experience shows, usually the qrec from $qrecmode=2 yields better results than qrec from $qrecmode=1! (but you should test $qrecmode=1, too)
 
 
 5. The Difference between `mat_cal_imarec_all.csh` and `mat_cal_imarec_all.2.csh` is the different way, the $muStarts are defined and used.
@@ -85,6 +88,9 @@ or
      and calls IRBis with this $regFuncs/$muStart pairs.
      This loop stops, if the returned qrec starts to increase, i.e. the actual qrec is larger than the one of the run before.
 
+   NOTE: the parameter $qrecmode does change the output of the script "mat_cal_imarec_all.2.csh", because the termination of the hyper parameter loop depends on
+         the calculated qrec values which are different for $qrecmode=1 or 2;
+	 the parameter $qrecmode does not change the output of the script "mat_cal_imarec_all.csh".
 
 6. An image reconstruction run is started with: 
     $SCRIPTS/mat_cal_imarec_all.csh    parfile # (a template of the parameter file parfile is $SCRIPTS/mat_cal_imarec_all.par)
@@ -125,9 +131,10 @@ or
 		2) Run the script:
 		    $SCRIPTS/mat_cal_imarec_all.csh  mat_cal_imarec_all.par
 
-		3) Have a look to the uv coverage of the data, and to the containing wavelengths:
-            gv Parameter.Estimation/uv.ps
-            gv Parameter.Estimation/wavelengths.ps
+		3) Have a look to the uv coverage of the data, to the wavelengths in the data, and to the fits of the geometrical models to the measured visibilities:
+            		% gv Parameter.Estimation/uv.ps
+            		% gv Parameter.Estimation/wavelengths.ps
+		        % gv Parameter.Estimation/gaussudfdda.ps
 
 		4) Select one or more wavelength intervalls you want to use for image reconstruction, 
         and change the parfile, i.e.
@@ -149,33 +156,43 @@ or
 
         - Carefully read the hints for FOV and number of pixels in the Parameter.Estimation/data.parameter
 		- Start with the smallest pixel number possible for the target, i.e. 64x64 pixels ($npix)
-        - The Image mask start radius should be about 2 times larger than the estimated target size ($oradiusStart)
+          	- The Image mask start radius should be about 0.5 to 2 times larger than the estimated target size ($oradiusStart)
 
           	1) edit the image reconstruction parameters into the parameter file `mat_cal_imarec_all.par` or `mat_cal_imarec_all.2.par`, respectively:
             (some values below are just examples)
 
-                set guess         = 0   # Set to 0 to switch to the image reconstruction run
-			    set engine        = 1   # Specify the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
+             		set guess         = 0   # Set to 0 to switch to the image reconstruction run
+			set engine        = 2   # Specify the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
 		        set algoMode      = 1   # Specify if bispectrum or complex visibilities will be used for reconstruction. 
-                                        #  1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
-             	set fov           = 50  # FOV (in mas) of the reconstruction 
-                                        #  with respect to the recommendations in `Parameter.Estimation/data.parameter`:
-                             	        #  use that FOV (or a smaller one) listed for different 2^n array sizes which best fits to the
-                                 		#  expected size of the target (FOV ~ 2-4x target size, be careful with binaries as mentioned above!)
-             	set npix          = 64  # Number of pixels corresponding to the FOV chosen above.
-                                        #  For speed purpose, only powers of 2 should be used.
-             	set oradiusStart  = 20  # First radius (in mas) of the binary image mask, which should be larger than the target.
-                                           (It could even be larger than the chosen FOV)
-             	set stepSize      = 2   # Step size in mas (usually >0 to increase the image mask radius #oradiusNumber times)
-			    set oradiusNumber = 6   # Number of object mask radii to be testet (6 is mostly ok)
+                                                #  1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
+		        set costFunc      = 1   # Specify which chi square function Q[ok(x)] of the measured data should be minimized (ok(x) is the actual iterated image):
+						# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
+						#    var(u,v) the variance of mbis(u,v)
+					        # 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
+					        #    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
+						#    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
+						#    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
+					        # 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
+						#    ipow(u) & mpow(u) the iterated and measured power spectrum, repectively, and varpow(u) the variance of mpow(u), and
+					        #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
+             		set fov           = 50  # FOV (in mas) of the reconstruction 
+                                                #  with respect to the recommendations in "Parameter.Estimation/data.parameter":
+                                     	        #  use that FOV (or a smaller one) listed for different 2^n array sizes which best fits to the
+                                     		#  expected size of the target (FOV ~ 2-4x target size, be careful with binaries as mentioned above!)
+             		set npix          = 64  # Number of pixels corresponding to the FOV chosen above.
+                                                #  For speed purpose, only powers of 2 should be used.
+             		set oradiusStart  = 20  # First radius (in mas) of the binary image mask, which should be larger than the target.
+                                                   (It could even be larger than the chosen FOV)
+             		set stepSize      = 2   # Step size in mas (usually >0 to increase the image mask radius #oradiusNumber times)
+			set oradiusNumber = 6   # Number of object mask radii to be testet (6 is mostly ok)
 
-        		- for `mat_cal_imarec_all.csh` only --------------------------------------------------------------------------
-         		set muStarts      = (10.0 1.0 0.1 0.01) # Define the list of start regularization parameters muStart you want to use.
-		        - for `mat_cal_imarec_all.2.csh` only ------------------------------------------------------------------------
-			    set muStart0      = 10  # First value of muStart to be used.
-				                    	#  The later muStart values are calculated as: muStart(next) = muStart(actual) * muFactor0
-                set muFactor0     = 0.5 # Factor to calculate the next muStart
-	        	------------------------------------------------------------------------------------------------------------------------------
+		----------------- for "mat_cal_imarec_all.csh" only --------------------------------------------------------------------------
+             		set muStarts      = (1.0 0.1 0.01) # Define the list of start regularization parameters muStart you want to use.
+		----------------- for "mat_cal_imarec_all.2.csh" only ------------------------------------------------------------------------
+			set muStart0      = 1.0 # First value of muStart to be used.
+						#  The later muStart values are calculated as: muStart(next) = muStart(actual) * muFactor0
+                        set muFactor0     = 0.5 # Factor to calculate the next muStart
+		------------------------------------------------------------------------------------------------------------------------------
 
 			      set muFactor      = 0.5     # Multiplication factor to calculate the next regularization parameter mu in IRBis
 			    set muNumber      = 12      # Defines how often the multiplication factor is applied in IRBis (12 is normally ok)
@@ -245,10 +262,13 @@ or
 	   they contain, for example, the unconvolved, convolved reconstruction)
 
 	5) In the result folder there are postscript files which contain all reconstructions (from E.1, E.2, ...) sorted according to the increasing
-	   qrec measure as listed in `E.liste` ($qrecmode=1: sorted with the phase+visibility-qrec; $qrecmode=2: sorted with the phase-qrec):
-		- `*.lin.ps` (linear display)
-		- `*.sqrt.ps` (sqrt display)
-		- `*.log.ps` (log display)
+	   qrec measure as listed in E.liste:
+		a) in folder qrecmode=1/ the reconstructions sorted according to the increasing measure phase+visibility-qrec
+	 	b) in folder qrecmode=2/ the reconstructions sorted according to the increasing measure phase-qrec
+		   the postscript files in these two folders are 
+			- *.lin.ps (linear display)
+			- *.sqrt.ps (sqrt display)
+			- *.log.ps (log display)
 
 	6) Furthermore, in the result folder there are postscript files for the case of image reconstruction simulations (if the known theoretical target
 	is set in the *.par files), which display the correlation between the qrec parameters and the direct distance between the reconstructed and
@@ -277,6 +297,12 @@ or
 	- cpqrec		 : image quality parameter derived from the Chi^2 and residual ratio values of the CP or absolut phase only
 
 	
-man page of mat_cal_imarec: `esorex --man-page mat_cal_imarec`
+	man page of mat_cal_imarec: esorex --man-page mat_cal_imarec
+
+
+j) Interferometric test data plus example parameter files:
+
+   The directory TestData/ contains real and simulated interferometric data (CPs, V^2 in oifits files) of different targets plus the corresponding parameter files (mat_cal_imarec_all.par/mat_cal_imarec_all.2.par)
+   to run the above described image reconstrcution scripts. The target directories contain the interferometric data in  data/ and some of the postscript files with sorted reconstrcutions in plots/.
 
 
