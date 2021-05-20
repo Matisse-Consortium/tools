@@ -36,7 +36,7 @@ import os
 from   ObjectListView import ObjectListView, ColumnDefn, Filter
 from   astropy.io import fits
 import subprocess
-from   mat_showFitsHeader import mat_showFitsHeader
+#from   mat_showFitsHeader import mat_showFitsHeader
 import distutils.spawn
 import fnmatch
 import sys

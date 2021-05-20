@@ -33,7 +33,7 @@ import sys
 import pickle
 import socket
 import mat_fileDialog
-from mat_fileDialog import mat_FileDialog
+#from mat_fileDialog import mat_FileDialog
 from mat_fileDialog import identifyFile
 import threading
 import time

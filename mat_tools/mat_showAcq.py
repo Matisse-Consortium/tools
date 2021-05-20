@@ -40,7 +40,7 @@ import scipy.optimize as opt
 import argparse
 from tqdm import tqdm
 import subprocess
-import commands
+# import commands
 
 def getSkyFile(filename):
     h=fits.open(filename)
