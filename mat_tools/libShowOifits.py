@@ -1727,13 +1727,15 @@ def filter_oi_list(list_of_dicts, dates=[], bands=[], spectral_resolutions=[],
                 wlen = dic['WLEN'];
                 difwl = np.average(wlen[1:]-wlen[:-1]);
 
-                if(difwl > 0):
-                    wl1 = np.where(wlen > WLEN_range[0])[0][-1];
-                    wl2 = np.where(wlen < WLEN_range[1])[0][0];
-                else:
-                    wl2 = np.where(wlen > WLEN_range[0])[0][-1];
-                    wl1 = np.where(wlen < WLEN_range[1])[0][0];
-
+                # if(difwl > 0):
+                    # wl1 = np.where(wlen > WLEN_range[0])[0][-1];
+                    # wl2 = np.where(wlen < WLEN_range[1])[0][0];
+                # else:
+                    # wl2 = np.where(wlen > WLEN_range[0])[0][-1];
+                    # wl1 = np.where(wlen < WLEN_range[1])[0][0];
+                wl2 = np.where(wlen > WLEN_range[0])[0][-1];
+                wl1 = np.where(wlen < WLEN_range[1])[0][0];  
+  
                 dic['WLEN'] = dic['WLEN'][wl1:wl2]
                 dic['VIS2']['VIS2']      = dic['VIS2']['VIS2'][:,wl1:wl2]
                 dic['VIS2']['VIS2ERR']   = dic['VIS2']['VIS2ERR'][:,wl1:wl2]
