@@ -217,14 +217,14 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
         tel1=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['VIS2']['STA_INDEX'][i,0])[0]][0]
         tel2=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['VIS2']['STA_INDEX'][i,1])[0]][0]
         txt="{0}-{1}".format(tel1,tel2)
-        plts["VIS2_{0}".format(i)].text(1.01,0.5,txt,transform=plts["VIS2_{0}".format(i)].transaxes,rotation=90,va='center')
+        plts["VIS2_{0}".format(i)].text(1.01,0.5,txt,transform=plts["VIS2_{0}".format(i)].transAxes,rotation=90,va='center')
 
     for i in range(4):
         tel1=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,0])[0]][0]
         tel2=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,1])[0]][0]
         tel3=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,2])[0]][0]
         txt="{0}-{1}-{2}".format(tel1,tel2,tel3)
-        plts["CP_{0}".format(i)].text(1.01,0.5,txt,transform=plts["CP_{0}".format(i)].transaxes,rotation=90,va='center')
+        plts["CP_{0}".format(i)].text(1.01,0.5,txt,transform=plts["CP_{0}".format(i)].transAxes,rotation=90,va='center')
 
 
     if not(corrFlux):
