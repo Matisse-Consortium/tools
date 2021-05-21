@@ -54,8 +54,8 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
     if not(axe):
         axe=plt
     #plt.axis([np.min(sta_pos[:,2])-20,np.max(sta_pos[:,2])+20,np.min(sta_pos[:,3])-20,np.max(sta_pos[:,3])+20])
-    axe.plot(UTs[:,2],UTs[:,3],marker='o',markersize=3*symsize,color=color)
-    axe.plot(ATs[:,2],ATs[:,3],marker='o',markersize=symsize,color=color)
+    axe.plot(UTs[:,2],UTs[:,3],marker='o',linestyle="",markersize=3*symsize,color=color)
+    axe.plot(ATs[:,2],ATs[:,3],marker='o',linestyle="",markersize=symsize,color=color)
 
     if labels:
         for i in range(len(sta_name_list)):
