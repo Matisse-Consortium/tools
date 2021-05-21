@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -55,21 +55,21 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('--N', action="store_true",
                         help='Only plot N band data')
-                        
+            
     try:
         args = parser.parse_args()
     except:
         print("\n\033[93mRunning mat_ashowTransFunc.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-	sys.exit(0)
-    
+        sys.exit(0)
     #Pyplot needs to be imported after setting up the matplotlib backend.
     #The standard backend can produce  pdf but not if the script if  
     #launched in background and the users disconnect himself. 
     if args.pdf==True:
         matplotlib.use('PDF')
     else:
-        matplotlib.use('WXAgg')
+        pass
+        #matplotlib.use('WXAgg')
        
     
     import matplotlib.pyplot as plt
