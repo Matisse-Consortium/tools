@@ -271,7 +271,7 @@ def mat_mergeOifits(oifitsList):
         vis22=temp.data["TF2"]**2
         norm=1
         for ifile in range(nfile):
-            nmod=nB[ifile]/nBmin
+            nmod=nB[ifile]//nBmin
             for imod in range(nmod):
                 if (ifile!=0) or (imod!=0):  #Problem here
                     for key in ["TF2","TIME","MJD","INT_TIME"]:

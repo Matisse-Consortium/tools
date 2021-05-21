@@ -33,6 +33,8 @@ from libPostTools import mat_mergeByTplStart
 
 
 if __name__ == '__main__':
+    print("Python {}".format(sys.version))
+
     parser = argparse.ArgumentParser(description='Merging all oifits files from the same template into a single OiFits file per detector.')
     parser.add_argument('dirIn', default="",help='Input directory')
     parser.add_argument('--dirOut', default="MERGED",help='Output directory')
