@@ -165,15 +165,15 @@ or
 		        	set algoMode      = 1    Specify if bispectrum or complex visibilities will be used for reconstruction. 
                                               1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
 			        set costFunc      = 1   # Specify which chi square function Q[ok(x)] of the measured data should be minimized (ok(x) is the actual iterated image):
-											# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
-											#    var(u,v) the variance of mbis(u,v)
-											# 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
-					    					#    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
+						# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
+						#    var(u,v) the variance of mbis(u,v)
+						# 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
+						#    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
 						#    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
 						#    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
 					        # 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
 						#    ipow(u) & mpow(u) the iterated and measured power spectrum, repectively, and varpow(u) the variance of mpow(u), and
-					        #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
+					    #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
              		set fov           = 50  # FOV (in mas) of the reconstruction 
                                                 #  with respect to the recommendations in "Parameter.Estimation/data.parameter":
                                      	        #  use that FOV (or a smaller one) listed for different 2^n array sizes which best fits to the
@@ -183,7 +183,7 @@ or
              		set oradiusStart  = 20  # First radius (in mas) of the binary image mask, which should be larger than the target.
                                                    (It could even be larger than the chosen FOV)
              		set stepSize      = 2   # Step size in mas (usually >0 to increase the image mask radius #oradiusNumber times)
-			set oradiusNumber = 6   # Number of object mask radii to be testet (6 is mostly ok)
+					set oradiusNumber = 6   # Number of object mask radii to be testet (6 is mostly ok)
 
 		----------------- for "mat_cal_imarec_all.csh" only --------------------------------------------------------------------------
              		set muStarts      = (1.0 0.1 0.01) # Define the list of start regularization parameters muStart you want to use.
