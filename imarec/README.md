@@ -160,15 +160,15 @@ or
           	1) edit the image reconstruction parameters into the parameter file `mat_cal_imarec_all.par` or `mat_cal_imarec_all.2.par`, respectively:
             (some values below are just examples)
 
-             		set guess         = 0   # Set to 0 to switch to the image reconstruction run
-			set engine        = 2   # Specify the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
-		        set algoMode      = 1   # Specify if bispectrum or complex visibilities will be used for reconstruction. 
-                                                #  1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
-		        set costFunc      = 1   # Specify which chi square function Q[ok(x)] of the measured data should be minimized (ok(x) is the actual iterated image):
-						# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
-						#    var(u,v) the variance of mbis(u,v)
-					        # 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
-					        #    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
+             		set guess         = 0    Set to 0 to switch to the image reconstruction run
+					set engine        = 2    Specify the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
+		        	set algoMode      = 1    Specify if bispectrum or complex visibilities will be used for reconstruction. 
+                                              1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
+			        set costFunc      = 1   # Specify which chi square function Q[ok(x)] of the measured data should be minimized (ok(x) is the actual iterated image):
+											# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
+											#    var(u,v) the variance of mbis(u,v)
+											# 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
+					    					#    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
 						#    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
 						#    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
 					        # 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
