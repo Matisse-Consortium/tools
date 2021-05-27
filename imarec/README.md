@@ -1,4 +1,3 @@
-
 C-Shell script for easy usage of the MATISSE image reconstruction software
 ==========================================================================
 (Karl-Heinz Hofmann, Dieter Schertl, Max-Planck-Institut for Radio Astronomy, Bonn, Germany, February 2018)
@@ -31,7 +30,7 @@ or
      especially imrot (to rotate and reflect fits images).
 
    - Our scripts need the following LINUX programs, too:
-     `gnuplot`, `awk`, `latex`, `convert`, `sort`, `psmerge`.
+     `gnuplot`, `awk`, `latex`, `convert`, `sort`, `psmerge`, `ps2eps`, `ftcopy, `gv`.
      You can check if all this software is available with:
         `$SCRIPTS/swtest.csh`
      
