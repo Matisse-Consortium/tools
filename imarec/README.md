@@ -1,4 +1,3 @@
-
 C-Shell script for easy usage of the MATISSE image reconstruction software
 ==========================================================================
 (Karl-Heinz Hofmann, Dieter Schertl, Max-Planck-Institut for Radio Astronomy, Bonn, Germany, February 2018)
@@ -31,7 +30,7 @@ or
      especially imrot (to rotate and reflect fits images).
 
    - Our scripts need the following LINUX programs, too:
-     `gnuplot`, `awk`, `latex`, `convert`, `sort`, `psmerge`.
+     `gnuplot`, `awk`, `latex`, `convert`, `sort`, `psmerge`, `ps2eps`, `ftcopy, `gv`.
      You can check if all this software is available with:
         `$SCRIPTS/swtest.csh`
      
@@ -161,20 +160,20 @@ or
           	1) edit the image reconstruction parameters into the parameter file `mat_cal_imarec_all.par` or `mat_cal_imarec_all.2.par`, respectively:
             (some values below are just examples)
 
-             		set guess         = 0   # Set to 0 to switch to the image reconstruction run
-			set engine        = 2   # Specify the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
-		        set algoMode      = 1   # Specify if bispectrum or complex visibilities will be used for reconstruction. 
-                                                #  1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
-		        set costFunc      = 1   # Specify which chi square function Q[ok(x)] of the measured data should be minimized (ok(x) is the actual iterated image):
+             		set guess         = 0    Set to 0 to switch to the image reconstruction run
+					set engine        = 2    Specify the optimization engine used; 1: ASA-CG, 2: L-BFGS-B. [1]
+		        	set algoMode      = 1    Specify if bispectrum or complex visibilities will be used for reconstruction. 
+                                              1 = use bispectrum only, 2 = use complex visibilities only, 3 = use bispectrum and complex visibilities. [1]
+			        set costFunc      = 1   # Specify which chi square function Q[ok(x)] of the measured data should be minimized (ok(x) is the actual iterated image):
 						# 1: Q[ok(x)] = Sum{ |ibis(u,v) - mbis(u,v)|^2/var(u,v) }, with ibis(u,v) & mbis(u,v) the iterated and measured bispectrum, repectively, and
 						#    var(u,v) the variance of mbis(u,v)
-					        # 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
-					        #    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
+						# 2: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) + costWeight*|imod(u,v) - mmod(u,v)|^2/varmod(u,v) }, with 
+						#    exp(i iph(u,v)) & exp(i mph(u,v)) the phasors of the iterated and measured bispectrum, repectively, and varph(u,v) the variance of exp(i mph(u,v)),
 						#    and with imod(u,v) & mmod(u,v) the moduli of the iterated and measured bispectrum, repectively, and varmod(u,v) the variance of mmod(u,v),
 						#    and costWeight is a weight for the modulus part of Q[ok(x)], [1.0]
 					        # 3: Q[ok(x)] = Sum{ |exp(i iph(u,v)) - exp(i mph(u,v))|^2/varph(u,v) } + costWeight*Sum{ |ipow(u) - mpow(u)|^2/varpow(u) }, with
 						#    ipow(u) & mpow(u) the iterated and measured power spectrum, repectively, and varpow(u) the variance of mpow(u), and
-					        #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
+					    #    with costWeight is a weight for the power spectrum part of Q[ok(x)], [1.0]
              		set fov           = 50  # FOV (in mas) of the reconstruction 
                                                 #  with respect to the recommendations in "Parameter.Estimation/data.parameter":
                                      	        #  use that FOV (or a smaller one) listed for different 2^n array sizes which best fits to the
@@ -184,38 +183,37 @@ or
              		set oradiusStart  = 20  # First radius (in mas) of the binary image mask, which should be larger than the target.
                                                    (It could even be larger than the chosen FOV)
              		set stepSize      = 2   # Step size in mas (usually >0 to increase the image mask radius #oradiusNumber times)
-			set oradiusNumber = 6   # Number of object mask radii to be testet (6 is mostly ok)
+					set oradiusNumber = 6   # Number of object mask radii to be testet (6 is mostly ok)
 
-		----------------- for "mat_cal_imarec_all.csh" only --------------------------------------------------------------------------
+		- for "mat_cal_imarec_all.csh" only --------------------------------------------------------------------------
              		set muStarts      = (1.0 0.1 0.01) # Define the list of start regularization parameters muStart you want to use.
-		----------------- for "mat_cal_imarec_all.2.csh" only ------------------------------------------------------------------------
+		- for "mat_cal_imarec_all.2.csh" only ------------------------------------------------------------------------
 			set muStart0      = 1.0 # First value of muStart to be used.
 						#  The later muStart values are calculated as: muStart(next) = muStart(actual) * muFactor0
                         set muFactor0     = 0.5 # Factor to calculate the next muStart
-		------------------------------------------------------------------------------------------------------------------------------
+		
+			    	set muFactor      = 0.5     # Multiplication factor to calculate the next regularization parameter mu in IRBis
+			    	set muNumber      = 12      # Defines how often the multiplication factor is applied in IRBis (12 is normally ok)
 
-			      set muFactor      = 0.5     # Multiplication factor to calculate the next regularization parameter mu in IRBis
-			    set muNumber      = 12      # Defines how often the multiplication factor is applied in IRBis (12 is normally ok)
-
-			    set qrecmode      = 2       # Selection criterion to be used for the estimation of the quality of the reconstructions
+			    	set qrecmode      = 2       # Selection criterion to be used for the estimation of the quality of the reconstructions
 			            		            #  qrecmode = 1 : qrec is calculated using the $\chi^2$/residual ratios of both the measured phases (Closure or Fourier phase) and the squared visibilities.
 					                   	    #  qrecmode = 2 : qrec is calculated using the $\chi^2$/residual ratios of the measured phases (Closure or Fourier phase) only
-           		set regFuncs      = (-3 -4) # Define the numbers of the regularization functions you want to use (here you can test several reg.functions)
-           		set weightPower   = 0.0     # Power for the uv density weight 
+           			set regFuncs      = (-3 -4) # Define the numbers of the regularization functions you want to use (here you can test several reg.functions)
+           			set weightPower   = 0.0     # Power for the uv density weight 
                                             #  (best experience with 0.0 for bispectrum and 0.5 for 0.0 complex visibilities)
-           		set startmode     = 2       # Define then type of the start object: 0=read from file, 1=point source, 2=gaussian disk, 3=uniform disk, 
+           			set startmode     = 2       # Define then type of the start object: 0=read from file, 1=point source, 2=gaussian disk, 3=uniform disk, 
                                             #  4=fully darkened disk, 5=modified Lorentz function
-           		set startparam    = 3.7     # Define the size of the start object chosen above.
+           			set startparam    = 3.7     # Define the size of the start object chosen above.
                                    		    #  Use the value of the fit listed at the end of `Parameter.Estimation/data.parameter`
                                    		    #  (startmode= 2 -> FWHM [mas], 3 -> diameter [mas], 4 -> diameter [mas], 5 -> FWHM [mas])
 
 	            --> some additional inputs:
-				  set model        = MODEL.fits  # For simulated interferometric data, you can insert the model fits file. [no]
+				 	set model        = MODEL.fits  # For simulated interferometric data, you can insert the model fits file. [no]
                                                #  Define it's pixel scale in mas in "set modelPixelScale =".
-             	set startima     = START.fits  # If you want to use another, better fitting, start image, for example, a model image generated by
+             		set startima     = START.fits  # If you want to use another, better fitting, start image, for example, a model image generated by
 		                				       #  a radiative transfer code, you can insert the fits file here, and "set startmode = 0" above. [no]
                                  		       #  Define it's pixel scale in mas in "set startimaPixelScale =".
-                set priorima     = PRIOR.fits  # If you want to use another prior image, you can insert a fits file here, and "set priormode = 0 above. [no]
+                	set priorima     = PRIOR.fits  # If you want to use another prior image, you can insert a fits file here, and "set priormode = 0 above. [no]
                                                #  Define it's pixel scale in mas in "set priorimaPixelScale =".
                                                # If you don't want to use an inputfile, set it to "no"
 
