@@ -39,7 +39,12 @@ else
 #  if( $flag == 0 ) then
    if( 1 == 1 ) then
 #   Fedora or other
-    rm -f {$fits:r}mr180.fits; imrot -l -r 180 $fits
+    rm -f {$fits:r}mr180.fits {$fits:r}fr180.fits; imrot -l -r 180 $fits
+    if(-f {$fits:r}fr180.fits) then
+      rm -f {$fits:r}f.fits; imrot -l $fits
+      mv {$fits:r}f.fits {$fits:r}mr180.fits
+      rm -f $fits:r}fr180.fits
+    endif
     rm -f $fits.ORIG; mv $fits $fits.ORIG; mv {$fits:r}mr180.fits $fits
     fits2bitmap --cmap $colormap --stretch "$disp" $fits
     if($status != 0) then

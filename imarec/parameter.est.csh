@@ -115,18 +115,30 @@
   cd $est
   sed -i 's/\[tid=000\]//' esorex.log
 #    estimation of the optimal FOV in pixel and mas
-  set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $12;}}' esorex.log`
-  set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $19;}}' esorex.log`
-  set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit uniform disc /) {print $12;}}' esorex.log`
-  set tchi2ud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit uniform disc /) {print $19;}}' esorex.log`
-  set tfdd   = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit fully darkened /) {print $13;}}' esorex.log`
-  set tchi2fdd   = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit fully darkened /) {print $20;}}' esorex.log`
-  set tld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz /) {print $12;}}' esorex.log`
-  set tchi2ld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz /) {print $19;}}' esorex.log`
-  set tfov   = `awk '{if ($0 ~ /mat_guess_parameters: fov   = /) {print $0;}}' esorex.log`
-  set tnpix  = `awk '{if ($0 ~ /mat_guess_parameters: npix  = /) {print $0;}}' esorex.log | tr '*' x`
-  set ttfov  = `awk '{if ($0 ~ /mat_guess_parameters: --fov=/) {print $0;}}' esorex.log`
-  set ttnpix = `awk '{if ($0 ~ /mat_guess_parameters: --npix=/) {print $0;}}' esorex.log`
+                    set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $12;}}' esorex.log`
+  if($#tgauss == 0) set tgauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit gaussian /) {print $12;}}' esorex.log`
+                        set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit gaussian /) {print $19;}}' esorex.log`
+  if($#tchi2gauss == 0) set tchi2gauss = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit gaussian /) {print $19;}}' esorex.log`
+                 set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit uniform disc /) {print $12;}}' esorex.log`
+  if($#tud == 0) set tud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit uniform disc /) {print $12;}}' esorex.log`
+                     set tchi2ud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit uniform disc /) {print $19;}}' esorex.log`
+  if($#tchi2ud == 0) set tchi2ud    = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit uniform disc /) {print $19;}}' esorex.log`
+                  set tfdd   = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit fully darkened /) {print $13;}}' esorex.log`
+  if($#tfdd == 0) set tfdd   = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit fully darkened /) {print $13;}}' esorex.log`
+                      set tchi2fdd   = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit fully darkened /) {print $20;}}' esorex.log`
+  if($#tchi2fdd == 0) set tchi2fdd   = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit fully darkened /) {print $20;}}' esorex.log`
+                 set tld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz /) {print $12;}}' esorex.log`
+  if($#tld == 0) set tld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit Lorentz /) {print $12;}}' esorex.log`
+                     set tchi2ld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2: fit Lorentz /) {print $19;}}' esorex.log`
+  if($#tchi2ld == 0) set tchi2ld    = `awk '{if ($0 ~ /mat_fit_start_image_vis2:  fit Lorentz /) {print $19;}}' esorex.log`
+                  set tfov   = `awk '{if ($0 ~ /mat_guess_parameters: fov   = /) {print $0;}}' esorex.log`
+  if($#tfov == 0) set tfov   = `awk '{if ($0 ~ /mat_guess_parameters:  fov   = /) {print $0;}}' esorex.log`
+                   set tnpix  = `awk '{if ($0 ~ /mat_guess_parameters: npix  = /) {print $0;}}' esorex.log | tr '*' x`
+  if($#tnpix == 0) set tnpix  = `awk '{if ($0 ~ /mat_guess_parameters:  npix  = /) {print $0;}}' esorex.log | tr '*' x`
+                   set ttfov  = `awk '{if ($0 ~ /mat_guess_parameters: --fov=/) {print $0;}}' esorex.log`
+  if($#ttfov == 0) set ttfov  = `awk '{if ($0 ~ /mat_guess_parameters:  --fov=/) {print $0;}}' esorex.log`
+                    set ttnpix = `awk '{if ($0 ~ /mat_guess_parameters: --npix=/) {print $0;}}' esorex.log`
+  if($#ttnpix == 0) set ttnpix = `awk '{if ($0 ~ /mat_guess_parameters:  --npix=/) {print $0;}}' esorex.log`
 
 # ----------- Plott der gemessenen Visibility und der gefittetn Modelle ------------------------------------- A -----------------
 set vis20 = `echo A.vis2.dat`
