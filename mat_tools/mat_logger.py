@@ -118,7 +118,7 @@ class mat_showFitsHeader(wx.Frame):
         hbox.Add(self.searchFieldText,proportion=1)
         hbox.Add(self.searchField,proportion=1)
         
-        vbox.AddSizer(hbox)
+        vbox.Add(hbox)
         vbox.Add(self.tableView,proportion=10)
         self.SetSizer(vbox)
         
@@ -979,7 +979,7 @@ class mat_logger(wx.Dialog):
         f.close()
 
 
-        subprocess.Popen(['nohup', 'csh', filename], stdout=open(logname, 'w'),stderr=open('/dev/null', 'w'),preexec_fn=os.setpgrp )
+        subprocess.Popen(['nohup', 'tcsh', filename], stdout=open(logname, 'w'),stderr=open('/dev/null', 'w'),preexec_fn=os.setpgrp )
         mat_showReductionLog(self,logname)
 
         #cd subprocess.Popen(['xterm','-hold','-e',command])
