@@ -237,7 +237,7 @@ if __name__ == '__main__':
     except:
         print("\n\033[93mRunning mat_showUV.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-	sys.exit(0)
+    sys.exit(0)
 
     ########################################################################
 
