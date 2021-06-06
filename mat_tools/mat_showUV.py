@@ -28,7 +28,7 @@ import glob
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from   astropy.io import fits as fits
+from   astropy.io import fits
 from mat_fileDialog import mat_FileDialog, identifyFile
 from libShowOifits import open_oi
 
@@ -43,8 +43,6 @@ def open_hdr(oi_file):
 
     hdr = hdu[0].header
 
-    #print(hdr)
-
     return hdr
 
 ###############################################################################
@@ -55,8 +53,11 @@ def get_UV(oi_file):
     BY = []
     
     dic = open_oi(oi_file);
-    res = dic['HDR']
+    res = open_hdr(oi_file)
 
+    if(res=={}):
+        return 0,0,0,0,0,0;
+    
     try:
         target_name = dic['TARGET']
     except:
@@ -137,7 +138,9 @@ def get_UVs(files):
 
     for file in tqdm(files, unit="file", unit_scale=False, desc="Working on"):
         bx, by, wl, targ, typ, ntels = get_UV(file)
-            
+        if(bx[0]==0):
+            continue;
+        
         if typ == 'CALIB_RAW_INT':
             continue
 
@@ -177,7 +180,10 @@ def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",tit
 
     for i,base in enumerate(BX0):
         for j,uni in enumerate(uniques):
-            if uni == TARG[i/(ntels*(ntels-1)/2)]:
+            #print('bla')
+            #print(ntels,i)
+            #print(TARG[int(i/(ntels*(ntels-1)/2))])
+            if uni == TARG[int(i/(ntels*(ntels-1)/2))]:
                 idx = j
 
         try:
@@ -237,12 +243,14 @@ if __name__ == '__main__':
     except:
         print("\n\033[93mRunning mat_showUV.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-    sys.exit(0)
+        sys.exit(0)
 
     ########################################################################
 
     files = glob.glob(args.in_dir+"/*.fits*")
 
+    #print(files)
+    
     plt.figure(1)
     plt.clf();
 
