@@ -22,7 +22,7 @@
   knowledge of the CeCILL license and that you accept its terms.
 """
 
-
+#new
 # Import necessary files
 from libAutoPipeline import matisseType
 import wx, wx.html
