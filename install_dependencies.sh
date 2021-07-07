@@ -1,3 +1,3 @@
-sudo apt-get install gtk+-3.0
+sudo apt-get install gtk+-3.0 pip3
 
 pip3 install tqdm astroquery openpyxl
