@@ -125,8 +125,14 @@ def get_UV(oi_file):
     except:
         print('No wavelength table found. Trying some other tricks');
         WLEN = res['EFF_WAVE'];
+
+    #print(len(BX))
+    #print(len(BY))
+    #print(target_name)
+    #print(len(typ))
+    #print(ntels)
         
-    return BX,BY,WLEN,target_name, typ, ntels
+    return BX,BY,WLEN,target_name[0], typ, ntels
 
 ###############################################################################
 
@@ -147,12 +153,13 @@ def get_UVs(files):
         if targ == '-':
             continue
 
+        print(np.shape(BX));
         BX = np.append(BX, bx, axis=0)
         BY = np.append(BY, by, axis=0)
 
         TARG = np.append(TARG, targ)
 
-        WLEN =  wl
+        WLEN =  np.append(WLEN,wl)
 
     return BX, BY, WLEN, TARG, ntels;
 
@@ -178,12 +185,14 @@ def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",tit
         nwiny = nwin;
         nwinx = nwin+1;
 
+    print(np.shape(BX0));
+
     for i,base in enumerate(BX0):
         for j,uni in enumerate(uniques):
             #print('bla')
             #print(ntels,i)
             #print(TARG[int(i/(ntels*(ntels-1)/2))])
-            if uni == TARG[int(i/(ntels*(ntels-1)/2))]:
+            if uni == TARG[0]:
                 idx = j
 
         try:
@@ -222,9 +231,8 @@ if __name__ == '__main__':
                         help='The path to the directory containing your oifits data.',
                         default='.')
     #--------------------------------------------------------------------------
-    parser.add_argument('--showtitle', metavar='showtitle', type=str,
-                        help='Display a title with the name of the star or not.',
-                        default=True)
+    parser.add_argument('--showtitle', metavar='showtitle', 
+                        help='Display a title with the name of the star or not (True or False).', default=True)
     #--------------------------------------------------------------------------
     parser.add_argument('--pdf',   action="store_true",
                         help='Create a pdf file for each target.')
