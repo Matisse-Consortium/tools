@@ -33,15 +33,20 @@ import numpy as np
 from shutil import copyfile
 from os import walk
 import glob
+import matplotlib.pyplot as plt
 
 ###############################################################################
 
-def reflagData(oifits, keepOldFlags=0):
-    #print(oifits)
+def reflagData(oifits, keepOldFlags=0, debug=0):
+    
+    if debug:
+        print(oifits)
     
     data=fits.open(oifits, mode='update')
 
-    #print("reading data")
+    if debug:
+        print("reading data")
+        
     WLEN = data['OI_WAVELENGTH'].data['EFF_WAVE']
 
     # Read VIS2 data
@@ -49,20 +54,23 @@ def reflagData(oifits, keepOldFlags=0):
     VIS2ERR  = data['OI_VIS2'].data['VIS2ERR']
     VIS2FLAG = data['OI_VIS2'].data['FLAG']
 
-    #print("Computing visibility")
+    if debug:
+        print("Computing visibility")
     vis    = np.sqrt(np.abs(VIS2)) * np.sign(VIS2)
     viserr = 0.5* VIS2ERR / (vis+(vis==0));
 
     wlmin = (2.94e-6, 4.5e-6, 8e-6);
     wlmax = (4.1e-6,  5.0e-6, 12.5e-6);
 
-    # print("Getting old vis flags")
-    # if(keepOldFlags==1):
-    #flag = ~bool(VIS2FLAG);
-    # else:
-    #     flag = np.array(1,np.shape(VIS2FLAG));
+    if debug:
+        print("Getting old vis flags")
+    #if(keepOldFlags==1):
+    #    flag = ~bool(VIS2FLAG);
+    #else:
+    #    flag = np.array(1,np.shape(VIS2FLAG));
     
-    #print("Computing new vis flags")
+    if debug:
+        print("Computing new vis flags")
     flag = (VIS2 > 0. - VIS2ERR) &\
         (VIS2 < 1. + VIS2ERR) &\
         (VIS2 > -0.1)         &\
@@ -75,8 +83,9 @@ def reflagData(oifits, keepOldFlags=0):
         (vis < 1.1)           &\
         (viserr > 0)          &\
         (viserr < 0.1)
-           
-    #print("Filtering wavelength")
+       
+    if debug:    
+        print("Filtering wavelength")
     # Filter interbands
     wlmask = np.zeros(np.shape(WLEN),dtype=bool)
     for i,wl in enumerate(wlmin):
@@ -85,33 +94,113 @@ def reflagData(oifits, keepOldFlags=0):
         wlmask = wlmask | wlmaski;
     flag = flag & wlmask;
         
-    #print("Inverting flags")
+    if debug:
+        print("Inverting flags")
     # print(flag)
     flag = ~flag
 
-    #print("Setting flags")
+    if debug:
+        print("Setting flags")
     data['OI_VIS2'].data['FLAG'] = flag
+
+    ############################################################
     
-    #print("Getting CP flags")
+    if debug:
+        print("Getting CP flags")
     # Read CP data
     CP     = data['OI_T3'].data['T3PHI']
     CPERR  = data['OI_T3'].data['T3PHIERR']
     CPFLAG = data['OI_T3'].data['FLAG']
+    CPSTA  = data['OI_T3'].data['STA_INDEX']
+    STAIDX = data['OI_ARRAY'].data['STA_INDEX']
+    STAPOS = data['OI_ARRAY'].data['STAXYZ']
+
+    if debug:
+        print("bla")
+        print(STAIDX)
+        print(STAPOS)
+        print(CPSTA);
+
+        print("bla")
+        STAPOSX = np.zeros(np.shape(CPSTA));
+        STAPOSY = np.zeros(np.shape(CPSTA));
+
+        print(np.shape(STAPOSX))
+    
+        for i,ista in enumerate(CPSTA):
+            for j,jsta in enumerate(ista):
+                print(i,j)
+                STAPOSX[i,j] =  STAPOS[jsta==STAIDX,0];
+                STAPOSY[i,j] =  STAPOS[jsta==STAIDX,1];
+        #print(i ,ista)
+        #print(np.where(CPSTA==ista, STAPOS, STAPOS))
+        #STAPOSX = STAPOS[np.where(CPSTA==ista),0]
+
+        print(STAPOSX);
+        print(STAPOSY);
+    
+        print("bla")
+    #STAPOSX = STAPOS[CPSTA[STAIDX]]
+    #STAPOSY = 
 
     #if(keepOldFlags==1):
     #    flag3 = ~CPFLAG;
     #else:
     #    flag3 = 1;
     
-    #print("Computing new flags")
+    if debug:
+        print("Computing new flags")
     flag3 = (CPERR > 0.) & (CPERR < 60)
     flag3 = flag3 & wlmask;
 
-    #print("Redundant closure phase filtering")
+    if debug:
+        print("Redundant closure phase filtering")
     # Check the redundant closure phase
-    fot i,cpi in enumerate()
+        nclos = np.shape(CP)[0] // 4;
+        print(np.shape(CP)[0])
+        cp    = CP * np.pi/180.;
+        cperr = CPERR * np.pi/180.;
+    #print("2")
+
+    #sgnc = np.ones(np.shape(CPSTA),dtype=np.float64);
+        sgn = np.sign(np.prod(np.diff(CPSTA,axis=1),axis=1));
+        sgn = np.ones(np.shape(sgn));
+        sgn[::4]  = sgn[::4];
+        sgn[1::4] = sgn[1::4];
+        sgn[2::4] = -sgn[2::4];
+        sgn[3::4] = -sgn[3::4];
+    
+
+        print("sign"); 
+        print(sgn)
+
+    
+        phaz  = np.exp(np.expand_dims(sgn,axis=1) * 1j * cp);
+        print("3a")
+        #print(phaz);
+        print(np.shape(phaz))
+        for i in np.arange(nclos):
+            #print("toto");
+            BS = np.conj((phaz[4*i]) * (phaz[4*i+1]) * (phaz[4*i+2]));
+            BSERR = np.sqrt(cperr[4*i]**2 + cperr[4*i+1]**2 + cperr[4*i+2]**2)
+            print(BS.imag)
+            CP_compare = np.arctan2(BS.imag, BS.real);
+            plt.figure()
+            plt.errorbar(WLEN,CP_compare,BSERR,   color="red");
+            plt.errorbar(WLEN,sgn[4*i+3]*cp[4*i+3], cperr[4*i+3],color="blue");
+            plt.ylim(np.max(np.array((-np.pi,np.min(cp[4*i+3])))),
+                     np.min(np.array((np.pi,np.max((cp[4*i+3]))))));
+            #plt.show()
+            
+            bsd = BS * np.conj(phaz[4*i+3]);
+            cpdiff = np.arctan2(bsd.imag, bsd.real);
+            
+            errcomp = BSERR + cperr[i];
+            
+            flagi = np.abs(cpdiff) > np.abs(errcomp);
            
-    #print("Inverting flag")
+    if debug:
+        print("Inverting flag")
     # print(flag)
     flag3 = ~flag3;
 
@@ -131,7 +220,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A small utility tool to reflag MATISSE data.')
 
     #--------------------------------------------------------------------------
-    parser.add_argument('oiFits', default="",  \
+    parser.add_argument('oiFits', default="", nargs='+',  \
     help='The path to the file or directory containing your oifits data.')
 
 
@@ -142,61 +231,59 @@ if __name__ == '__main__':
         parser.print_help()
         print("\n     Example : python mat_tidyupOiFits.py /data/2018-05-19_OIFITS")
         sys.exit(0)
-        
-    if os.path.isfile(args.oiFits):
-        print("Reading file "+args.oiFits+"...")
-        reflagData(args.oiFits)
 
-    elif os.path.isdir(args.oiFits):
-        cwd = os.getcwd()
+    print(args.oiFits);
+        
+    # Test if argument is a file
+    if(len(args.oiFits)==1):
+        if os.path.isfile(args.oiFits[0]):
+            print("Reading file "+args.oiFits[0]+"...")
+            reflagData(args.oiFits[0])
+            
+        # Test if argument is a directory
+        elif os.path.isdir(args.oiFits[0]):
+            print("Working on directory "+args.oiFits[0]+"...")
+        
+            cwd = os.getcwd()
 
-        newdir = os.path.join(cwd, os.path.basename(os.path.abspath(args.oiFits))+"_REFLAGGED");
+            newdir = os.path.join(cwd, os.path.basename(os.path.abspath(args.oiFits[0]))+"_REFLAGGED");
         
-        try:
-            print(newdir+" already exists...")
-            os.stat(newdir)
-        except:
-            print("Creating directory "+newdir)
-            os.mkdir(newdir)
+            try:
+                print(newdir+" already exists...")
+                os.stat(newdir)
+            except:
+                print("Creating directory "+newdir)
+                os.mkdir(newdir)
             
-        print("Oifits files will be copied and reflagged in that directory.")
+            print("Oifits files will be copied and reflagged in that directory.")
         
-        filecounter = 0
-        allfiles    = [];
-        for root,subfolders,files in os.walk(args.oiFits):
-            for fil in files:
-                allfiles.append(os.path.join(root,fil))
-                filecounter += 1;
+            filecounter = 0
+            allfiles    = [];
+            for root,subfolders,files in os.walk(args.oiFits[0]):
+                for fil in files:
+                    allfiles.append(os.path.join(root,fil))
+                    filecounter += 1;
 
-        print("Number of files to treat:",len(allfiles))
+            print("Number of files to treat:",len(allfiles))
         
-        for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
-            matchfilestoavoid = ["TARGET_CAL_0*","OBJ_CORR_FLUX_0*",
-                                 "OI_OPDWVPO_*","PHOT_BEAMS_*",
-                                 "CALIB_CAL_0*","RAW_DPHASE_*",
-                                 "matis_eop*","nrjReal*",
-                                 "DSPtarget*","nrjImag*",
-                                 "fringePeak*","BSreal*","BSimag*",
-                                 "*Image0.fits","*LFF.fits"]
+            for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
+                matchfilestoavoid = ["TARGET_CAL_0*","OBJ_CORR_FLUX_0*",
+                                     "OI_OPDWVPO_*","PHOT_BEAMS_*",
+                                     "CALIB_CAL_0*","RAW_DPHASE_*",
+                                     "matis_eop*","nrjReal*",
+                                     "DSPtarget*","nrjImag*",
+                                     "fringePeak*","BSreal*","BSimag*",
+                                     "*Image0.fits","*LFF.fits"]
             
-            fifil = os.path.basename(fil)
+                fifil = os.path.basename(fil)
             
-            if fifil.endswith('fits'):
-                #print(fifil)
-                for i in matchfilestoavoid:
-                    if fnmatch(fifil, i):
-                        print("Breeaaaaaak!")
-                        break;
+                if fifil.endswith('fits'):
+                    for i in matchfilestoavoid:
+                        if fnmatch(fifil, i):
+                            break;
                 
-                try:
-                    #print("copying file to the right path...")
                     copyfile(fil,
                              os.path.join(newdir,fifil))
-                    #print("reflagging...",os.path.join(newdir,fifil))
                     reflagData(os.path.join(newdir,fifil))
-                    #print("Done!");
-                except:
-                    do_nothing = 1;
-                    #print("Not a fits file!")
 
     print("I made my job!")
