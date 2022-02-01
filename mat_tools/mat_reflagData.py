@@ -44,6 +44,10 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
     
     data=fits.open(oifits, mode='update')
 
+    # Read whether it is a calibrator or a science star
+    catg = data[0].header['ESO PRO CATG']
+    #print(catg)
+
     if debug:
         print("reading data")
         
@@ -68,6 +72,9 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
     #    flag = ~bool(VIS2FLAG);
     #else:
     #    flag = np.array(1,np.shape(VIS2FLAG));
+
+
+    flag = np.array(VIS2);
     
     if debug:
         print("Computing new vis flags")
@@ -83,7 +90,11 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
         (vis < 1.1)           &\
         (viserr > 0)          &\
         (viserr < 0.1)
-       
+
+    # Discard any visibility below V2=0.04 (20% contrast)
+    if catg=='CALIB_RAW_INT':
+        flag = flag & (VIS2>0.04)
+    
     if debug:    
         print("Filtering wavelength")
     # Filter interbands
@@ -93,6 +104,10 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
                    (WLEN > wlmin[i]))
         wlmask = wlmask | wlmaski;
     flag = flag & wlmask;
+
+    # Check there are useful data left from flagging, exit if not
+    if(np.count_nonzero(flag) < len(flag.flatten())/2):
+        return 1;
         
     if debug:
         print("Inverting flags")
@@ -152,6 +167,14 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
         print("Computing new flags")
     flag3 = (CPERR > 0.) & (CPERR < 60)
     flag3 = flag3 & wlmask;
+    
+    # Flag also visibilities with bad flag
+    flag = ~flag
+    flag3 = flag3 & (flag.sum(axis=0,keepdims=1)>0);
+
+    # Discard any closure phase above 10 degrees
+    if catg=='CALIB_RAW_INT':
+        flag3 = flag3 & (abs(CP) < 10)
 
     if debug:
         print("Redundant closure phase filtering")
@@ -169,12 +192,10 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
         sgn[1::4] = sgn[1::4];
         sgn[2::4] = -sgn[2::4];
         sgn[3::4] = -sgn[3::4];
-    
 
         print("sign"); 
         print(sgn)
 
-    
         phaz  = np.exp(np.expand_dims(sgn,axis=1) * 1j * cp);
         print("3a")
         #print(phaz);
@@ -209,6 +230,8 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
     #print("Saving fiel")
     data.flush();
     data.close();
+
+    return 0;
     
 
 ###############################################################################
@@ -284,6 +307,9 @@ if __name__ == '__main__':
                 
                     copyfile(fil,
                              os.path.join(newdir,fifil))
-                    reflagData(os.path.join(newdir,fifil))
+                    remFile = reflagData(os.path.join(newdir,fifil))
+                    #print(remFile)
+                    if(remFile):
+                        os.remove(os.path.join(newdir,fifil))
 
     print("I made my job!")
