@@ -8,12 +8,14 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 ### Quick install:
 `pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/master/tools-<version>.tar`
 
-`<version>` can be `master` (daily development version) or `0.1` (last stable version)
+`<version>` can be `master` (current version), `canari` (daily development version), or `0.1` (last stable version)
+We currently advise to use the `canari` branch (lots of bug corrections).
 
 ### Quick use:
 1. `mat_autoPipeline.py <raw data directory>`
 2. `mat_tidyupOiFits.py <product directoy>`
-3. `mat_autoCalib.py <oifits directoy>`
+3. `mat_reflagData.py <oifits directory>`
+3. `mat_autoCalib.py <reflagged directoy>`
 4. `mat_showOiData.py <a MATISSE oifits file>`
 
 ### More info:
