@@ -95,7 +95,7 @@ def findClosestCal(DIC,i,way=0):
     
 
 
-def make_sof(input_dir, output_dir, timespan=0.04,interpType="MEAN"):
+def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
 
     SOFFILE = [];
     files =  glob.glob(input_dir+'/*.fits')
@@ -221,7 +221,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if args.out_dir == None:
-        args.out_dir = os.path.dirname(args.in_dir) + "_CALIBRATED"
+        cwd = os.getcwd()
+        args.out_dir = os.path.join(cwd, os.path.basename(os.path.abspath(args.in_dir))+"_CALIBRATED");
         
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
