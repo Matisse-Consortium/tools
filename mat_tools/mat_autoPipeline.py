@@ -81,7 +81,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
     else:
         print('%-40s' % ("Raw Data Directory or file list:",),dirRaw)
     if (dirCalib==""):
-        dirCalib="/data/CalibMap_New_Nov19"
+        dirCalib=dirRaw
         print("Info: Calibration Directory not specified. We use the default directory "+dirCalib)
     print('%-40s' % ("Calibration Directory:",),dirCalib)
     if (dirResult==""):
