@@ -9,6 +9,8 @@ Created in 2016
 
 Automatic MATISSE pipeline !
 
+Please contact florentin.millour@oca.eu for any question
+
 This software is governed by the CeCILL license under French law and
 abiding by the rules of distribution of free software.
 
@@ -59,7 +61,8 @@ def runEsorex(cmd):
     os.system("cd "+val[1]+";"+cmd+" > "+out+" 2> "+err)
 
 #------------------------------------------------------------------------------
-def removeDoubleParamater(p):
+
+def removeDoubleParameter(p):
     listP=p.split(' ')
     paramName=[]
     paramsNew=''
@@ -70,7 +73,9 @@ def removeDoubleParamater(p):
             paramsNew = paramsNew + " " + elt
     return paramsNew
 
-def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0, tplstartsel="", tplidsel=""):
+#------------------------------------------------------------------------------
+
+def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL="",paramN="",overwrite=0,maxIter=0,skipL=0,skipN=0, tplstartsel="", tplidsel="", spectralBinning=""):
 
     v = Vizier(columns=["med-Lflux","med-Mflux","med-Nflux"], catalog="II/361")
     # Print meaningful error messages if something is wrong in the command line
@@ -298,11 +303,22 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
             elt["recipes"]  = recipes
             if action=="ACTION_MAT_RAW_ESTIMATES":
                 if (hdr['HIERARCH ESO DET CHIP NAME'] == "AQUARIUS"):
+                    
+                    if spectralBinning != "":
+                        paramN += " --spectralBinning="+spectralBinning
+                    else:
+                        paramN += " --spectralBinning=7"
+                                        
                     if (paramN == ""):
                         elt["param"]    = param
                     else:
                         elt["param"]    = paramN + " " + param
-                else:
+                else:                    
+                    if spectralBinning != "":
+                        paramL += " --spectralBinning="+spectralBinning
+                    else:
+                        paramL += " --spectralBinning=5"
+                        
                     if (paramL == ""):
                         elt["param"]    = param
                     else:
@@ -310,7 +326,9 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
             else:
                 elt["param"]    = param
             elt["tplstart"] = keyTplStartCurrent
-        # Fill with GRA4MAT data
+
+                
+            # Fill with GRA4MAT data
         print("Searching GRA4MAT data...")
         for elt in listRedBlocks:
             hdr  = elt["input"][0][2]
@@ -420,7 +438,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                     print("outputDir "+outputDir+" does not exist. Creating it...\n")
                     os.mkdir(outputDir)
 
-                listNewParams=removeDoubleParamater(elt['param'].replace("/"," --"))
+                listNewParams=removeDoubleParameter(elt['param'].replace("/"," --"))
                         
                 #cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+elt['param'].replace("/"," --")+" "+sofname+"%"+resol;
                 cmd="esorex --output-dir="+outputDir+" "+elt['recipes']+" "+listNewParams+" "+sofname+"%"+resol;
@@ -502,9 +520,7 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
 
             break
 
-
-
-
+#------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     print("Starting...")
@@ -552,7 +568,7 @@ if __name__ == '__main__':
     parser.add_argument('--resol', default="",  \
                         help='reduce only a given spectral resolution. Can be any of LOW, MED or HIGH')
     #--------------------------------------------------------------------------
-    parser.add_argument('--spectralBinning', default=5,  \
+    parser.add_argument('--spectralBinning', default="",  \
                         help='Bin spectrally the data to improve SNR')
     
     #--------------------------------------------------------------------------
@@ -576,8 +592,10 @@ if __name__ == '__main__':
         parser.print_help()
         print("\n     Example : python mat_autoPipeline.py /data/2018-05-19 --skipN --resol=LOW --nbCore=2 --paramN=/useOpdMod=TRUE/corrFlux=TRUE --paramL=/cumulBlock=TRUE")
         sys.exit(0)
+
+    args.dirRaw = os.path.abspath(args.dirRaw)+"/"
         
-    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,int(args.maxIter),args.skipL,args.skipN, args.tplSTART, args.tplID)
+    mat_autoPipeline(args.dirRaw,args.dirResult,args.dirCalib,args.nbCore,args.resol,args.paramL,args.paramN,args.overwrite,int(args.maxIter),args.skipL,args.skipN, args.tplSTART, args.tplID, args.spectralBinning)
 
     
 

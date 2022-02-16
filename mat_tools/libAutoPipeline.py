@@ -666,22 +666,9 @@ def matisseRecipes(action, det, tel, resol):
             if (tel=="ESO-VLTI-A1234"):
                 options += " --replaceTel=3"
                 
-            if resol == "LOW":
-                options += " --spectralBinning=7"
-            if resol == "HIGH":
-                options += " --spectralBinning=7"
-                
             
         elif (det =="HAWAII-2RG"):
             options += "--useOpdMod=FALSE --tartyp=57 --compensate=[pb,nl,if,rb,bp,od] --hampelFilterKernel=10"
-            if resol == "LOW":
-                options += " --spectralBinning=5"
-            if resol == "MED":
-                options += " --spectralBinning=5"
-            if resol == "HIGH":
-                options += " --spectralBinning=5"
-            if resol == "HIGH+":
-                options += " --spectralBinning=5"
                 
         return ["mat_raw_estimates",options]
     
