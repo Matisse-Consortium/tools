@@ -7,9 +7,10 @@ The MATISSE python tools are an addition to the [standard data reduction softwar
 `pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/<branch>/tools-<version>.tar`
 
 `<version>` can be `master` (main version) or `0.1` (last stable version)
+
 `<branch>` can be `master` (main version) or `canari` (daily devlopment version)
 
-We recommand using the following command pip3 install https://gitlab.oca.eu/MATISSE/tools/-/archive/canari/tools-canari.tar
+We recommand using the following command `pip3 install https://gitlab.oca.eu/MATISSE/tools/-/archive/canari/tools-canari.tar`
 
 ### Quick use:
 1. `mat_autoPipeline.py <raw data directory>`
