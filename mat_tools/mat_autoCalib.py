@@ -31,9 +31,7 @@ import numpy as np
 from astropy.io import fits
 from multiprocessing.pool import Pool
 
-
 #------------------------------------------------------------------------------
-
 
 def findClosestCal(DIC,i,way=0):
     hdri = DIC[i]['hdr']
@@ -92,13 +90,12 @@ def findClosestCal(DIC,i,way=0):
     else:
         return -1
 
-    
-
+#------------------------------------------------------------------------------
 
 def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
 
     SOFFILE = [];
-    files =  glob.glob(input_dir+'/*.fits')
+    files =  glob.glob(input_dir+'/*.fits',recursive=False)
 
     DIC = []
     # First read all files
@@ -231,7 +228,7 @@ if __name__ == '__main__':
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
     if (args.timespan=='.'):
-        targsof = make_sof(args.in_dir, args.out_dir,interpType=args.interpType)
+        targsof = make_sof(args.in_dir, args.out_dir, 999, interpType=args.interpType)
     else:
         targsof = make_sof(args.in_dir, args.out_dir, args.timespan,interpType=args.interpType)
 
@@ -243,7 +240,11 @@ if __name__ == '__main__':
             add=""
         else:
             add=""
-        call("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof), shell=True)
+        #print("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof))
+        try :
+            call("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof), shell=True)
+        except:
+            print("error on execution. Possible reason is: spaces in folder names (not allowed).")
 
         # Create a process pool with a maximum of 10 worker processes
         #pool = Pool(processes=8)
@@ -254,7 +255,7 @@ if __name__ == '__main__':
         #print(name)
 
         # Rename files
-        resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits')
+        resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits',recursive=False)
         #print(resultFiles)
         for idx,fi in enumerate(resultFiles):
             #print("renaming",fi, name+"_"+str(idx+1)+'.fits')
