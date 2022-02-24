@@ -95,7 +95,9 @@ def findClosestCal(DIC,i,way=0):
 def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
 
     SOFFILE = [];
-    files =  glob.glob(input_dir+'/*.fits',recursive=False)
+    
+    allfiles = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir,f))]
+    files    = [os.path.join(input_dir,f) for f in allfiles if '.fits' and 'LAMP' not in f]
 
     DIC = []
     # First read all files
@@ -228,7 +230,7 @@ if __name__ == '__main__':
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
     if (args.timespan=='.'):
-        targsof = make_sof(args.in_dir, args.out_dir, 999, interpType=args.interpType)
+        targsof = make_sof(args.in_dir, args.out_dir, 3, interpType=args.interpType)
     else:
         targsof = make_sof(args.in_dir, args.out_dir, args.timespan,interpType=args.interpType)
 
