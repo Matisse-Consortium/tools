@@ -13,12 +13,12 @@ from numpy.linalg import eig, inv
 import scipy
 import wx
 import sys
-from scipy.spatial import Voronoi, voronoi_plot_2d
-from scipy.spatial import Delaunay
-from   matplotlib import pyplot as plt
-from   astropy.io import fits as fits
-from mat_show_oifits import open_oi
-from mat_fileDialog import mat_FileDialog, identifyFile
+from scipy.spatial    import Voronoi, voronoi_plot_2d
+from scipy.spatial    import Delaunay
+from   matplotlib     import pyplot as plt
+from   astropy.io     import fits as fits
+from libShowOifits    import open_oi
+from mat_fileDialog   import mat_FileDialog, identifyFile
 from shapely.geometry import MultiPoint, Point, Polygon
 
 ###############################################################################
