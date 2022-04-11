@@ -39,7 +39,7 @@ def listStars(inDir):
 
     for root, dirs, files in os.walk(inDir):
         print("Looking for observing files in "+root)
-        for files in tqdm(fnmatch.filter(files, "*.fits*"),unit=" file", unit_scale=False, desc="Working on"):
+        for files in tqdm(fnmatch.filter(files,"*.fits*"),unit=" file",unit_scale=False,desc="Working on"):
             header  = fits.open(os.path.join(root,files))[0].header
             types = matisseType(header)
             
