@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -31,9 +31,7 @@ import numpy as np
 from astropy.io import fits
 from multiprocessing.pool import Pool
 
-
 #------------------------------------------------------------------------------
-
 
 def findClosestCal(DIC,i,way=0):
     hdri = DIC[i]['hdr']
@@ -92,19 +90,18 @@ def findClosestCal(DIC,i,way=0):
     else:
         return -1
 
-    
+#------------------------------------------------------------------------------
 
-
-def make_sof(input_dir, output_dir, timespan=0.04,interpType="MEAN"):
+def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
 
     SOFFILE = [];
-    files =  glob.glob(input_dir+'/*.fits')
-    #print input_dir#, files
+    
+    allfiles = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir,f))]
+    files    = [os.path.join(input_dir,f) for f in allfiles if '.fits' and 'LAMP' not in f]
 
     DIC = []
     # First read all files
     print("Scanning files in "+input_dir+" ...")
-    #print("Reading all files keywords...")
     for f in files:
         hdr     = fits.open(f)[0].header
         dic = {'hdr': hdr}
@@ -116,8 +113,6 @@ def make_sof(input_dir, output_dir, timespan=0.04,interpType="MEAN"):
             obstype = hdri['ESO PRO CATG']
 
             if obstype == 'TARGET_RAW_INT':
-                #print("\nFound a TARGET file! Working on it...")
-                #print("Working on", f)
                 mjd  = hdri['MJD-OBS']
                 bcd1 = hdri['ESO INS BCD1 NAME']
                 bcd2 = hdri['ESO INS BCD2 NAME']
@@ -128,14 +123,10 @@ def make_sof(input_dir, output_dir, timespan=0.04,interpType="MEAN"):
                 except:
                     chop = 'F'
                     print("error")
-                    #print(mjd)
 
                 filename  = os.path.basename(f)
                 name, ext = os.path.splitext(filename)
 
-                #print(filename)
-                #print(name)
-                #print(output_dir)
                 fname ='%s/%s_cal_oifits.sof'%(output_dir, name)
 
                 soffile = open(fname, 'w')
@@ -181,19 +172,14 @@ def make_sof(input_dir, output_dir, timespan=0.04,interpType="MEAN"):
                             absdif = np.abs(dif)
                             if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
                                 if (absdif < float(timespan)):
-                                    #print(fcal)
-                                    #print(mjdc)
-                                    #print(dif)
                                     soffile.write('{} \t {} \n'.format(fcal,obstypec))
                                     calcount+=1
 
                 soffile.close()
-                #print("Found",calcount,"suitable calibrators")
 
             fmat = obstype[:-1]
             if 'RAW_INT' not in fmat:
                 f = '#' + f
-                #print '{} \t {}'.format(f,fmat), ' added'
         #except:
          #   continue
     return SOFFILE
@@ -234,7 +220,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if args.out_dir == None:
-        args.out_dir = os.path.dirname(args.in_dir) + "_CALIBRATED"
+        cwd = os.getcwd()
+        args.out_dir = os.path.join(cwd, os.path.basename(os.path.abspath(args.in_dir))+"_CALIBRATED");
         
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
@@ -243,7 +230,7 @@ if __name__ == '__main__':
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
     if (args.timespan=='.'):
-        targsof = make_sof(args.in_dir, args.out_dir,interpType=args.interpType)
+        targsof = make_sof(args.in_dir, args.out_dir, 3, interpType=args.interpType)
     else:
         targsof = make_sof(args.in_dir, args.out_dir, args.timespan,interpType=args.interpType)
 
@@ -255,8 +242,11 @@ if __name__ == '__main__':
             add=""
         else:
             add=""
-        #print 'Running mat_cal_oifits on sof:%s'%(isof)
-        call("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof), shell=True)
+        #print("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof))
+        try :
+            call("esorex --output-dir=%s  mat_cal_oifits %s %s>> log.log"%(args.out_dir,add,isof), shell=True)
+        except:
+            print("error on execution. Possible reason is: spaces in folder names (not allowed).")
 
         # Create a process pool with a maximum of 10 worker processes
         #pool = Pool(processes=8)
@@ -267,7 +257,7 @@ if __name__ == '__main__':
         #print(name)
 
         # Rename files
-        resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits')
+        resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits',recursive=False)
         #print(resultFiles)
         for idx,fi in enumerate(resultFiles):
             #print("renaming",fi, name+"_"+str(idx+1)+'.fits')

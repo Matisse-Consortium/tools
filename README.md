@@ -1,4 +1,4 @@
-# [MATISSE tools](https://gitlab.oca.eu/MATISSE/tools/wikis/home)
+# [MATISSE python tools](https://gitlab.oca.eu/MATISSE/tools/wikis/home)
 
 ## You are on the MATISSE tools distribution page.
 The MATISSE tools are an addition to the [standard data reduction software](http://www.eso.org/sci/software/pipelines/matisse/matisse-pipe-recipes.html) that is distributed separately by ESO. These scripts were developped for the MATISSE commissionning and may be of some use for general users to reduce and visualize data from [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html). However, please note that they should be used at your own risks!
@@ -6,10 +6,13 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 ## Python tools
 
 ### Quick install:
-`pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/master/tools-<version>.tar`
+`pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/<branch>/tools-<version>.tar`
 
-`<version>` can be `master` (current version), `canari` (daily development version), or `0.1` (last stable version)
-We currently advise to use the `canari` branch (lots of bug corrections).
+`<version>` can be `master` (main version) or `0.1` (last stable version)
+
+`<branch>` can be `master` (main version) or <a bird's name> (daily devlopment version --> last one is robin)
+
+We recommand using the following command `pip3 install https://gitlab.oca.eu/MATISSE/tools/-/archive/canari/tools-canari.tar`
 
 ### Quick use:
 1. `mat_autoPipeline.py <raw data directory>`

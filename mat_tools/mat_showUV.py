@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -28,7 +28,7 @@ import glob
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from   astropy.io import fits as fits
+from   astropy.io import fits
 from mat_fileDialog import mat_FileDialog, identifyFile
 from libShowOifits import open_oi
 
@@ -43,8 +43,6 @@ def open_hdr(oi_file):
 
     hdr = hdu[0].header
 
-    #print(hdr)
-
     return hdr
 
 ###############################################################################
@@ -55,8 +53,11 @@ def get_UV(oi_file):
     BY = []
     
     dic = open_oi(oi_file);
-    res = dic['HDR']
+    res = open_hdr(oi_file)
 
+    if(res=={}):
+        return 0,0,0,0,0,0;
+    
     try:
         target_name = dic['TARGET']
     except:
@@ -124,8 +125,14 @@ def get_UV(oi_file):
     except:
         print('No wavelength table found. Trying some other tricks');
         WLEN = res['EFF_WAVE'];
+
+    #print(len(BX))
+    #print(len(BY))
+    #print(target_name)
+    #print(len(typ))
+    #print(ntels)
         
-    return BX,BY,WLEN,target_name, typ, ntels
+    return BX,BY,WLEN,target_name[0], typ, ntels
 
 ###############################################################################
 
@@ -137,19 +144,22 @@ def get_UVs(files):
 
     for file in tqdm(files, unit="file", unit_scale=False, desc="Working on"):
         bx, by, wl, targ, typ, ntels = get_UV(file)
-            
+        if(bx[0]==0):
+            continue;
+        
         if typ == 'CALIB_RAW_INT':
             continue
 
         if targ == '-':
             continue
 
+        print(np.shape(BX));
         BX = np.append(BX, bx, axis=0)
         BY = np.append(BY, by, axis=0)
 
         TARG = np.append(TARG, targ)
 
-        WLEN =  wl
+        WLEN =  np.append(WLEN,wl)
 
     return BX, BY, WLEN, TARG, ntels;
 
@@ -175,9 +185,14 @@ def plot_UV(BX, BY, WLEN, TARG, ntels, marker='o', markersize=4, color="red",tit
         nwiny = nwin;
         nwinx = nwin+1;
 
+    print(np.shape(BX0));
+
     for i,base in enumerate(BX0):
         for j,uni in enumerate(uniques):
-            if uni == TARG[i/(ntels*(ntels-1)/2)]:
+            #print('bla')
+            #print(ntels,i)
+            #print(TARG[int(i/(ntels*(ntels-1)/2))])
+            if uni == TARG[0]:
                 idx = j
 
         try:
@@ -216,9 +231,8 @@ if __name__ == '__main__':
                         help='The path to the directory containing your oifits data.',
                         default='.')
     #--------------------------------------------------------------------------
-    parser.add_argument('--showtitle', metavar='showtitle', type=str,
-                        help='Display a title with the name of the star or not.',
-                        default=True)
+    parser.add_argument('--showtitle', metavar='showtitle', 
+                        help='Display a title with the name of the star or not (True or False).', default=True)
     #--------------------------------------------------------------------------
     parser.add_argument('--pdf',   action="store_true",
                         help='Create a pdf file for each target.')
@@ -237,12 +251,14 @@ if __name__ == '__main__':
     except:
         print("\n\033[93mRunning mat_showUV.py --help to be kind with you:\033[0m\n")
         parser.print_help()
-	sys.exit(0)
+        sys.exit(0)
 
     ########################################################################
 
     files = glob.glob(args.in_dir+"/*.fits*")
 
+    #print(files)
+    
     plt.figure(1)
     plt.clf();
 

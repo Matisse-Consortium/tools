@@ -279,7 +279,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyDetMtrh2Calib       = hdr['HIERARCH ESO DET WIN MTRH2']
                 keyDetMtrs2Calib       = hdr['HIERARCH ESO DET WIN MTRS2']
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
-                print("BADPIX")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -303,7 +302,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   (keyInsPilId==keyInsPilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG" and keyDetReadCurname=="SCI-SLOW-SPEED" and
                    keyDetMtrh2==keyDetMtrh2Calib and keyDetMtrs2==keyDetMtrs2Calib) or
                   (keyInsPinId==keyInsPinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
-                print("OBSFLAT")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -329,7 +327,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                  (keyDetChipNameCalib    =="HAWAII-2RG" and
                   keyDetChipName         =="HAWAII-2RG" and
                   keyDetReadCurnameCalib ==keyDetReadCurname))):
-                print("NONLINEARITY")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -355,7 +352,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                    keyDetChipName =="HAWAII-2RG" and keyInsDilId != "HIGH+") or
                   (keyInsDinId   ==keyInsDinIdCalib and
                    keyDetChipName=="AQUARIUS")))):
-                print("SHIFT")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -377,7 +373,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                  ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
 #                 ((keyInsPolId==keyInsPolIdCalib and keyInsFilId==keyInsFilIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
                   (keyInsPonId==keyInsPonIdCalib and keyInsFinId==keyInsFinIdCalib and keyInsDinId==keyInsDinIdCalib and keyDetChipName=="AQUARIUS")))):
-                print("KAPPA")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -449,7 +444,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyTplStartCalib   =hdr['HIERARCH ESO TPL START']
                 
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
-                print("BADPIX")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -476,7 +470,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                   (keyInsPinIdCalib    == "PHOTO" and
                    keyInsDinId         == keyInsDinIdCalib and
                    keyDetChipName      == "AQUARIUS")))):
-                print( "OBSFLAT")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -501,7 +494,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                  (keyDetChipNameCalib    == "HAWAII-2RG" and
                   keyDetChipName         == "HAWAII-2RG" and
                   keyDetReadCurnameCalib == keyDetReadCurname))):
-                print( "NONLIN")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -527,7 +519,6 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                    keyDetChipName == "HAWAII-2RG" and keyInsDilId == "HIGH+") or
                 (keyInsDinId    == keyInsDinIdCalib and
                    keyDetChipName == "AQUARIUS")))):
-                print("SHIFT")
                 idx=-1
                 cpt=0
                 for elt2 in res:
@@ -675,22 +666,9 @@ def matisseRecipes(action, det, tel, resol):
             if (tel=="ESO-VLTI-A1234"):
                 options += " --replaceTel=3"
                 
-            if resol == "LOW":
-                options += " --spectralBinning=7"
-            if resol == "HIGH":
-                options += " --spectralBinning=7"
-                
             
         elif (det =="HAWAII-2RG"):
             options += "--useOpdMod=FALSE --tartyp=57 --compensate=[pb,nl,if,rb,bp,od] --hampelFilterKernel=10"
-            if resol == "LOW":
-                options += " --spectralBinning=5"
-            if resol == "MED":
-                options += " --spectralBinning=5"
-            if resol == "HIGH":
-                options += " --spectralBinning=5"
-            if resol == "HIGH+":
-                options += " --spectralBinning=5"
                 
         return ["mat_raw_estimates",options]
     

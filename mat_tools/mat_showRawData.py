@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -30,8 +30,7 @@ from matplotlib.widgets import Slider
 import numpy as np
 from PIL import Image
 import astropy.io.fits as fits
-from mat_fileDialog import mat_FileDialog
-import wx
+import argparse
 
 class mat_showRawData():
     def __init__(self,filename):
@@ -84,7 +83,8 @@ class mat_showRawData():
 
     # Chopping (i.e. remove median sky)
     def chopFrames(self):
-        print("Chopping frames")
+        #print("Chopping frames")
+        pass
 
 
     def updateFrame(self,val):
@@ -100,7 +100,7 @@ class mat_showRawData():
         maxi = self.sliderMax.val
         mini = self.sliderMin.val
         if (self.nregion % 3) == 0:
-            nrow  = self.nregion / 3
+            nrow  = self.nregion // 3
             ypos = 5;
             for iy in range(3):
                 xpos = 5;
@@ -116,16 +116,16 @@ class mat_showRawData():
                     bottom = ypos + np.shape(img)[0]
 
                     if iy == 1 and ix == 1 and auto == True:
-                        print("min = {0} max = {1}".format(self.sliderMax.val,self.sliderMin.val))
+                        #print("min = {0} max = {1}".format(self.sliderMax.val,self.sliderMin.val))
                         image_histogram, bins = np.histogram(img.flatten(),
                              int(np.sqrt(len(img.flatten()))), normed=False)
                         maximg = image_histogram - np.median(image_histogram) > 15
                         maxi = np.max((bins[1:])[maximg])
                         mini = np.median(img.flatten())
-                        maxi = mini + (maxi - mini)/3
+                        maxi = mini + (maxi - mini)//3
                         self.sliderMax.set_val(maxi)
                         self.sliderMin.set_val(mini)
-                        print("min = {0} max = {1}".format(self.sliderMin.val,self.sliderMax.val))
+                        #print("min = {0} max = {1}".format(self.sliderMin.val,self.sliderMax.val))
 
                     if maxi<=mini:
                         maxi = mini+1
@@ -135,7 +135,7 @@ class mat_showRawData():
                     self.ax.imshow(img,extent=[left,right,top,bottom],
                       vmin=mini,vmax=maxi, interpolation = 'nearest',
                                                         cmap = 'afmhot')
-                    print("iregion = {0} : [{1},{2},{3},{4}]".format(iregion,left,right,top,bottom))
+                    #print("iregion = {0} : [{1},{2},{3},{4}]".format(iregion,left,right,top,bottom))
 
                     xpos += np.shape(img)[1]+5
                 ypos += np.shape(img)[0]+5
@@ -143,28 +143,31 @@ class mat_showRawData():
             self.ax.set_xlim((0,xpos))
 
 
-    app = wx.App()
-
 
 
 if __name__ == '__main__':
-    app = wx.App()
-    arg=sys.argv
+   
+    #--------------------------------------------------------------------------
+    parser = argparse.ArgumentParser(description='Show Images of raw data (fringes/photometry/skys/detector...)')
+    parser.add_argument('filename', metavar='filename', type=str,
+            help='filename of the raw data file', default=None)
 
     try:
-        if (arg[1]=="--help" or arg[1]== "-h"):
-            print("mat_show_rawdata script to visualize raw data")
-            print("Usage : filename [-options]")
-            print("options :")
-        else:
-            filename=arg[1]
+        args = parser.parse_args()
     except:
-        print("No input name given, running file selector...")
-        openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
-        if openFileDialog.ShowModal() == wx.ID_OK:
-            filename = openFileDialog.GetPaths()[0]
-            print(filename)
-        openFileDialog.Destroy()
-    mat_showRawData(filename)
-    app.MainLoop()
-    app.Destroy()
+        print("\n\033[93mRunning mat_showRawData.py --help to be kind with you:\033[0m\n")
+        parser.print_help()
+        sys.exit(0)   
+   
+   
+   
+    mat_showRawData(args.filename)
+   
+   
+   
+   
+   
+   
+   
+        
+   

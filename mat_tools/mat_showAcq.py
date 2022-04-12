@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -39,33 +39,48 @@ from scipy import ndimage
 import scipy.optimize as opt
 import argparse
 from tqdm import tqdm
+import subprocess
+# import commands
 
 def getSkyFile(filename):
     h=fits.open(filename)
-    print(filename)
-    print(os.getcwd())
+    print('new version de getskyfile')
+    splitt=filename.split('/')
+    if len(splitt)==1:
+        c=os.getcwd()
+    else:
+        c='/'.join(splitt[0:-1])
+        print(c)
+        
     dprtype=h[0].header['HIERARCH ESO DPR TYPE']
-    
     if dprtype=='SKY' or dprtype=='SEARCH,SKY':
         print('you are trying to plot a SEARCH/SKY acquisition, please choose a target file')
-        exit()
+        sys.exit(0)
+
     if dprtype=='STD' or dprtype=='OBJECT':
         tpl=h[0].header['HIERARCH ESO TPL START']
         detec=h[0].header['HIERARCH ESO DET CHIP NAME']
         print('no chopping')
-        os.system('rm -rf lefiles.txt')
-        os.system('dfits *.fits | fitsort dpr.type tpl.start det.chip.name | grep '+detec+'| grep '+tpl+' | grep SKY > lefiles.txt')
-        if file_is_empty('lefiles.txt'):
+        cmd='dfits '+c+'/*.fits | fitsort dpr.type tpl.start det.chip.name | grep '+detec+'| grep '+tpl+' | grep SKY '
+        test=os.system(cmd)
+        if test==256:
             print('missing sky for this unchopped acquisiiton')
             print('can not continue')
-            exit()
+            sys.exit(0)
         else:
-            skyfile=np.loadtxt('lefiles.txt',usecols=0,dtype=str)
-            os.system('rm -rf lefiles.txt')
-            print(skyfile)
-        
+            p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            out=out.decode("utf-8") 
+            skyfile=(out.split('\n')[0].split('\t')[0])
+            
+
+       
+    
     return str(skyfile)
 
+
+
+  
     
 def reference(detecteur):
     a=1
@@ -154,7 +169,6 @@ def file_is_empty(path):
     return os.stat(path).st_size==0
 
 def mat_showAcq(filename,pdf=False):
-    print('new version')
     a=1
     b=1
     sky=[]
@@ -260,20 +274,22 @@ def mat_showAcq(filename,pdf=False):
             by=params[0]*b
 
             dims=dimension(detecteur)
-            
+          
+        
             plt.subplot(2,2,kkk+1)
             plt.scatter(bx*a,by*b ,marker='o',color="blue")
+            
             plt.text(bx*a,by*b , str(i), color="red", fontsize=12)
             axes=plt.gca()
             axes.add_artist(patches.Ellipse((refs[2*kkk],refs[2*kkk+1]), dims[0]*a, dims[1]*b , 0,edgecolor = 'magenta', fill=False, zorder = 2))
             axes.add_artist(patches.Ellipse((refs[2*kkk],refs[2*kkk+1]), dims[2]*a, dims[3]*b , 0,edgecolor = 'green', fill=False, zorder = 2))
             if detecteur=='AQUARIUS':
                 axes.add_artist(patches.Ellipse((refs[2*kkk],refs[2*kkk+1]), dims[4]*a, dims[5]*b , 0,edgecolor = 'orange', fill=False, zorder = 2))
-                plt.xlim(refs[2*kkk]-dims[0]*a/2-2*a,refs[2*kkk]+dims[0]*a/2+2*a)
-                plt.ylim(refs[2*kkk+1]-dims[1]*b/2-2*b ,refs[2*kkk+1]+dims[1]*b/2+2*b)
+            plt.xlim(refs[2*kkk]-dims[0]*a/2-2*a,refs[2*kkk]+dims[0]*a/2+2*a)
+            plt.ylim(refs[2*kkk+1]-dims[1]*b/2-2*b ,refs[2*kkk+1]+dims[1]*b/2+2*b)
             plt.ylabel(titretitre[kkk])
             plt.suptitle(etoile+' '+tplstart+' '+tracker+' '+detecteur)
-        
+            
     if pdf==False:
         plt.show()
     else:
@@ -306,12 +322,13 @@ def mat_showAcq_nochop(filename,pdf=False):
         titretitre=titrehawa
     else:
         titretitre=titreaqua
-    plt.figure(1,figsize=(15,7))
+    
     for kkk in range(4):
         data=np.mean(h['IMAGING_DATA'].data['DATA'+voie[kkk]].astype(float),axis=0)
         sky=np.mean(hd['IMAGING_DATA'].data['DATA'+voie[kkk]].astype(float),axis=0)
         img= data-sky
         back=np.mean(sky)
+      
         params = (refs[2*kkk+1],refs[2*kkk],1,4,img.max(),back)
         errorfunction = lambda p: np.ravel(gaussian(*p)(*np.indices(img.shape)) - img)
         params, success = opt.leastsq(errorfunction, params)
@@ -326,8 +343,10 @@ def mat_showAcq_nochop(filename,pdf=False):
         axes.add_artist(patches.Ellipse((refs[2*kkk],refs[2*kkk+1]), dims[2]*a, dims[3]*b , 0,edgecolor = 'green', fill=False, zorder = 2))
         if detecteur=='AQUARIUS':
             axes.add_artist(patches.Ellipse((refs[2*kkk],refs[2*kkk+1]), dims[4]*a, dims[5]*b , 0,edgecolor = 'orange', fill=False, zorder = 2))
+        
         plt.xlim(refs[2*kkk]-dims[0]*a/2-2*a,refs[2*kkk]+dims[0]*a/2+2*a)
         plt.ylim(refs[2*kkk+1]-dims[1]*b/2-2*b ,refs[2*kkk+1]+dims[1]*b/2+2*b)
+        
         plt.ylabel(titretitre[kkk])
     plt.suptitle(etoile+' '+tplstart+' '+tracker+' '+detecteur)
        
@@ -362,38 +381,28 @@ if  __name__== '__main__' :
         sys.exit(0)
     
     arg=sys.argv
-    mat_showAcq(args.filename,pdf=args.pdf)
-    """
+    
     h=fits.open(args.filename)
     chopping=h[0].header['HIERARCH ESO ISS CHOP ST']
     dprtype=h[0].header['HIERARCH ESO DPR TYPE']
-    print(chopping,dprtype)
     if chopping=='T':
         print('chopping = T')
-        print(os.getcwd())
         mat_showAcq(args.filename,pdf=args.pdf)
-    print(dprtype,chopping)
-    if chopping=='F' and dprtype=='SKY':
+    if dprtype=='SKY':
+        print('\n\n')                
         print('you are trying to plot a SKY acquisition, please choose a target file')
-        exit()
+        print('\n\n')
+        sys.exit(0)
+
+    if dprtype=='SEARCH,SKY':
+        print('\n\n')
+        print('you are trying to plot a SKY acquisition, please choose a target file')
+        print('\n\n')
+        sys.exit(0)
+
     if chopping=='F' and (dprtype=='STD' or dprtype=='OBJECT'):
-        tpl=h[0].header['HIERARCH ESO TPL START']
-        detec=h[0].header['HIERARCH ESO DET CHIP NAME']
-        print('no chopping')
-        directory=args.filename.split('/')[-2]
-        os.system('rm -rf '+directory+'/lefiles.txt')
-        os.system('dfits '+directory+'/*.fits | fitsort dpr.type tpl.start det.chip.name | grep '+detec+'| grep '+tpl+' | grep SKY > '+directory+'/lefiles.txt')
-        if file_is_empty(directory+'/lefiles.txt'):
-            print('missing sky for this unchopped acquisiiton')
-            print('can not continue')
-            exit()
-        else:
-            skyfile=np.loadtxt(directory+'/lefiles.txt',usecols=0,dtype=str)
-            os.system('rm -rf '+directory+'/lefiles.txt')
-            print(skyfile)
-            mat_showAcq_nochop(args.filename,str(skyfile),pdf=args.pdf)
-  
-    """
+        mat_showAcq_nochop(args.filename,pdf=args.pdf)
+     
 
 
 

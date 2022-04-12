@@ -88,7 +88,7 @@ if __name__ == '__main__':
     targets=np.unique(np.array(targets))
     print(targets)
 
-
+    print(args.wl)
     for band in ["LM","N"]:
         for target in targets:
             print("***************************{0}_{1}***************************".format(target,band))

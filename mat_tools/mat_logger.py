@@ -22,6 +22,7 @@
   knowledge of the CeCILL license and that you accept its terms.
 """
 
+#new
 # Import necessary files
 from libAutoPipeline import matisseType
 import wx, wx.html
@@ -33,13 +34,15 @@ import sys
 import pickle
 import socket
 import mat_fileDialog
-from mat_fileDialog import mat_FileDialog
+#from mat_fileDialog import mat_FileDialog
 from mat_fileDialog import identifyFile
 import threading
 import time
 from openpyxl import Workbook
 from openpyxl.styles import Font,PatternFill
 from mat_showFluxVsTime import mat_showFluxVsTime
+from mat_FringeJumpsGD import mat_groupeDelay
+from mat_FringeJumpsPD import mat_phaseDelay
 from mat_showDLOffset import mat_showDLOffset
 from mat_showAcq import mat_showAcq
 from mat_showAcq import mat_showAcq_nochop
@@ -118,7 +121,7 @@ class mat_showFitsHeader(wx.Frame):
         hbox.Add(self.searchFieldText,proportion=1)
         hbox.Add(self.searchField,proportion=1)
         
-        vbox.AddSizer(hbox)
+        vbox.Add(hbox)
         vbox.Add(self.tableView,proportion=10)
         self.SetSizer(vbox)
         
@@ -783,6 +786,12 @@ class mat_logger(wx.Dialog):
         idx+=1;
         m7   = menu.Append( idx, "Copy files")
         menu.Bind(wx.EVT_MENU,self.copyFiles,m7)
+        m8   = menu.Append( idx, "Gravity GD")
+        menu.Bind(wx.EVT_MENU,self.groupeDelay,m8)
+        idx+=1
+        m9   = menu.Append( idx, "Gravity PD")
+        menu.Bind(wx.EVT_MENU,self.phaseDelay,m9)
+        idx+=1
         self.fileListWidget.PopupMenu( menu, event.GetPoint())
 
 
@@ -828,11 +837,27 @@ class mat_logger(wx.Dialog):
         idx      = self.fileListWidget.GetItem(itemNum).GetData()
         l        = self.fileListWidget.GetObjects()
         filename = l[idx].filename
-
         print("Plotting flux vs time for file "+ filename+"...")
         mat_showFluxVsTime(filename)
 
+#------------------------------------------------------------------------------
 
+    def groupeDelay(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+        print("Plotting Gravity Groupe Delay for file "+ filename+"...")
+        mat_groupeDelay(filename)
+#------------------------------------------------------------------------------
+
+    def phaseDelay(self,event):
+        itemNum  = self.fileListWidget.GetNextSelected(-1)
+        idx      = self.fileListWidget.GetItem(itemNum).GetData()
+        l        = self.fileListWidget.GetObjects()
+        filename = l[idx].filename
+        print("Plotting Gravity Phase Delay for file "+ filename+"...")
+        mat_phaseDelay(filename)
 #------------------------------------------------------------------------------
 
     def plotacq(self,event):
@@ -850,8 +875,9 @@ class mat_logger(wx.Dialog):
             print('running mat_showAcq_nochop')
             mat_showAcq_nochop(filename)
 
-
 #------------------------------------------------------------------------------
+
+ 
 
     def openWithFv(self,event):
         itemNum  = self.fileListWidget.GetNextSelected(-1)
@@ -980,7 +1006,7 @@ class mat_logger(wx.Dialog):
         f.close()
 
 
-        subprocess.Popen(['nohup', 'csh', filename], stdout=open(logname, 'w'),stderr=open('/dev/null', 'w'),preexec_fn=os.setpgrp )
+        subprocess.Popen(['nohup', 'tcsh', filename], stdout=open(logname, 'w'),stderr=open('/dev/null', 'w'),preexec_fn=os.setpgrp )
         mat_showReductionLog(self,logname)
 
         #cd subprocess.Popen(['xterm','-hold','-e',command])

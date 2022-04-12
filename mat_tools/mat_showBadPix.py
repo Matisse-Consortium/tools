@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -28,7 +29,30 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from matplotlib.backends.backend_pdf import PdfPages
 
-hdulist = fits.open('C:\Users\pbe\Desktop\Python-TestPlan\MATISSE_GEN_cal_shift_L_SPCAL_OPEN_HIGH_210_0001.fits')
+
+def checkfisbadmap(f):
+    h=fits.open(f)
+    try:
+        machin=h[0].header['HIERARCH ESO PRO CATG']
+        if machin=='BADPIX':
+            return 1
+        else:
+            return 0
+    except:
+        print('missing keywords in header, impossible to check if file is badpixel map')
+        print('byebye')
+        exit()
+    
+
+
+f=sys.argv[1]
+
+if not(checkfisbadmap(f)):
+    print('this is not a bad pixel map you are trying to display')
+    exit()
+
+
+hdulist = fits.open(f)#'C:\Users\pbe\Desktop\Python-TestPlan\MATISSE_GEN_cal_shift_L_SPCAL_OPEN_HIGH_210_0001.fits')
 nBeam=5
 szSpectral=[]
 cornerSpectral=[]

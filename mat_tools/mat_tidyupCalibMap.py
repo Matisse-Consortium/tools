@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -25,7 +25,6 @@ knowledge of the CeCILL license and that you accept its terms.
 """
 
 import os
-import wx
 import sys
 from astropy.io import fits
 from mat_fileDialog import mat_FileDialog
@@ -96,48 +95,41 @@ if __name__ == '__main__':
         elif len(listArg) == 2:
             name_file = sys.argv[1]
             print(name_file)
-        
-    app = wx.App()
+
     if not name_file:
-        print("No input name given, running file selector...")
-        openFileDialog = mat_FileDialog(None, 'Open a file',"lmk,")
-        if openFileDialog.ShowModal() == wx.ID_OK:
-            name_file = openFileDialog.GetPaths()[0]
-            print( name_file)
-        openFileDialog.Destroy()
-    app.MainLoop()
-    app.Destroy()
+        print("Error need file or directory")
+    else:   
     
-    if os.path.isfile(name_file):
-        print("Reading file "+name_file+"...")
-        dic = change_calibmapFile_name(name_file)
-    
-    elif os.path.isdir(name_file):
-        newdir = os.path.join(name_file,"CALIBMAP");
-        try:
-            print(newdir+" already exists...")
-            os.stat(newdir)
-        except:
-            print("Creating directory "+newdir)
-            os.mkdir(newdir)
-        print("Listing files in directory")
+        if os.path.isfile(name_file):
+            print("Reading file "+name_file+"...")
+            dic = change_calibmapFile_name(name_file)
         
-        print(os.path.join(name_file,"**/*.fits*"))
-        for root,subfolders,files in os.walk(name_file):
-            for fileToTreat in files:
-                #print(fileToTreat)
-                if (fileToTreat.startswith('OBS_FLATFIELD') and (fileToTreat.endswith('fits')) ):
-                    try:
-                        hdu    = fits.getheader(os.path.join(root,fileToTreat))
-                        if hdu['HIERARCH ESO PRO CATG'] == 'OBS_FLATFIELD':
-                            print('Found an calibmap file. Copying it...')
-                            #print(fileToTreat)
-                            fil = os.path.basename(fileToTreat)
-                            
-                            copyfile(os.path.join(root,fileToTreat),
-                                     os.path.join(newdir,fil))
-                            change_calibmap_name(os.path.join(newdir,fileToTreat))
-                    except:
-                        print("Not a proper fits file!")
+        elif os.path.isdir(name_file):
+            newdir = os.path.join(name_file,"CALIBMAP");
+            try:
+                print(newdir+" already exists...")
+                os.stat(newdir)
+            except:
+                print("Creating directory "+newdir)
+                os.mkdir(newdir)
+            print("Listing files in directory")
+            
+            print(os.path.join(name_file,"**/*.fits*"))
+            for root,subfolders,files in os.walk(name_file):
+                for fileToTreat in files:
+                    #print(fileToTreat)
+                    if (fileToTreat.startswith('OBS_FLATFIELD') and (fileToTreat.endswith('fits')) ):
+                        try:
+                            hdu    = fits.getheader(os.path.join(root,fileToTreat))
+                            if hdu['HIERARCH ESO PRO CATG'] == 'OBS_FLATFIELD':
+                                print('Found an calibmap file. Copying it...')
+                                #print(fileToTreat)
+                                fil = os.path.basename(fileToTreat)
+                                
+                                copyfile(os.path.join(root,fileToTreat),
+                                         os.path.join(newdir,fil))
+                                change_calibmap_name(os.path.join(newdir,fileToTreat))
+                        except:
+                            print("Not a proper fits file!")
         
-print("I made my job, baby!")
+print("I made my job!")

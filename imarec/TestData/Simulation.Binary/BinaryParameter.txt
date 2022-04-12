@@ -1,0 +1,8 @@
+
+Parameter of the simulated binary:
+   separation 5.0 mas
+   PA (bright to faint): 30 degs PA east of north
+   Ratio 8.9
+   ud size of primary 1.2 mas
+   ud size of secondary 0.75 mas
+

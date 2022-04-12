@@ -64,8 +64,8 @@ else
   echo set grid >> skript0
   echo null\(x\) \= 0. >> skript0
   echo plot "\" >> skript0
-#  echo \"$file\" u $cx\:$cym\:$cem tit \"$textm\" wi errorbars lt 7 lw 2 pt 7, "\" >> skript0
-  echo \"$file\" u $cx\:$cym tit \"$textm\" wi points lt 7 lw 2 pt 7, "\" >> skript0
+  echo \"$file\" u $cx\:$cym\:$cem tit \"$textm\" wi errorbars lt 7 lw 2 pt 7, "\" >> skript0
+# echo \"$file\" u $cx\:$cym       tit \"$textm\" wi points    lt 7 lw 2 pt 7, "\" >> skript0
   set i = 1
   while( $i <= $anzahl )
     set zweite = `echo $i | awk '{print $1*2;}'`

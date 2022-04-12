@@ -20,14 +20,25 @@ else
   rm -f $oifits:r.txt; fstruct $oifits > $oifits:r.txt
   rm -f $oifits:r.datatypes ; awk 'BEGIN{z=0;} { if($2 == "BINTABLE") {if(($3=="OI_T3")||($3=="OI_VIS2")||($3=="OI_VIS")) {z=z+1; print $3,$1;};}; }' $oifits:r.txt > $oifits:r.datatypes
   rm -f $oifits:r.datatypes.s; sort -k 1 $oifits:r.datatypes > $oifits:r.datatypes.s
-  set index_OI_VIS  = `awk '{ if($1 == "OI_VIS")  {print $2;}; }' $oifits:r.datatypes.s`; echo $index_OI_VIS
-  set index_OI_VIS2 = `awk '{ if($1 == "OI_VIS2") {print $2;}; }' $oifits:r.datatypes.s`; echo $index_OI_VIS2
-  set index_OI_T3   = `awk '{ if($1 == "OI_T3")   {print $2;}; }' $oifits:r.datatypes.s`; echo $index_OI_T3
+  set index_OI_VIS  = `awk '{ if($1 == "OI_VIS")  {print $2;}; }' $oifits:r.datatypes.s`; echo "-- index_OI_VIS = $index_OI_VIS --"
+  set index_OI_VIS2 = `awk '{ if($1 == "OI_VIS2") {print $2;}; }' $oifits:r.datatypes.s`; echo "-- index_OI_VIS2 = $index_OI_VIS2 --"
+  set index_OI_T3   = `awk '{ if($1 == "OI_T3")   {print $2;}; }' $oifits:r.datatypes.s`; echo "-- index_OI_T3 = $index_OI_T3 --"
   rm -f $oifits:r.datatypes $oifits:r.txt
 
   set OIVISja = 1
   if( $#index_OI_VIS > 0 ) then
-   rm -f tt.txt0 ; fdump $oifits+$index_OI_VIS tt.txt0 FLAG -
+   rm -f tt.txt0
+   set zz = 0
+   foreach iinn ($index_OI_VIS)
+	   rm -f tt.txt00
+	   fdump $oifits+$iinn tt.txt00 FLAG -
+	   @ zz++
+	   if($zz == 1) then
+		   cp tt.txt00 tt.txt0
+           else
+		   rm -f tt00; cat tt.txt0 tt.txt00 > tt00; mv tt00 tt.txt0
+           endif
+   end
    rm -f tt.txt0.1; grep F tt.txt0 > tt.txt0.1; set ff = `awk '{ if(($1 == "F")||($2 == "F")) {print $0;}; }' tt.txt0.1`
    # echo $ff; echo $#ff
    if( $#ff == 0 ) then
@@ -45,7 +56,18 @@ else
 
   set OIVIS2ja = 1
   if( $#index_OI_VIS2 > 0 ) then
-   rm -f tt.txt0 ; fdump $oifits+$index_OI_VIS2 tt.txt0 FLAG -
+   rm -f tt.txt0
+   set zz = 0
+   foreach iinn ($index_OI_VIS2)
+	   rm -f tt.txt00
+	   fdump $oifits+$iinn tt.txt00 FLAG -
+	   @ zz++
+	   if($zz == 1) then
+		   cp tt.txt00 tt.txt0
+           else
+		   rm -f tt00; cat tt.txt0 tt.txt00 > tt00; mv tt00 tt.txt0
+           endif
+   end
    rm -f tt.txt0.1; grep F tt.txt0 > tt.txt0.1; set ff = `awk '{ if(($1 == "F")||($2 == "F")) {print $0;}; }' tt.txt0.1`
    # echo $ff; echo $#ff
    if( $#ff == 0 ) then
@@ -63,7 +85,18 @@ else
 
   set OIT3ja = 1
   if( $#index_OI_T3 > 0 ) then
-   rm -f tt.txt0 ; fdump $oifits+$index_OI_T3 tt.txt0 FLAG -
+   rm -f tt.txt0
+   set zz = 0
+   foreach iinn ($index_OI_T3)
+	   rm -f tt.txt00
+	   fdump $oifits+$iinn tt.txt00 FLAG -
+	   @ zz++
+	   if($zz == 1) then
+		   cp tt.txt00 tt.txt0
+           else
+		   rm -f tt00; cat tt.txt0 tt.txt00 > tt00; mv tt00 tt.txt0
+           endif
+   end
    rm -f tt.txt0.1; grep F tt.txt0 > tt.txt0.1; set ff = `awk '{ if(($1 == "F")||($2 == "F")) {print $0;}; }' tt.txt0.1`
    # echo $ff; echo $#ff
    if( $#ff == 0 ) then

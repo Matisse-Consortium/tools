@@ -2,12 +2,57 @@ import sys
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import subprocess
+
+
+def file_is_empty(path):
+    return os.stat(path).st_size==0
+
+def getSkyFile(filename):
+    h=fits.open(filename)
+    print(filename)
+    splitt=filename.split('/')
+    if len(splitt)==1:
+        c=os.getcwd()
+    else:
+        c='/'.join(splitt[0:-1])
+
+    tpl=h[0].header['HIERARCH ESO TPL START']
+    detec=h[0].header['HIERARCH ESO DET CHIP NAME']
+    cmd='dfits '+c+'/*.fits | fitsort dpr.type tpl.start det.chip.name | grep '+detec+'| grep '+tpl+' | grep SKY'
+    test=os.system(cmd)
+    if test==256:
+        print('missing sky for this unchopped acquisiiton')
+        print('can not continue')
+        sys.exit(0)
+        
+    else:
+         p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+         out, err = p.communicate()
+         out=out.decode("utf-8")
+         print(out)
+         print(out.split('\n')[0])
+         print(out.split('\n')[0].split('\t')[0])
+         skyfile=(out.split('\n')[0].split('\t')[0])
+         
+    return skyfile
 
 
 
-def mat_showFluxVsTime(filename, skyfilename="",unchop=False):
 
-
+def mat_showFluxVsTime(filename):
+    h=fits.open(filename)
+    chopchop=h[0].header['HIERARCH ESO ISS CHOP ST']
+    if chopchop=='T':
+        print('Chopping case')
+        skyfilename=""
+        unchop=False
+    else:
+        print('UnChopping case')
+        skyfilename=getSkyFile(filename)
+        unchop=True
+        print('Sky file used:',skyfilename)
     doSky = (skyfilename!="" or unchop==True)
 
     d=fits.open(filename)
@@ -112,17 +157,5 @@ if  __name__== '__main__' :
         print( " --unchop")
     else:
         filename=arg[1]
-
-
-        narg=len(arg)
-        unchop=False
-        skyfilename=""
-        
-        for i in range(2,narg):
-            if (arg[i] == '--sky' ):
-                skyfilename=arg[i+1]
-            if (arg[i] == '--unchop' ):
-                unchop=True
-
-        mat_showFluxVsTime(filename,skyfilename,unchop)
-
+       
+        mat_showFluxVsTime(filename)

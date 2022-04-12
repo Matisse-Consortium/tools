@@ -321,7 +321,7 @@ end
 
 set endtime = `date`
 set host = `hostname`
-rm -f runtime.txt; echo "run from $starttime[4] until $endtime[4] on $host" >> runtime.txt
+rm -f runtime.txt; echo "run from day $starttime[3] $starttime[4] until day $endtime[3] $endtime[4] on $host" >> runtime.txt
 
 set dir0s = `echo E.*`
 foreach f ($dir0s)

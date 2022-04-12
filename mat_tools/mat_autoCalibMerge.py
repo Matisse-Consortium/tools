@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This file is part of the Matisse pipeline GUI series
@@ -34,13 +34,14 @@ from multiprocessing.pool import Pool
 
 #------------------------------------------------------------------------------
 
-def make_sof(input_dir, output_dir, timespan=0.04):
+def make_sof(input_dir, output_dir, band, timespan=0.04):
 
     SOFFILE = []
     TPLST = []
     CH = []
     DI = []
-    files =  glob.glob(input_dir+'/*.fits')
+    MJD = []
+    files =  glob.glob(input_dir+'/*'+band+'*.fits')
     #print input_dir#, files
 
     DIC = []
@@ -71,12 +72,14 @@ def make_sof(input_dir, output_dir, timespan=0.04):
                 TPLST.append(tplstart)
                 CH.append(chip)
                 DI.append(dit)
+                MJD.append(mjd)
     for j,fname in enumerate(SOFFILE):
         tplstart=TPLST[j]
         chip=CH[j]
         dit=DI[j]
         FILE = []
         OBSTYPE = []
+        mjd=MJD[j]
         for i,f in enumerate(files):
             hdri = DIC[i]['hdr']
             obstype = hdri['ESO PRO CATG']
@@ -142,12 +145,14 @@ if __name__ == '__main__':
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 
+    # N band
+    #######################################################################
     #----------------------------------------------------------------------
     #---- Make the SOF files ----------------------------------------------
     if (args.timespan=='.'):
-        targsof = make_sof(args.in_dir, args.out_dir)
+        targsof = make_sof(args.in_dir, args.out_dir,'-N')
     else:
-        targsof = make_sof(args.in_dir, args.out_dir, args.timespan)
+        targsof = make_sof(args.in_dir, args.out_dir, '-N', args.timespan)
 
     #--------------------------------------------------------------------------
     #----- Run the Recipes ----------------------------------------------------
@@ -178,4 +183,43 @@ if __name__ == '__main__':
         os.remove("CAL_VIS.fits")
     except:
         pass
+    os.chdir("../")
     
+    # LM band
+    #######################################################################
+    #----------------------------------------------------------------------
+    #---- Make the SOF files ----------------------------------------------
+    if (args.timespan=='.'):
+        targsof = make_sof(args.in_dir, args.out_dir,'-LM')
+    else:
+        targsof = make_sof(args.in_dir, args.out_dir, '-LM', args.timespan)
+
+    #--------------------------------------------------------------------------
+    #----- Run the Recipes ----------------------------------------------------
+    os.chdir(args.out_dir)
+    for isof in tqdm(targsof, unit="file", unit_scale=False, desc="Calibrating"):
+        #call("esorex --output-dir=%s mat_cal_oifits %s >> log.log"%(args.out_dir,isof), shell=True)
+        cmd="esorex mat_cal_oifits --cumulBlock=TRUE ../"+isof+" >> log.log"
+        #print(cmd)
+        call(cmd, shell=True)
+        token1=isof.split('/')
+        token2=token1[1].split('_')
+        name=token2[0]+'_'+token2[1]+'_'+token2[2]+'_'+token2[3]+'_'+token2[4]
+        print(name)
+        # Rename files
+        resultFiles = glob.glob('TARGET_CAL_INT_????.fits')
+        for idx,f in enumerate(resultFiles):
+            hdr = fits.open(f)[0].header
+            if (hdr['ESO ISS CHOP ST'] == 'F'):
+                os.rename(f, name+"_"+hdr['ESO CFG BCD MODE']+'_nochop.fits')
+            else:
+                os.rename(f, name+"_"+hdr['ESO CFG BCD MODE']+'_chop.fits')   
+        os.rename('TARGET_CAL_INT_noBCD.fits', name+'.fits')
+
+    # cleanup intermediate files
+    try :
+        os.remove("CAL_CPHASE.fits")
+        os.remove("CAL_DPHASE.fits")
+        os.remove("CAL_VIS.fits")
+    except:
+        pass

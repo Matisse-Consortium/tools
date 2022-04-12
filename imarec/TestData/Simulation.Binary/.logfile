@@ -1,0 +1,58 @@
+
+Start time     : 2021-05-10T10:20:24
+Program name   : esorex
+Severity level : [ INFO  ] 
+
+10:20:24 [ INFO  ] : Esorex, version 3.12
+10:20:24 [ INFO  ] : using the libraries: CPL = 6.6, CFITSIO = 3.35 (WCSLIB unavailable), FFTW (double precision)
+
+10:20:24 [ INFO  ] mat_get_lambda_list: lambda_range[0] =1.650000 .. 1.700000
+10:20:24 [ INFO  ] mat_get_parameters: lambda filter: 1.650000 um .. 1.700000 um
+10:20:24 [ INFO  ] mat_get_parameters: start image: mode=4, param=1.457000
+10:20:24 [ INFO  ] mat_get_parameters: prior image: mode=4, param=1.457000
+10:20:24 [ INFO  ] mat_get_parameters: object mask: 12.000000 + 1.000000*[0 .. 5]
+10:20:24 [ INFO  ] mat_get_parameters: reg parameter: 0.500000 , 0.250000, ..., 0.000122
+10:20:24 [ INFO  ] mat_load_interferometric_data: loading and processing of data/Contest_Binary.oifits
+10:20:24 [ INFO  ] mat_oifits_load: Load oifits
+10:20:24 [ INFO  ] mat_oifits_add_array: Add array
+10:20:24 [ INFO  ] mat_oifits_add_wavelength: Add wavelength
+10:20:24 [ INFO  ] mat_oivis2_from_table: VIS2 table has 8 wavelength data
+10:20:25 [ INFO  ] mat_oifits_add_vis2: Add vis2
+10:20:25 [ INFO  ] mat_oifits_find_tupel: Find tuple
+10:20:25 [ INFO  ] mat_oifits_select_tupel: Select tuple
+10:20:25 [ INFO  ] mat_oit3_from_table: T3 table has 8 wavelength data
+10:20:25 [ INFO  ] mat_oifits_add_t3: Add T3
+10:20:25 [ INFO  ] mat_oifits_find_tupel: Find tuple
+10:20:25 [ INFO  ] mat_oifits_select_tupel: Select tuple
+10:20:25 [ INFO  ] mat_oifits_select_tupel: Select tuple
+10:20:25 [ INFO  ] mat_load_interferometric_data:   processing data for ARRNAME=CHARA, INSNAME=MIRC_H
+10:20:25 [ INFO  ] mat_add_t3:   100 bispectra added
+10:20:25 [ INFO  ] mat_add_vis2:   75 squared visibilities added
+10:20:25 [ INFO  ] mat_oifits_delete: Delete oifits
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: gaussian disc, first try => sigma = 0.397169 fwhm = 0.935263 ec = 0
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: fully darkened disc, first try => radius = 0.727642 ec = 0
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: uniform disc, first try => radius = 0.63157 ec = 0
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: fit gaussian disk (mode=2):           FWHM = 0.935 mas, mse = 1.255e-02, red_chisq =   9.812, spatfreq = 0 ..   1.007 1/mas, nbvis2 = 75
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: fit uniform disc (mode=3):        diameter = 1.263 mas, mse = 1.189e-02, red_chisq =   7.301, spatfreq = 0 ..   1.758 1/mas, nbvis2 = 75
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: fit fully darkened disc (mode=4): diameter = 1.457 mas, mse = 1.143e-02, red_chisq =   6.660, spatfreq = 0 ..   1.690 1/mas, nbvis2 = 75
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: fit Lorentz disk (mode=5):            FWHM = 0.683 mas, mse = 4.500e-02, red_chisq =  22.183, spatfreq = 0 ..   0.946 1/mas, nbvis2 = 75
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: suggested parameters: (ok=1)
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: --start_select=4 --start_mode=4 --start_param=1.457
+10:20:25 [ INFO  ] mat_fit_start_image_vis2: --prior_select=4 --prior_mode=4 --prior_param=1.457
+10:20:25 [ INFO  ] mat_guess_parameters: fov   = 10.4001 mas
+10:20:25 [ INFO  ] mat_guess_parameters: psize = 1.05751 mas
+10:20:25 [ INFO  ] mat_guess_parameters: npix  = 40 (4*fov/psize)
+10:20:25 [ INFO  ] mat_guess_parameters: suggested parameters:
+10:20:25 [ INFO  ] mat_guess_parameters: --fov=16.64
+10:20:25 [ INFO  ] mat_guess_parameters: --npix=64
+10:20:25 [ INFO  ] mat_guess_parameters: -> psize = 0.260004 mas
+10:20:47 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 5.0000e-01, qrec =   15.1674, cost =     0.248, nbit = 20889, chi2bis =    1.1382, rresbis =   5.8146, chi2cp =    3.0566, rrescp =   1.2036, chi2vis2 =    0.7794, rresvis2 =  59.1263
+10:20:47 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 2.5000e-01, qrec =   15.1620, cost =     0.248, nbit =   10, chi2bis =    1.1380, rresbis =   5.8146, chi2cp =    3.0570, rrescp =   1.2033, chi2vis2 =    0.7793, rresvis2 =  59.1047
+10:20:48 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 1.2500e-01, qrec =   15.1602, cost =     0.248, nbit =    2, chi2bis =    1.1381, rresbis =   5.8151, chi2cp =    3.0578, rrescp =   1.2030, chi2vis2 =    0.7793, rresvis2 =  59.0969
+10:20:48 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 6.2500e-02, qrec =   15.1557, cost =     0.248, nbit =    6, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788
+10:20:49 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 3.1250e-02, qrec =   15.1557, cost =     0.248, nbit =    1, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788
+10:20:49 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 1.5625e-02, qrec =   15.1557, cost =     0.248, nbit =    1, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788
+10:20:50 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 7.8125e-03, qrec =   15.1557, cost =     0.248, nbit =    1, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788
+10:20:50 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 3.9062e-03, qrec =   15.1557, cost =     0.248, nbit =    1, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788
+10:20:51 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 1.9531e-03, qrec =   15.1557, cost =     0.248, nbit =    1, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788
+10:20:51 [ INFO  ] mat_show_rec_info: rec om = 12.000, mu = 9.7656e-04, qrec =   15.1557, cost =     0.248, nbit =    1, chi2bis =    1.1379, rresbis =   5.8149, chi2cp =    3.0579, rrescp =   1.2028, chi2vis2 =    0.7792, rresvis2 =  59.0788

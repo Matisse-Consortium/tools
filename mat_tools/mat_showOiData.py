@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
   This file is part of the Matisse pipeline GUI series
@@ -54,8 +54,8 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
     if not(axe):
         axe=plt
     #plt.axis([np.min(sta_pos[:,2])-20,np.max(sta_pos[:,2])+20,np.min(sta_pos[:,3])-20,np.max(sta_pos[:,3])+20])
-    axe.plot(UTs[:,2],UTs[:,3],'ro',markersize=3*symsize,color=color)
-    axe.plot(ATs[:,2],ATs[:,3],'ro',markersize=symsize,color=color)
+    axe.plot(UTs[:,2],UTs[:,3],marker='o',linestyle="",markersize=3*symsize,color=color)
+    axe.plot(ATs[:,2],ATs[:,3],marker='o',linestyle="",markersize=symsize,color=color)
 
     if labels:
         for i in range(len(sta_name_list)):
@@ -217,14 +217,14 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
         tel1=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['VIS2']['STA_INDEX'][i,0])[0]][0]
         tel2=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['VIS2']['STA_INDEX'][i,1])[0]][0]
         txt="{0}-{1}".format(tel1,tel2)
-        plts["VIS2_{0}".format(i)].text(1.01,0.5,txt,transform=plts["VIS2_{0}".format(i)].transAxes,rotation=90,verticalAlignment='center')
+        plts["VIS2_{0}".format(i)].text(1.01,0.5,txt,transform=plts["VIS2_{0}".format(i)].transAxes,rotation=90,va='center')
 
     for i in range(4):
         tel1=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,0])[0]][0]
         tel2=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,1])[0]][0]
         tel3=dic['STA_NAME'][np.where(dic['STA_INDEX'] == dic['T3']['STA_INDEX'][i,2])[0]][0]
         txt="{0}-{1}-{2}".format(tel1,tel2,tel3)
-        plts["CP_{0}".format(i)].text(1.01,0.5,txt,transform=plts["CP_{0}".format(i)].transAxes,rotation=90,verticalAlignment='center')
+        plts["CP_{0}".format(i)].text(1.01,0.5,txt,transform=plts["CP_{0}".format(i)].transAxes,rotation=90,va='center')
 
 
     if not(corrFlux):
