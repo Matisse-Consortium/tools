@@ -292,12 +292,15 @@ matisseColor={
 "KAPPA_SRC"      :wx.Colour(50,50,0),
 "KAPPA_OBJ"      :wx.Colour(150,50,0),
 
-    # Files with fringes (lab)
+# Files with fringes (lab)
 "CALIB_SRC_RAW"  :wx.Colour(154,191,136),
 
 # Other files
 "IM_PERIODIC"    :wx.Colour(0,200,50),
 "IM_REF"         :wx.Colour(150,0,50),
+
+# GRA4MAT files
+"RMN_REC"        :wx.Colour(250,176,191),
 
 # Palette here http://colrd.com/image-dna/23291/
 # Also picked up some colours from "La Cinq"

@@ -785,6 +785,8 @@ def matisseType(header):
         res="CALIB_RAW"
     elif (catg == "TEST" or catg=="CALIB" or catg=="SCIENCE") and typ == "SKY" and tech == "INTERFEROMETRY" : 
         res="SKY_RAW"
+    elif typ == "STD,RMNREC" and tech == "INTERFEROMETRY" : 
+        res="RMN_REC"
     else:
         res=catg
     return res
