@@ -1,32 +1,40 @@
 C-Shell script for easy usage of the MATISSE image reconstruction software
 ==========================================================================
 (Karl-Heinz Hofmann, Dieter Schertl, Max-Planck-Institut for Radio Astronomy, Bonn, Germany, February 2018)
+modified F. Millour, J. Drevon July 2022
 
 
 1. Both C-shell scripts `mat_cal_imarec_all.csh` and `mat_cal_imarec_all.2.csh` are easy-to-use 
    callers of the MATISSE image reconstruction recipe mat_cal_imarec.
 
+1. You need to have csh or tcsh running, i.e. if you are using bash (check that typing `echo $SHELL`).
 
-2. All necessary scripts and files are stored in one folder, named `mat_cal_imarec.scripts00/`, anywhere on your computer.
+1. On Ubuntu, try installing most of the necessary software by tying the following command: `sudo apt install tcsh ftools-fv ftools-pow wcstools gnuplot original-awk imagemagick gv libreadline-dev libncurses5-dev ncurses-dev curl libcurl4 libcurl4-gnutls-dev xorg-dev make gcc g++ gfortran perl-modules python3-dev python3-astropy python3-numpy python3-scipy psutils ps2eps`
+
+2. All necessary scripts and files are stored in one folder, named `imarec`, anywhere on your computer.
 The enviroment variable `$SCRIPTS` must point to this folder, i.e.
-    `setenv SCRIPTS /MYPATH/mat_cal_imarec.scripts00`
+    `setenv SCRIPTS <your path>/imarec`
 or
-    `set SCRIPTS /MYPATH/mat_cal_imarec.scripts00`
+    `set SCRIPTS <your path>/imarec`
     `export SCRIPTS`
-
+Put this command in the file `echo 'setenv SCRIPTS <your path>/imarec' >> .cshrc`
 
 3. The following software is required:
 
-   - The ESO pipeline for MATISSE must be installed.
+   - The ESO pipeline for MATISSE must be installed. Follow the instructions there: https://www.eso.org/sci/software/pipelines/matisse/
 
-   - The HEASARC ftools package, which can be downloaded from https://heasarc.gsfc.nasa.gov/ftools/ftools_menu.html 
+   - The HEASARC ftools package
+		- In ubuntu, install it with `sudo apt install ftools-fv ftools-pow`
+   		- It can be downloaded from https://heasarc.gsfc.nasa.gov/ftools/ftools_menu.html 
      (for installation instructions see https://heasarc.gsfc.nasa.gov/lheasoft/install.html )
      As noted there, you must initialize the package by sourcing `$HEADAS/headas-init.sh`, i.e.
         `source $HEADAS/headas-init.csh`
      or 
         `$HEADAS/headas-init.sh`
 
-   - The Image Utility Programs from WCSTools (see http://tdc-www.harvard.edu/software/wcstools/wcsprogsi.html),
+   - The Image Utility Programs from WCSTools
+		- In ubuntu, install it with `sudo apt install wcstools`
+   		-  (see http://tdc-www.harvard.edu/software/wcstools/wcsprogsi.html),
      especially imrot (to rotate and reflect fits images).
 
    - Our scripts need the following LINUX programs, too:
