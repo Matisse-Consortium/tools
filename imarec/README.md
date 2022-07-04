@@ -30,6 +30,7 @@ Put this command in the file `echo 'setenv SCRIPTS <your path>/imarec' >> .cshrc
         `source $HEADAS/headas-init.csh`
      or 
         `$HEADAS/headas-init.sh`
+	Note that rcent version of HEADAS may be corrupted, you will have to make a symbolic link to have the instllation proceed: `ln -s $HEADAS/BUILD_DIR/headas-setup.in $HEADAS/BUILD_DIR/headas-setup`
 
    - The Image Utility Programs from WCSTools
    		-  (see http://tdc-www.harvard.edu/software/wcstools/wcsprogsi.html),
