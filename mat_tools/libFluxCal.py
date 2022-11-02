@@ -56,9 +56,11 @@ from numpy.polynomial.polynomial import polyval
 from astropy.convolution import Gaussian1DKernel,Box1DKernel,convolve
 import scipy.stats
 import glob
+import shutil
 
-#Path to the skycal_cli executable (to be updated for every user)
-skycalc_cli_cmd = '/home/amatter/.local/bin/skycalc_cli'
+#Path to the skycal_cli executable
+#skycalc_cli_cmd = '/home/amatter/.local/bin/skycalc_cli'
+skycalc_cli_cmd = np.str(shutil.which('skycalc_cli'))
 
 # match_radius [arcsec]
 # ra, dec [degree]
