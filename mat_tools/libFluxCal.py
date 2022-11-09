@@ -746,7 +746,10 @@ def transform_spectrum_to_real_spectral_resolution(wl_orig,spec_orig,dl_coeffs,k
     spec_new = f_spec_new(wl_new)
     #convolve with Gaussian kernel 
     kernel = Gaussian1DKernel(stddev=kernel_width_px/(2.0*np.sqrt(2.0*np.log(2.0))))
-    spec_convolved = convolve(spec_new,kernel)
+    #spec_convolved = convolve(spec_new,kernel)
+    spec_new[0] = np.nanmedian(spec_new[0:int(kernel.dimension/2.0)])
+    spec_new[-1] = np.nanmedian(spec_new[-1:-int(kernel.dimension/2.0)])
+    spec_convolved = convolve(spec_new,kernel,boundary='extend')
     #interpolate the convolved spectrum to the input wavelength grid
     f_spec_new = interp1d(wl_new, spec_convolved,kind='cubic',fill_value='extrapolate')
     spec_interp = f_spec_new(wl_final)
