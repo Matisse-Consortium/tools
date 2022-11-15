@@ -67,7 +67,7 @@ if __name__ == '__main__':
         print("\n - ***_calflux.fits: only total flux is calibrated (incoherently processed oifits file expected) and stored in the OI_FLUX table (FLUXDATA column).\n")
         print("\n - ***_calcorrflux.fits: only correlated fluxes are calibrated (coherently processed oifits file expected) and stored in the OI_VIS table (VISAMP column).\n")
         print("\n Example of calibration of the total flux of a MATISSE science oifits files with airmass correction:\n") 
-        print(" mat_fluxcal dir --sciname='sci' --calname='cal' --mode='flux' --airmassCorr\n")       
+        print(" mat_fluxcal.py dir --sciname='sci' --calname='cal' --mode='flux' --airmassCorr\n")       
         sys.exit(0)
 
     #-----------------------------------------
@@ -152,6 +152,6 @@ if __name__ == '__main__':
             outputfile=sorted_scifiles[i].split(".")[0]+'_calflux.fits'
         elif args.mode == 'corrflux':
             outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
-        fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+sorted_calfiles[i],args.dir_oifits+outputfile, dir_caldatabases, mode='flux',output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
+        fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+sorted_calfiles[i],args.dir_oifits+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
 
 

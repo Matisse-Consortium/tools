@@ -248,12 +248,12 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
         wmax = wmax+margin
         dlambda = get_dlambda(inhdul_sci)
         
-        fname_in_sci = outputdir+'/skycalc_input_sci_'+tag_sci+'.txt'
-        fname_skycalc_out_sci = outputdir+'/skycalc_output_sci_'+tag_sci+'.fits'
+        fname_in_sci = outputdir+'skycalc_input_sci_'+tag_sci+'.txt'
+        fname_skycalc_out_sci = outputdir+'skycalc_output_sci_'+tag_sci+'.fits'
         create_skycalc_inputfile(fname_in_sci,airmass_sci,pwv_sci,wmin,wmax,wdelta=dlambda)
         print('Start SkyCalc (SCI).')
         os.system(skycalc_cli_cmd + ' -i ' + fname_in_sci + ' -o ' + fname_skycalc_out_sci)
-        figpath_out = outputdir+'/skycalc_output_sci_'+tag_sci+'.png'
+        figpath_out = outputdir+'skycalc_output_sci_'+tag_sci+'.png'
         plot_skycalc_output(fname_skycalc_out_sci,figpath_out,airmass_sci,pwv_sci)
         
         wmin = np.min(wav_cal)*1e9
@@ -264,12 +264,12 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
         dlambda = get_dlambda(inhdul_cal)
 
         tag_cal = os.path.splitext(os.path.basename(inputfile_cal))[0]
-        fname_in_cal = outputdir+'/skycalc_input_cal_'+tag_cal+'.txt'
-        fname_skycalc_out_cal = outputdir+'/skycalc_output_cal_'+tag_cal+'.fits'
+        fname_in_cal = outputdir+'skycalc_input_cal_'+tag_cal+'.txt'
+        fname_skycalc_out_cal = outputdir+'skycalc_output_cal_'+tag_cal+'.fits'
         create_skycalc_inputfile(fname_in_cal,airmass_cal,pwv_cal,wmin,wmax,wdelta=dlambda)
         print('Start SkyCalc (CAL).')
         os.system(skycalc_cli_cmd + ' -i ' + fname_in_cal + ' -o ' + fname_skycalc_out_cal)
-        figpath_out = outputdir+'/skycalc_output_cal_'+tag_cal+'.png'
+        figpath_out = outputdir+'skycalc_output_cal_'+tag_cal+'.png'
         plot_skycalc_output(fname_skycalc_out_cal,figpath_out,airmass_cal,pwv_cal)
         
     # open the calibrator database which includes the spectra of calibrators
