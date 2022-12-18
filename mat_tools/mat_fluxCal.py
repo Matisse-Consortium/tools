@@ -52,7 +52,9 @@ if __name__ == '__main__':
     #--------------------------------------------------------------------------
     parser.add_argument('--mode', default="flux", \
                         help='Type of MATISSE spectra you want to calibrate. "flux": total spectra or "corrflux": correlated spectra.')
-
+    #--------------------------------------------------------------------------
+    parser.add_argument('--band',default='LM', \
+                        help='Spectral band to calibrate (either "LM" or "N").')
     #--------------------------------------------------------------------------
     parser.add_argument('--airmassCorr',  \
                         help='Do airmass correction between the science and the calibrator', action='store_true')
@@ -66,8 +68,8 @@ if __name__ == '__main__':
         print("\n This routine can produce two types of calibrated oifits files depending on the selected mode (either 'flux' or 'corrflux':\n")
         print("\n - ***_calflux.fits: only total flux is calibrated (incoherently processed oifits file expected) and stored in the OI_FLUX table (FLUXDATA column).\n")
         print("\n - ***_calcorrflux.fits: only correlated fluxes are calibrated (coherently processed oifits file expected) and stored in the OI_VIS table (VISAMP column).\n")
-        print("\n Example of calibration of the total flux of a MATISSE science oifits files with airmass correction:\n") 
-        print(" mat_fluxcal.py dir --sciname='sci' --calname='cal' --mode='flux' --airmassCorr\n")       
+        print("\n Example of calibration of the total flux of a MATISSE science oifits files with airmass correction in LM band:\n") 
+        print(" mat_fluxcal.py dir --sciname='sci' --calname='cal' --mode='flux' --band='LM' --airmassCorr\n")       
         sys.exit(0)
 
     #-----------------------------------------
@@ -88,20 +90,27 @@ if __name__ == '__main__':
     nfiles_cal=np.size(calfiles)
     list_of_dicts_sci=[]
     list_of_dicts_cal=[]
+    if args.band == 'LM':
+        id_disp='DIL'
+    else:
+        id_disp='DIN'
+
     for i in range(nfiles_sci):
         hdul_sci=fits.open(scifiles[i])
         hdr_sci=hdul_sci[0].header
         dateobs_sci=hdr_sci['MJD-OBS']
         bcd_pos1=hdr_sci['HIERARCH ESO INS BCD1 ID']
         bcd_pos2=hdr_sci['HIERARCH ESO INS BCD2 ID']
-        chop_status=hdr_sci['HIERARCH ESO DET CHOP ST']
+        chop_status=hdr_sci['HIERARCH ESO ISS CHOP ST']
         tpl_start=hdr_sci['HIERARCH ESO TPL START']
+        res=hdr_sci['HIERARCH ESO INS '+id_disp+' NAME']
         filename=scifiles[i].split("/")[-1]
         dic_sci = {'DATE_OBS':dateobs_sci}
         dic_sci['TPL_START']=tpl_start
         dic_sci['FILENAME']=filename
         dic_sci['BCD']=bcd_pos1+'-'+bcd_pos2
         dic_sci['CHOP_ST']=chop_status
+        dic_sci['RES']=res
         list_of_dicts_sci.append(dic_sci)
 
     for i in range(nfiles_cal):
@@ -110,31 +119,57 @@ if __name__ == '__main__':
         dateobs_cal=hdr_cal['MJD-OBS']
         bcd_pos1=hdr_cal['HIERARCH ESO INS BCD1 ID']
         bcd_pos2=hdr_cal['HIERARCH ESO INS BCD2 ID']
-        chop_status=hdr_cal['HIERARCH ESO DET CHOP ST']
+        chop_status=hdr_cal['HIERARCH ESO ISS CHOP ST']
         tpl_start=hdr_cal['HIERARCH ESO TPL START']
+        res=hdr_cal['HIERARCH ESO INS '+id_disp+' NAME']
         filename=calfiles[i].split("/")[-1]
         dic_cal = {'DATE_OBS':dateobs_cal}
         dic_cal['TPL_START']=tpl_start
         dic_cal['FILENAME']=filename
         dic_cal['BCD']=bcd_pos1+'-'+bcd_pos2
         dic_cal['CHOP_ST']=chop_status
+        dic_cal['RES']=res
         list_of_dicts_cal.append(dic_cal)
 
     sorted_list_of_dicts_sci = sorted(list_of_dicts_sci,key=itemgetter('DATE_OBS'))
     sorted_scifiles=[]
+    sorted_scitime=[]
+    sorted_bcd_sci=[]
+    sorted_res_sci=[]
+    sorted_chop_sci=[]
     for dic in sorted_list_of_dicts_sci:
         files = dic['FILENAME']
         tpl_start_sci = dic['TPL_START']
+        scitime = dic['DATE_OBS']
+        bcd_sci = dic['BCD']
+        res_sci = dic['RES']
+        chop_sci = dic['CHOP_ST']
         #print('files={0}').format(files)
         sorted_scifiles.append(files)
+        sorted_scitime.append(scitime)
+        sorted_bcd_sci.append(bcd_sci)
+        sorted_res_sci.append(res_sci)
+        sorted_chop_sci.append(chop_sci)
         #sorted_tpl_start_sci.append(files)
     sorted_list_of_dicts_cal = sorted(list_of_dicts_cal,key=itemgetter('DATE_OBS'))
     sorted_calfiles=[]
+    sorted_caltime=[]
+    sorted_bcd_cal=[]
+    sorted_res_cal=[]
+    sorted_chop_cal=[]
     for dic in sorted_list_of_dicts_cal:
         files = dic['FILENAME']
         tpl_start_cal = dic['TPL_START']
+        caltime = dic['DATE_OBS']
+        bcd_cal = dic['BCD']
+        res_cal = dic['RES']
+        chop_cal = dic['CHOP_ST']
         #print('files={0}').format(files)
         sorted_calfiles.append(files)
+        sorted_caltime.append(caltime)
+        sorted_bcd_cal.append(bcd_cal)
+        sorted_res_cal.append(res_cal)
+        sorted_chop_cal.append(chop_cal)
         #sorted_tpl_start_cal.append(files)
 
         
@@ -143,15 +178,37 @@ if __name__ == '__main__':
     # Flux calibration
     #-----------------
 
-    nfiles=np.size(sorted_scifiles)
-    for i in range(nfiles):    
-        print('Sci = {0}'.format(sorted_scifiles[i]))
-        print('Cal = {0}'.format(sorted_calfiles[i]))
-        print('Cal database = {0}'.format(dir_caldatabases))
+    nfiles_sci=np.size(sorted_scifiles)
+    nfiles_cal=np.size(sorted_calfiles)
+    sorted_scitime=np.array(sorted_scitime)
+    sorted_caltime=np.array(sorted_caltime)
+    sorted_bcd_sci=np.array(sorted_bcd_sci)
+    sorted_bcd_cal=np.array(sorted_bcd_cal)
+    sorted_res_sci=np.array(sorted_res_sci)
+    sorted_res_cal=np.array(sorted_res_cal)
+    sorted_chop_sci=np.array(sorted_chop_sci)
+    sorted_chop_cal=np.array(sorted_chop_cal)
+    
+    if args.mode == 'flux':
+       outputdir=args.dir_oifits+'calflux/'
+    elif args.mode == 'corrflux':
+        outputdir=args.dir_oifits+'calcorrflux/'
+    if (not os.path.isdir(outputdir)):
+        os.mkdir(outputdir)
+    for i in range(nfiles_sci):
+        ind_bcd=np.where(sorted_bcd_cal == sorted_bcd_sci[i])
+        ind_res=np.where(sorted_res_cal[ind_bcd[0][:]] == sorted_res_sci[i])
+        ind_chop=np.where(sorted_chop_cal[ind_bcd[0][ind_res]] == sorted_chop_sci[i])
+        delta_time=np.abs(sorted_scitime[i]-sorted_caltime[ind_bcd[0][ind_res][ind_chop]])
+        ind=np.argmin(delta_time)
         if args.mode == 'flux':
             outputfile=sorted_scifiles[i].split(".")[0]+'_calflux.fits'
         elif args.mode == 'corrflux':
             outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
-        fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+sorted_calfiles[i],args.dir_oifits+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
+        print('Sci = {0}'.format(sorted_scifiles[i]))
+        print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
+        print('Cal database = {0}'.format(dir_caldatabases))
+        calfile=sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]
+        fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+calfile,outputdir+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
 
 
