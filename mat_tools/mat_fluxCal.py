@@ -85,11 +85,11 @@ if __name__ == '__main__':
     
     args.dir_oifits = os.path.abspath(args.dir_oifits)+"/"
     if args.band == 'LM':
-        scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*LM*Chop.fits')
-        calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*LM*Chop.fits')
-    else:
-        scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*N*Chop.fits')
-        calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*N*Chop.fits')
+        scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*Chop.fits')
+        calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-LM*Chop.fits')
+    elif args.band == 'N':
+        scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*Chop.fits')
+        calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-N*Chop.fits')
     nfiles_sci=np.size(scifiles)
     nfiles_cal=np.size(calfiles)
     list_of_dicts_sci=[]
