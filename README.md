@@ -12,7 +12,7 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 
 `<branch>` can be `master` (main version) or <a bird's name> (daily devlopment version --> last one is robin)
 
-We recommand using the following command `pip3 install https://gitlab.oca.eu/MATISSE/tools/-/archive/canari/tools-canari.tar`
+**We recommand using the following command** `pip3 install https://gitlab.oca.eu/MATISSE/tools/-/archive/canari/tools-robin.tar`
 
 ### Quick use:
 1. `mat_autoPipeline.py <raw data directory>`
