@@ -448,7 +448,12 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
 
     if key == 'FLUX':
         sta_index = dic[key]['STA_INDEX']
-        sta_index_cal.append([sta_index])
+        ntel=4
+        colorList_ind=[]
+        for i in range(ntel):
+            ind=np.where(sta_index_array == sta_index[i])[0]
+            colorList_ind.append(colorList[ind[0]])
+        colorList=colorList_ind      
     else:
         sta_index = np.sort(dic[key]['STA_INDEX'])
         sta_index_cal.append(sta_index)
