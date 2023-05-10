@@ -92,7 +92,7 @@ def findClosestCal(DIC,i,way=0):
 
 #------------------------------------------------------------------------------
 
-def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
+bbdef make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
 
     SOFFILE = [];
     

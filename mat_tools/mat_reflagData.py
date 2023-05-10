@@ -27,17 +27,15 @@ import os
 import argparse
 from fnmatch import fnmatch
 from tqdm import tqdm
-import astropy
+#import astropy
 from astropy.io import fits
 import numpy as np
 from shutil import copyfile
-from os import walk
-import glob
 import matplotlib.pyplot as plt
 
 ###############################################################################
 
-def reflagData(oifits, keepOldFlags=0, debug=0):
+def reflagData(oifits, keepOldFlags=0, debug=1):
     
     if debug:
         print(oifits)
@@ -107,6 +105,7 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
 
     # Check there are useful data left from flagging, exit if not
     if(np.count_nonzero(flag) < len(flag.flatten())/2):
+        print("WARNING: File discarded because all data flagged!")
         return 1;
         
     if debug:
@@ -227,7 +226,7 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
 
     data['OI_T3'].data['FLAG'] = flag3;
     
-    #print("Saving fiel")
+    #print("Saving file")
     data.flush();
     data.close();
 
@@ -281,15 +280,18 @@ if __name__ == '__main__':
             print("Oifits files will be copied and reflagged in that directory.")
         
             filecounter = 0
-            allfiles    = [];
-            for root,subfolders,files in os.walk(args.oiFits[0]):
-                for fil in files:
-                    allfiles.append(os.path.join(root,fil))
-                    filecounter += 1;
+            
+            allfiles = [f for f in os.listdir(args.oiFits[0]) if os.path.isfile(os.path.join(args.oiFits[0],f))]
+            files    = [os.path.join(args.oiFits[0],f) for f in allfiles if '.fits' in f and 'LAMP' not in f]
 
-            print("Number of files to treat:",len(allfiles))
+            filecounter = len(files)
+
+            print(files)
+            
+            
+            print("Number of files to treat:",filecounter)
         
-            for fil in tqdm(allfiles, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
+            for fil in tqdm(files, total=filecounter, unit=" files", unit_scale=False, desc="Working on files"):
                 matchfilestoavoid = ["TARGET_CAL_0*","OBJ_CORR_FLUX_0*",
                                      "OI_OPDWVPO_*","PHOT_BEAMS_*",
                                      "CALIB_CAL_0*","RAW_DPHASE_*",
@@ -307,6 +309,7 @@ if __name__ == '__main__':
                 
                     copyfile(fil,
                              os.path.join(newdir,fifil))
+                    
                     remFile = reflagData(os.path.join(newdir,fifil))
                     #print(remFile)
                     if(remFile):
