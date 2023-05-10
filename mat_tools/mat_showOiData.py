@@ -293,6 +293,7 @@ if __name__ == '__main__':
     parser.add_argument('--pdf', default=0, help='Create pdf(s) for the file(s)', action='store_true')
     parser.add_argument('--mergedpdf', default=0, help='Create a unique pdf for all the files', action='store_true')
     parser.add_argument('--visRange', default=0, help='The min and max for visibility (or CorrFLux)')
+    parser.add_argument('-pdfname', default=0, help='name of the pdf file')
    
 
     try:
@@ -321,6 +322,8 @@ if __name__ == '__main__':
     else:
         visRange=None
         
+    if args.pdfname!=0:
+        pdfname=args.pdfname
     showErr=args.showErr
     pdf=args.pdf
     merged=args.mergedpdf
@@ -339,14 +342,16 @@ if __name__ == '__main__':
     nfiles=len(filesOrDir)
 
     if merged:
-        pdfname=dir0+'_plots.pdf'
+        if not(pdfname):
+            pdfname=dir0+'_plots.pdf'
         pdf = PdfPages(pdfname)
 
     print("Processing {0} oifits files".format(len(filesOrDir)))
     for filei in tqdm(filesOrDir):
         fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig,visRange=visRange)
         if pdf and not(merged):
-            pdfname=filei.split(".fits")[0]+".pdf"
+            if not(pdfname):
+                pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
             plt.clf()
             tqdm.write("saving to {0}".format(pdfname))
