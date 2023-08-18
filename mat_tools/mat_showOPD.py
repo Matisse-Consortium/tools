@@ -76,8 +76,8 @@ def mat_show_opd(input_path="",output_path=""):
     print(opd)
     N_tot = np.size(opd)
     print(N_tot)
-    print(N_tot/n_baselines)
-    opd = np.reshape(opd,[N_tot/n_baselines,n_baselines])
+    print(N_tot//n_baselines)
+    opd = np.reshape(opd,[N_tot//n_baselines,n_baselines])
 
     #mjd = np.reshape(mjd,[N_tot/n_baselines,n_baselines])
     #make OPD plot
