@@ -258,7 +258,6 @@ if __name__ == '__main__':
 
         # Rename files
         resultFiles = glob.glob(args.out_dir+'/TARGET_CAL_INT_????.fits',recursive=False)
-        #print(resultFiles)
         for idx,fi in enumerate(resultFiles):
             #print("renaming",fi, name+"_"+str(idx+1)+'.fits')
             os.rename(fi, name+"_"+str(idx)+'.fits')
@@ -266,9 +265,11 @@ if __name__ == '__main__':
     os.chdir(args.out_dir)
     # cleanup intermediate files
     try :
-        os.remove("CAL_CPHASE.fits")
-        os.remove("CAL_DPHASE.fits")
-        os.remove("CAL_VIS.fits")
+        os.system("rm -f CALCPHASE_*.fits")
+        os.system("rm -f CALDPHASE_*.fits")
+        os.system("rm -f CALVIS_*.fits")
+        os.system("rm -f TARGET_CAL_INT_*.fits")
     except:
         pass
     #os.remove("CALIBRATED/*.sof")
+
