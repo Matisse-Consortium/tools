@@ -34,10 +34,11 @@ from shutil import copyfile
 from os import walk
 import glob
 import matplotlib.pyplot as plt
+import sys
 
 ###############################################################################
 
-def reflagData(oifits, keepOldFlags=0, debug=0):
+def reflagData(oifits, keepOldFlags=0, debug=0, absVMargin=0.1, errCP=60):
     
     if debug:
         print(oifits)
@@ -63,8 +64,8 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
     vis    = np.sqrt(np.abs(VIS2)) * np.sign(VIS2)
     viserr = 0.5* VIS2ERR / (vis+(vis==0));
 
-    wlmin = (2.94e-6, 4.5e-6, 8e-6);
-    wlmax = (4.1e-6,  5.0e-6, 12.5e-6);
+    wlmin = (2.85e-6, 4.45e-6, 8e-6);
+    wlmax = (4.18e-6,  4.98e-6, 12.5e-6);
 
     if debug:
         print("Getting old vis flags")
@@ -80,16 +81,16 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
         print("Computing new vis flags")
     flag = (VIS2 > 0. - VIS2ERR) &\
         (VIS2 < 1. + VIS2ERR) &\
-        (VIS2 > -0.1)         &\
-        (VIS2 < 1.1)          &\
+        (VIS2 > -absVMargin)         &\
+        (VIS2 < 1.+absVMargin)          &\
         (VIS2ERR > 0)         &\
-        (VIS2ERR < 0.1)       &\
+        (VIS2ERR < absVMargin)       &\
         (vis > 0. - viserr)   &\
         (vis < 1. + viserr)   &\
-        (vis > -0.1)          &\
-        (vis < 1.1)           &\
+        (vis > -absVMargin)          &\
+        (vis < 1.+absVMargin)           &\
         (viserr > 0)          &\
-        (viserr < 0.1)
+        (viserr < absVMargin)
 
     # Discard any visibility below V2=0.04 (20% contrast)
     if catg=='CALIB_RAW_INT':
@@ -165,12 +166,12 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
     
     if debug:
         print("Computing new flags")
-    flag3 = (CPERR > 0.) & (CPERR < 60)
+    flag3 = (CPERR > 0.) & (CPERR < errCP)
     flag3 = flag3 & wlmask;
     
     # Flag also visibilities with bad flag
-    flag = ~flag
-    flag3 = flag3 & (flag.sum(axis=0,keepdims=1)>0);
+    flag  = ~flag
+    flag3 =  flag3 & (flag.sum(axis=0,keepdims=1)>0);
 
     # Discard any closure phase above 10 degrees
     if catg=='CALIB_RAW_INT':
@@ -202,7 +203,7 @@ def reflagData(oifits, keepOldFlags=0, debug=0):
         print(np.shape(phaz))
         for i in np.arange(nclos):
             #print("toto");
-            BS = np.conj((phaz[4*i]) * (phaz[4*i+1]) * (phaz[4*i+2]));
+            BS    = np.conj((phaz[4*i]) * (phaz[4*i+1]) * (phaz[4*i+2]));
             BSERR = np.sqrt(cperr[4*i]**2 + cperr[4*i+1]**2 + cperr[4*i+2]**2)
             print(BS.imag)
             CP_compare = np.arctan2(BS.imag, BS.real);
