@@ -206,9 +206,11 @@ if __name__ == '__main__':
         delta_time=np.abs(sorted_scitime[i]-sorted_caltime[ind_bcd[0][ind_res][ind_chop]])
         ind=np.argmin(delta_time)
         if args.mode == 'flux':
-            outputfile=sorted_scifiles[i].split(".")[0]+'_calflux.fits'
+            outputfile=sorted_scifiles[i].replace(".fits","")+'_calflux.fits'
+            #outputfile=sorted_scifiles[i].split(".")[0]+'_calflux.fits'
         elif args.mode == 'corrflux':
-            outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
+            outputfile=sorted_scifiles[i].replace(".fits","")+'_calcorrflux.fits'
+            #outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
         print('Sci = {0}'.format(sorted_scifiles[i]))
         print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
         print('Cal database = {0}'.format(dir_caldatabases))
