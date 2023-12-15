@@ -112,7 +112,7 @@ def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
             hdri = DIC[i]['hdr']
             obstype = hdri['ESO PRO CATG']
 
-            if obstype == 'TARGET_RAW_INT':
+            if obstype == 'TARGET_RAW_INT' or obstype == 'TARGET_FLUXCAL_INT':
                 mjd  = hdri['MJD-OBS']
                 bcd1 = hdri['ESO INS BCD1 NAME']
                 bcd2 = hdri['ESO INS BCD2 NAME']
@@ -131,7 +131,7 @@ def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
 
                 soffile = open(fname, 'w')
                 SOFFILE.append(fname)
-                soffile.write('{} \t {} \n'.format(f,obstype))
+                soffile.write('{} \t {} \n'.format(f,'TARGET_RAW_INT'))
                 calcount = 0;
                 
                 if interpType=="NEAREST":

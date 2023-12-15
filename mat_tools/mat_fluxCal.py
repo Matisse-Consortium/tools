@@ -63,13 +63,13 @@ if __name__ == '__main__':
     try:
         args = parser.parse_args()
     except:
-        print("\n\033[93mRunning mat_fluxcal.py --help to be kind with you:\033[0m\n")
+        print("\n\033[93mRunning mat_fluxCal.py --help to be kind with you:\033[0m\n")
         #parser.print_help()
         print("\n This routine can produce two types of calibrated oifits files depending on the selected mode (either 'flux' or 'corrflux':\n")
         print("\n - ***_calflux.fits: only total flux is calibrated (incoherently processed oifits file expected) and stored in the OI_FLUX table (FLUXDATA column).\n")
         print("\n - ***_calcorrflux.fits: only correlated fluxes are calibrated (coherently processed oifits file expected) and stored in the OI_VIS table (VISAMP column).\n")
         print("\n Example of calibration of the total flux of a MATISSE science oifits files with airmass correction in LM band:\n") 
-        print(" mat_fluxcal.py dir --sciname='sci' --calname='cal' --mode='flux' --band='LM' --airmassCorr\n")       
+        print(" mat_fluxCal.py dir --sciname='sci' --calname='cal' --mode='flux' --band='LM' --airmassCorr\n")       
         sys.exit(0)
 
     #-----------------------------------------

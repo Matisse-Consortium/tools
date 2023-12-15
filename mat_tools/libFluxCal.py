@@ -60,7 +60,7 @@ import shutil
 
 #Path to the skycal_cli executable
 #skycalc_cli_cmd = '/home/amatter/.local/bin/skycalc_cli'
-skycalc_cli_cmd = np.str(shutil.which('skycalc_cli'))
+skycalc_cli_cmd = str(shutil.which('skycalc_cli'))
 
 # match_radius [arcsec]
 # ra, dec [degree]
