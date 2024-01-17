@@ -656,8 +656,8 @@ class mat_logger(wx.Dialog):
 
 
 
-        vbox.Add(hbox,proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        vbox.Add(hbox2,              proportion=0.1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        vbox.Add(hbox,proportion=10,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        vbox.Add(hbox2,              proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
 
 
 
