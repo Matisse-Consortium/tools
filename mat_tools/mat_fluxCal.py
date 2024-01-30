@@ -20,6 +20,7 @@ import scipy.stats
 from libFluxCal import *
 import argparse
 import sys
+import importlib
 import imp
 import shutil
 from operator import itemgetter
@@ -75,8 +76,10 @@ if __name__ == '__main__':
     #-----------------------------------------
     #Path to the calibrators spectra databases 
     #-----------------------------------------
-    a=imp.find_module("libFluxCal")
-    dir_caldatabases=os.path.dirname(a[1])+'/calib_spec_databases'
+    #a=imp.find_module("libFluxCal")
+    #dir_caldatabases=os.path.dirname(a[1])+'/calib_spec_databases'
+    a=importlib.util.find_spec("libFluxCal")
+    dir_caldatabases=os.path.dirname(a.origin)+'/calib_spec_databases'
     #dir_caldatabases='/data/users/ama/dev_python/tools/mat_tools/calib_spec_databases'
 
     #---------------------
