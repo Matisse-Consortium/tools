@@ -589,7 +589,7 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                  ((keyInsPilIdCalib     == "PHOTO" and
                    keyInsDilId          == keyInsDilIdCalib and
                    keyDetChipName       == "HAWAII-2RG") or 
-                  #(keyInsPinIdCalib     == "PHOTO" and
+                  (keyInsPinIdCalib     == "INTER" and
                    keyInsDinId          == keyInsDinIdCalib and
                    keyDetChipName       == "AQUARIUS")))):
                 idx=-1
