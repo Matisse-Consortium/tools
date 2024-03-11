@@ -97,7 +97,9 @@ def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
     SOFFILE = [];
     
     allfiles = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir,f))]
-    files    = [os.path.join(input_dir,f) for f in allfiles if '.fits' and 'LAMP' not in f]
+    #files    = [os.path.join(input_dir,f) for f in allfiles if '.fits' and 'LAMP' not in f]
+    files = [os.path.join(input_dir,f) for f in allfiles if '.fits' in f and 'LAMP' not in f]
+
 
     DIC = []
     # First read all files
