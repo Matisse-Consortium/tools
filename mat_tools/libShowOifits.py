@@ -410,7 +410,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
                     stdevTime=False, subplotList=None, colorList=None,
                     useFlag=False):
    # plot_colors = ['red', 'blue', 'green', 'gold', 'magenta', 'cyan', 'orange', 'pink', 'purple', 'darkgreen']
-
+    print(key)
     sta_index_cal = []
 
     # Get data from the input dictionary
@@ -418,8 +418,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     nbWlen = len(wl)
     data   = dic[key][datatype];
     flag   = dic[key]['FLAG']
-
-    flag   = dic[key]['FLAG']
+    sta_index_array   = dic['STA_INDEX']
 
     idxGood=[]
     for i in range(np.shape(flag)[0]):
@@ -448,6 +447,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
 
     if key == 'FLUX':
         sta_index = dic[key]['STA_INDEX']
+        sta_index_cal.append(sta_index)
         ntel=4
         colorList_ind=[]
         for i in range(ntel):
@@ -457,6 +457,7 @@ def show_oi_vs_wlen(dic, key='VIS2', datatype="VIS2", showvis=False,
     else:
         sta_index = np.sort(dic[key]['STA_INDEX'])
         sta_index_cal.append(sta_index)
+    print(sta_index_cal)
 
     # Get the unique station indices from the data
     #print("Get the unique station indices from the data")
