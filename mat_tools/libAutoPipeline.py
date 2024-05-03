@@ -28,6 +28,7 @@ knowledge of the CeCILL license and that you accept its terms.
 import numpy as np
 from astropy.io import fits
 from astropy.io.fits import getheader
+from astropy.time import Time 
 
 class headerCache:
     """"""
@@ -56,7 +57,7 @@ class headerCache:
         
 cacheHdr = headerCache()
     
-def matisseCalib(header,action,listCalibFile,calibPrevious):
+def matisseCalib(header,action,listCalibFile,calibPrevious,tplstart):
     global cacheHdr
     
     keyDetReadCurname = header['HIERARCH ESO DET READ CURNAME']
@@ -72,10 +73,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
     keyInsPonId       = header['HIERARCH ESO INS PON ID']
     keyInsFinId       = header['HIERARCH ESO INS FIN ID']
     keyDetMtrh2       = header['HIERARCH ESO DET WIN MTRH2']
-    keyDetMtrs2       = header['HIERARCH ESO DET WIN MTRS2']
-        
+    keyDetMtrs2       = header['HIERARCH ESO DET WIN MTRS2']   
     res = calibPrevious
-    
     if (action == "ACTION_MAT_CAL_DET_SLOW_SPEED" or 
         action == "ACTION_MAT_CAL_DET_FAST_SPEED" or
         action == "ACTION_MAT_CAL_DET_LOW_GAIN"   or
@@ -90,6 +89,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
             cacheHdr.update(elt,value)
         allhdr.append(cacheHdr.cache[elt]['value'])
 
+    #Conversion of the tplstart of the correspoding recipe (mat_est_flat, mat_raw_estimates, ....) in mjd
+    time_tplstart=Time(tplstart,format='isot',scale='utc')
+    mjd_tplstart=time_tplstart.mjd
+    
     if (action == "ACTION_MAT_IM_BASIC"    or
         action == "ACTION_MAT_IM_EXTENDED" or
         action == "ACTION_MAT_IM_REM"):
@@ -105,6 +108,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyDetReadCurnameCalib = hdr['HIERARCH ESO DET READ CURNAME']
                 keyTplStartCalib       = hdr['HIERARCH ESO TPL START']
                 keyDetChipNameCalib    = hdr['HIERARCH ESO DET CHIP NAME']
+                time_tplstartcalib=Time(keyTplStartCalib,format='isot',scale='utc')
+                mjd_tplstartcalib=time_tplstartcalib.mjd
                 
             if (tagCalib                == "BADPIX" and
                 (keyDetReadCurnameCalib == keyDetReadCurname and
@@ -118,8 +123,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
@@ -138,7 +145,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 elt[1] == "FLATFIELD" or 
                 elt[1] == "NONLINEARITY"):
                 nbCalib+=1
+    
         for hdr,elt in zip(allhdr,listCalibFile):
+            #print('res = ',res)
+            #print('elt = ',elt)
             tagCalib = matisseType(hdr)
             if (tagCalib == "BADPIX"       or
                 tagCalib == "NONLINEARITY" or
@@ -147,21 +157,28 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyDetChipNameCalib    = hdr['HIERARCH ESO DET CHIP NAME']
                 keyDetSeq1DitCalib     = hdr['HIERARCH ESO DET SEQ1 DIT']
                 keyTplStartCalib       = hdr['HIERARCH ESO TPL START']
+                time_tplstartcalib=Time(keyTplStartCalib,format='isot',scale='utc')
+                mjd_tplstartcalib=time_tplstartcalib.mjd
 
             if (tagCalib == "BADPIX" and
                 (keyDetReadCurnameCalib == keyDetReadCurname and
                  keyDetChipNameCalib    == keyDetChipName)):
                 idx = -1
                 cpt =  0
+                #print('tagCalib = ',tagCalib)
+                #print('res = ',res)
                 for elt2 in res:
                     if (elt2[1]==tagCalib):
                         idx = cpt
                     cpt += 1
+                #print('idx = ',idx)
                 if (idx > -1):
                     hdu = fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
@@ -189,8 +206,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
@@ -218,8 +237,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
@@ -234,8 +255,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
@@ -278,6 +301,9 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyInsFinIdCalib       = hdr['HIERARCH ESO INS FIN ID']
                 keyDetMtrh2Calib       = hdr['HIERARCH ESO DET WIN MTRH2']
                 keyDetMtrs2Calib       = hdr['HIERARCH ESO DET WIN MTRS2']
+                time_tplstartcalib=Time(keyTplStartCalib,format='isot',scale='utc')
+                mjd_tplstartcalib=time_tplstartcalib.mjd
+                
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
                 idx=-1
                 cpt=0
@@ -288,13 +314,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="OBS_FLATFIELD" and 
                 (keyDetChipNameCalib==keyDetChipName and keyDetReadCurnameCalib==keyDetReadCurname and 
                  (abs(keyDetSeq1DitCalib - keyDetSeq1Dit) < 0.001 or keyDetSeq1DitCalib==keyDetSeq1Period) and 
@@ -311,13 +340,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="NONLINEARITY" and 
                 ((keyDetChipNameCalib    =="AQUARIUS" and
                   keyDetChipName         =="AQUARIUS" and
@@ -336,13 +368,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
                  ((keyInsDilId == keyInsDilIdCalib and
@@ -361,13 +396,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="KAPPA_MATRIX" and 
                 (keyDetChipNameCalib==keyDetChipName and 
                  ((keyInsPolId==keyInsPolIdCalib and keyInsDilId==keyInsDilIdCalib and keyDetChipName=="HAWAII-2RG") or 
@@ -382,13 +420,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="JSDC_CAT"):
                 idx=-1
                 cpt=0
@@ -442,6 +483,8 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyInsPonIdCalib   =hdr['HIERARCH ESO INS PON ID']
                 keyInsFinIdCalib   =hdr['HIERARCH ESO INS FIN ID']
                 keyTplStartCalib   =hdr['HIERARCH ESO TPL START']
+                time_tplstartcalib=Time(keyTplStartCalib,format='isot',scale='utc')
+                mjd_tplstartcalib=time_tplstartcalib.mjd
                 
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
                 idx=-1
@@ -453,13 +496,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="OBS_FLATFIELD" and 
                 (keyDetChipNameCalib   == keyDetChipName and
                  keyDetReadCurnameCalib== keyDetReadCurname and 
@@ -479,13 +525,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="NONLINEARITY" and 
                 ((keyDetChipNameCalib    == "AQUARIUS" and
                   keyDetChipName         == "AQUARIUS" and
@@ -503,13 +552,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="SHIFT_MAP" and 
                 (keyDetChipNameCalib==keyDetChipName and 
                  ((keyInsDilId    == keyInsDilIdCalib and
@@ -528,10 +580,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    #print('tplstart = ',tplstart)
+                    #print('tpl start previous=',keyTplStartPrevious,' with delta time = ',np.abs(mjd_tplstartprevious-mjd_tplstart))
+                    #print('tpl start new=',keyTplStartCalib,' with delta time = ',np.abs(mjd_tplstartcalib-mjd_tplstart))
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
+                        #print('elt = ',elt)
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
@@ -565,6 +623,9 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 keyInsPonIdCalib       = hdr['HIERARCH ESO INS PON ID']
                 keyInsFinIdCalib       = hdr['HIERARCH ESO INS FIN ID']
                 keyTplStartCalib       = hdr['HIERARCH ESO TPL START']
+                time_tplstartcalib=Time(keyTplStartCalib,format='isot',scale='utc')
+                mjd_tplstartcalib=time_tplstartcalib.mjd
+                
             if (tagCalib=="BADPIX" and (keyDetReadCurnameCalib==keyDetReadCurname and keyDetChipNameCalib==keyDetChipName)):
                 idx=-1
                 cpt=0
@@ -575,13 +636,16 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
                     res.append([elt,tagCalib])
                     nbCalib+=1
+                    
             if (tagCalib=="OBS_FLATFIELD" and 
                 (keyDetChipNameCalib    == keyDetChipName and
                  keyDetReadCurnameCalib == keyDetReadCurname and 
@@ -601,8 +665,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:
@@ -625,8 +691,10 @@ def matisseCalib(header,action,listCalibFile,calibPrevious):
                 if (idx > -1):
                     hdu=fits.open(res[idx][0])
                     keyTplStartPrevious=hdu[0].header['HIERARCH ESO TPL START']
+                    time_tplstartprevious=Time(keyTplStartPrevious,format='isot',scale='utc')
+                    mjd_tplstartprevious=time_tplstartprevious.mjd
                     hdu.close()
-                    if (keyTplStartCalib >= keyTplStartPrevious):
+                    if (np.abs(mjd_tplstartcalib-mjd_tplstart) < np.abs(mjd_tplstartprevious-mjd_tplstart)):
                         del res[idx]
                         res.append([elt,tagCalib])
                 else:

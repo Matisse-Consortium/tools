@@ -341,17 +341,19 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
         print("listing calibrations in the reduction blocks...")
         for elt in tqdm(listRedBlocks,unit=" block", unit_scale=False, desc="Working on"):
             hdr          = elt["input"][0][2]
-            calib,status = matisseCalib(hdr,elt["action"],listArchive,elt['calib'])
+            calib,status = matisseCalib(hdr,elt["action"],listArchive,elt['calib'],elt["tplstart"].split('.')[0])
+            #print('calib = ',calib)
             elt["calib"] = calib
             elt["status"] = status
         print("done.")
+        
 
         # Fill the list of calib in the Reduction Blocks List from dirResult Iter i-1
         print("listing calibrations from previous iteration in the reduction blocks...")
         if (iterNumber > 1):
             for elt in listRedBlocks:
                 hdr          = elt["input"][0][2]
-                calib,status = matisseCalib(hdr,elt["action"],listIter,elt['calib'])
+                calib,status = matisseCalib(hdr,elt["action"],listIter,elt['calib'],elt["tplstart"].split('.')[0])
                 elt["calib"] = calib
                 elt["status"] = status
             print("done.")
