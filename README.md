@@ -1,4 +1,4 @@
-# [MATISSE python tools](https://gitlab.oca.eu/MATISSE/tools/wikis/home)
+# [MATISSE Python Tools](https://github.com/Matisse-Consortium/tools/wiki)
 
 ## You are on the MATISSE tools distribution page.
 The MATISSE tools are an addition to the [standard data reduction software](http://www.eso.org/sci/software/pipelines/matisse/matisse-pipe-recipes.html) that is distributed separately by ESO. These scripts were developped for the MATISSE commissionning and may be of some use for general users to reduce and visualize data from [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html). However, please note that they should be used at your own risks!
