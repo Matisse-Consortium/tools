@@ -9,7 +9,7 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 `pip install --user git+https://github.com/Matisse-Consortium/tools.git@<version>`
 
 `<version>` can be `master` (main version) or `0.1` (last stable version).<br>
-There are also the daily development branches --> The Latest one is robin.
+There are also the daily development branches --> The Latest one is `robin`.
 
 ### Quick use:
 1. `mat_autoPipeline.py <raw data directory>`
