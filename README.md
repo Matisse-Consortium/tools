@@ -8,7 +8,7 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 ### Quick install:
 `pip install --user git+https://github.com/Matisse-Consortium/tools.git@<version>`
 
-`<version>` can be `master` (main version) or `0.1` (last stable version)
+`<version>` can be `master` (main version) or `0.1` (last stable version).<br>
 There are also the daily development branches --> The Latest one is robin.
 
 ### Quick use:
