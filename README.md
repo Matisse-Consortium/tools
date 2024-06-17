@@ -6,7 +6,6 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 ## Python tools
 
 ### Quick install:
-`pip install --user https://gitlab.oca.eu/MATISSE/tools/-/archive/<branch>/tools-<version>.tar`
 `pip install --user git+https://github.com/Matisse-Consortium/tools.git@<version>`
 
 `<version>` can be `master` (main version) or `0.1` (last stable version)
