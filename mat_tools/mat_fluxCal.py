@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     #--------------------------------------------------------------------------
     parser.add_argument('--calname', default="",  \
-    help='Name of the spectrophotometric calibrator (as indicated in the oifits file name).')
+    help='Name of the spectrophotometric calibrator (as indicated in the oifits file name). If empty, the closest calibrator in time will be used.')
         
     #--------------------------------------------------------------------------
     parser.add_argument('--mode', default="flux", \
@@ -60,6 +60,9 @@ if __name__ == '__main__':
     parser.add_argument('--airmassCorr',  \
                         help='Do airmass correction between the science and the calibrator', action='store_true')
     #--------------------------------------------------------------------------
+    parser.add_argument('--timespan', default=1.,type=float,  \
+    help='Maximum time difference (in h) between the SCI and CAL observations.')
+    #--------------------------------------------------------------------------
 
     try:
         args = parser.parse_args()
@@ -69,7 +72,7 @@ if __name__ == '__main__':
         print("\n This routine can produce two types of calibrated oifits files depending on the selected mode (either 'flux' or 'corrflux':\n")
         print("\n - ***_calflux.fits: only total flux is calibrated (incoherently processed oifits file expected) and stored in the OI_FLUX table (FLUXDATA column).\n")
         print("\n - ***_calcorrflux.fits: only correlated fluxes are calibrated (coherently processed oifits file expected) and stored in the OI_VIS table (VISAMP column).\n")
-        print("\n Example of calibration of the total flux of a MATISSE science oifits files with airmass correction in LM band:\n") 
+        print("\n Example of calibration of the total flux of a MATISSE science oifits files with a specified calibrator and an airmass correction in LM band:\n") 
         print(" mat_fluxCal.py dir --sciname='sci' --calname='cal' --mode='flux' --band='LM' --airmassCorr\n")       
         sys.exit(0)
 
@@ -85,14 +88,35 @@ if __name__ == '__main__':
     #---------------------
     # Oifits files sorting
     #---------------------
+    if args.calname == "":  #No calibrator name specified
+        print('No calibrator specified. The closest calibrator in time will thus be used.')
+        calfiles=[]
+        args.dir_oifits = os.path.abspath(args.dir_oifits)+"/"
+        if args.band == 'LM':
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*Chop*.fits')
+            list_files=glob.glob(args.dir_oifits+'*_IR-LM*Chop*.fits')
+            for f in list_files:
+                hdu_f=fits.open(f)
+                catg_f=hdu_f[0].header['HIERARCH ESO PRO CATG']
+                if catg_f == 'CALIB_RAW_INT':
+                    calfiles.append(f)                
+        elif args.band == 'N':
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*Chop*.fits')
+            list_files=glob.glob(args.dir_oifits+'*_IR-N*Chop*.fits')
+            for f in list_files:
+                hdu_f=fits.open(f)
+                catg_f=hdu_f[0].header['HIERARCH ESO PRO CATG']
+                if catg_f == 'CALIB_RAW_INT':
+                    calfiles.append(f)        
+    else:
+        args.dir_oifits = os.path.abspath(args.dir_oifits)+"/"
+        if args.band == 'LM':
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*Chop*.fits')
+            calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-LM*Chop*.fits')
+        elif args.band == 'N':
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*Chop*.fits')
+            calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-N*Chop*.fits')
     
-    args.dir_oifits = os.path.abspath(args.dir_oifits)+"/"
-    if args.band == 'LM':
-        scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*Chop*.fits')
-        calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-LM*Chop*.fits')
-    elif args.band == 'N':
-        scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*Chop*.fits')
-        calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-N*Chop*.fits')
     nfiles_sci=np.size(scifiles)
     nfiles_cal=np.size(calfiles)
     list_of_dicts_sci=[]
@@ -208,16 +232,20 @@ if __name__ == '__main__':
         ind_chop=np.where(sorted_chop_cal[ind_bcd[0][ind_res]] == sorted_chop_sci[i])
         delta_time=np.abs(sorted_scitime[i]-sorted_caltime[ind_bcd[0][ind_res][ind_chop]])
         ind=np.argmin(delta_time)
-        if args.mode == 'flux':
-            outputfile=sorted_scifiles[i].replace(".fits","")+'_calflux.fits'
-            #outputfile=sorted_scifiles[i].split(".")[0]+'_calflux.fits'
-        elif args.mode == 'corrflux':
-            outputfile=sorted_scifiles[i].replace(".fits","")+'_calcorrflux.fits'
-            #outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
-        print('Sci = {0}'.format(sorted_scifiles[i]))
-        print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
-        print('Cal database = {0}'.format(dir_caldatabases))
-        calfile=sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]
-        fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+calfile,outputdir+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
+        if delta_time[ind]*24. < args.timespan:
+            if args.mode == 'flux':
+                outputfile=sorted_scifiles[i].replace(".fits","")+'_calflux.fits'
+                #outputfile=sorted_scifiles[i].split(".")[0]+'_calflux.fits'
+            elif args.mode == 'corrflux':
+                outputfile=sorted_scifiles[i].replace(".fits","")+'_calcorrflux.fits'
+                #outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
+            print('Sci = {0}'.format(sorted_scifiles[i]))
+            print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
+            print('Cal database = {0}'.format(dir_caldatabases))
+            calfile=sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]
+            fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+calfile,outputdir+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
+        else:
+            print('No calibration performed since the delta time between SCI and CAL exceeds the specified timespan (',args.timespan,' h)')
+            continue
 
 
