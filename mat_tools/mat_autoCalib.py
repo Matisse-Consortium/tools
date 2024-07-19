@@ -173,7 +173,7 @@ def make_sof(input_dir, output_dir, timespan=0.1,interpType="MEAN"):
                             dif = mjd - mjdc
                             absdif = np.abs(dif)
                             if obstypec == 'CALIB_RAW_INT' and bcd1 == bcd1c and bcd2 == bcd2c and chip == chipc and dit == ditc and chop == chopc:
-                                if (absdif < float(timespan)):
+                                if (absdif < float(timespan)/24.):
                                     soffile.write('{} \t {} \n'.format(fcal,obstypec))
                                     calcount+=1
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
 
     #--------------------------------------------------------------------------
     parser.add_argument('--timespan', dest='timespan', metavar='Timespan of calibs', type=str, default='.', \
-    help='The time search interval for selecting calibrators around the science star (only used for --interpType=MEAN)')
+                        help='The time search interval (in hours) for selecting calibrators around the science star (only used for --interpType=MEAN)')
     #--------------------------------------------------------------------------
     parser.add_argument('--interpType', default="MEAN", \
     help='interpolation type of the Transfer Function : should be either MEAN(default), NEAREST or LINEAR ')
