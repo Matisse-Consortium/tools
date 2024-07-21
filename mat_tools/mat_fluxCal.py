@@ -239,13 +239,19 @@ if __name__ == '__main__':
             elif args.mode == 'corrflux':
                 outputfile=sorted_scifiles[i].replace(".fits","")+'_calcorrflux.fits'
                 #outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
+            print('-------------------------------------------------------------------------------------------------------------------')
+            print('Delta time between SCI and CAL is shorter than the specified timespan (',args.timespan,' h) for the following pair:')
             print('Sci = {0}'.format(sorted_scifiles[i]))
             print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
-            print('Cal database = {0}'.format(dir_caldatabases))
+            #print('Calibration performed with the following calibrator spectra database = {0}'.format(dir_caldatabases))
             calfile=sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]
             fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+calfile,outputdir+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
         else:
-            print('No calibration performed since the delta time between SCI and CAL exceeds the specified timespan (',args.timespan,' h)')
+            print('------------------------------------------------------------------------------------------------------------')
+            print('Delta time between SCI and CAL exceeds the specified timespan (',args.timespan,' h) for the following pair:')
+            print('Sci = {0}'.format(sorted_scifiles[i]))
+            print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
+            print('No calibration performed')
             continue
 
 
