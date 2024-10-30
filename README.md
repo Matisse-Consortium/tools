@@ -17,7 +17,7 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 5. `mat_mergeAllOiFits.py <calibrated oifits directory>`: perfoms the final BCD calibration, i.e. merges the calibrated oifits files over the MATISSE observing cycle.
 
 ### More info:
-- A more detailed description of how to reduce and visualize [MATISSE data](https://www.eso.org/public/news/eso1808/) with these scripts together with the MATISSE DRS is given [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started).
+- A step by step description of the reduction and and visualization of [MATISSE data](https://www.eso.org/public/news/eso1808/) with the Python routines, together with the MATISSE DRS, is given [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started).
 - Installation instructions are given [there](https://github.com/Matisse-Consortium/tools/wiki/Installation).
 - The development status of the pipeline (including the ESO version of the code) is provided [there](https://github.com/Matisse-Consortium/tools/wiki/Known-bugs-and-development-plan).
 
