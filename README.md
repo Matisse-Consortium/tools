@@ -13,7 +13,7 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 2. `mat_tidyupOiFits.py <reduced data directoy>`: renames the reduced oifits files in a more explicit way and put them in a new ***_OIFITS directory.
 3. `mat_showTransFunc.py <oifits directory>`: shows the raw visibilities of the science targets and the instrumental visibilities of the calibrators over the considered MATISSE observing sequences.
 3. `mat_autoCalib.py <oifits directoy>`: calibrates the interferometric observables and store them in a new ***_CALIBRATED.
-4. `mat_fluxCal.py <oifits directory>`: performs (if needed) flux (correlated or total) flux calibration.
+4. `mat_fluxCal.py <oifits directory>`: performs (if needed) (correlated or total) flux calibration.
 5. `mat_mergeAllOiFits.py <calibrated oifits directory>`: perfoms the final BCD calibration, i.e. merges the calibrated oifits files over the MATISSE observing cycle.
 
 ### More info:
