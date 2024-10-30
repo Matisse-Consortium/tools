@@ -464,7 +464,10 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
                 if do_airmass_correction:
                     #calculate correlation between the raw spectrum, and the atmospheric transmission spectrum
                     #shift_max = int(0.025*len(trans_cal_final))
-                    shift_max = int(7.0*spectral_binning)
+                    if spectral_binning > 7.0:
+                        shift_max = int(2.0*spectral_binning)
+                    else:
+                        shift_max = int(7.0*spectral_binning)
                     rp_list_cal.append(calc_corr_offset(trans_cal_final,flux_raw_cal,shift_max))
                     rp_list_sci.append(calc_corr_offset(trans_sci_final,flux_raw_sci,shift_max))
                     
@@ -528,7 +531,10 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
             if do_airmass_correction:
                 #calculate correlation between the raw spectrum, and the atmospheric transmission spectrum
                 #shift_max = int(0.025*len(trans_cal_final))
-                shift_max = int(7.0*spectral_binning)
+                if spectral_binning > 7.0:
+                    shift_max = int(2.0*spectral_binning)
+                else:
+                    shift_max = int(7.0*spectral_binning)
                 rp_list_cal.append(calc_corr_offset(trans_cal_final,corrflux_raw_cal,shift_max))
                 rp_list_sci.append(calc_corr_offset(trans_sci_final,corrflux_raw_sci,shift_max))
 
@@ -695,13 +701,13 @@ def get_dlambda(inhdul):
 def get_spectral_binning(inhdul):
     header = inhdul[0].header
     spectral_binning = np.nan
-    for i in range(1,17):
+    for i in range(1,20):
         hdrkey = 'HIERARCH ESO PRO REC1 PARAM'+'%d'%i+' NAME' 
         if hdrkey in header:
             if 'spectralBinning' in header[hdrkey]:
                 hdrkey2 = 'HIERARCH ESO PRO REC1 PARAM'+'%d'%i+' VALUE' 
                 spectral_binning = float(header[hdrkey2])
-                #print(spectral_binning)
+                print(spectral_binning)
     return spectral_binning
 
 def get_dl_coeffs(inhdul):
@@ -777,10 +783,11 @@ def transform_spectrum_to_real_spectral_resolution(wl_orig,spec_orig,dl_coeffs,k
 
 def calc_corr_offset(spectrum1,spectrum2,shift_max):
     Ntr  = len(spectrum1)
+    Ntr2 = len(spectrum2)
     rp = []
     for k in range(-shift_max,+shift_max):
         if k < 0:
-            #print(j,Ntr,len(trans_cal_final[0:(Ntr+k)]),len(corrflux_raw_cal[-k:]))
+            #print(k,Ntr,Ntr2,len(spectrum1[0:(Ntr+k)]),len(spectrum2[-k:]))
             rp.append(scipy.stats.pearsonr(spectrum1[0:(Ntr+k)],spectrum2[-k:])[0]) #Pearson's r
         else:
             rp.append(scipy.stats.pearsonr(spectrum1[k:],spectrum2[0:(Ntr-k)])[0]) #Pearson's r
