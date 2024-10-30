@@ -8,7 +8,7 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 ### Quick install:
 `pip install git+https://github.com/Matisse-Consortium/tools.git`
 
-### List of the main Python routines
+### Quick use (with list of main Python routines)
 1. `mat_autoPipeline.py <raw data directory>`: runs the MATISSE pipeline to obtain reduced oifits files.  
 2. `mat_tidyupOiFits.py <reduced data directoy>`: renames the reduced oifits files in a more explicit way and put them in a new ***_OIFITS directory.
 3. `mat_showTransFunc.py <oifits directory>`: shows the raw visibilities of the science targets and the instrumental visibilities of the calibrators over the considered MATISSE observing sequences.
