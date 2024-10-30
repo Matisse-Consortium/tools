@@ -8,15 +8,16 @@ The MATISSE tools are an addition to the [standard data reduction software](http
 ### Quick install:
 `pip install git+https://github.com/Matisse-Consortium/tools.git`
 
-### Quick use:
-1. `mat_autoPipeline.py <raw data directory>`
-2. `mat_tidyupOiFits.py <product directoy>`
-3. `mat_reflagData.py <oifits directory>`
-3. `mat_autoCalib.py <reflagged directoy>`
-4. `mat_showOiData.py <a MATISSE oifits file>`
+### List of the main Python routines
+1. `mat_autoPipeline.py <raw data directory>`: runs the MATISSE pipeline to obtain reduced oifits files.  
+2. `mat_tidyupOiFits.py <reduced data directoy>`: renames the reduced oifits files in a more explicit way and put them in a new ***_OIFITS directory.
+3. `mat_showTransFunc.py <oifits directory>`: shows the raw visibilities of the science targets and the instrumental visibilities of the calibrators over the considered MATISSE observing sequences.
+3. `mat_autoCalib.py <oifits directoy>`: calibrates the interferometric observables and store them in a new ***_CALIBRATED.
+4. `mat_fluxCal.py <oifits directory>`: performs (if needed) flux (correlated or total) flux calibration.
+5. `mat_mergeAllOiFits.py <calibrated oifits directory>`: perfoms the final BCD calibration, i.e. merges the calibrated oifits files over the MATISSE observing cycle.
 
 ### More info:
-- A description of how to reduce and visualize [MATISSE data](https://www.eso.org/public/news/eso1808/) with these scripts together with the MATISSE DRS is given [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started).
+- A more detailed description of how to reduce and visualize [MATISSE data](https://www.eso.org/public/news/eso1808/) with these scripts together with the MATISSE DRS is given [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started).
 - Installation instructions are given [there](https://github.com/Matisse-Consortium/tools/wiki/Installation).
 - The development status of the pipeline (including the ESO version of the code) is provided [there](https://github.com/Matisse-Consortium/tools/wiki/Known-bugs-and-development-plan).
 
