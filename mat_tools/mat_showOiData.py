@@ -81,7 +81,7 @@ def _vltiplot(tels=np.array([]),baselines=np.array([]),symsize=2,color='k',tcolo
             #print(tely)
             axe.scatter(telx[0,0],tely[0,0],c=tcolor[i],s=40*symsize,zorder=3)
 
-def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
+def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None,visName='V2'):
 
     try:
         dic=msoi.open_oi(filename)
@@ -91,8 +91,12 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
 
     u=dic['VIS2']['U']
     v=dic['VIS2']['V']
-    v2=dic['VIS2']['VIS2']
-    errv2=dic['VIS2']['VIS2ERR']
+    if visName=='V':
+        v2=dic['VIS']['VISAMP']
+        errv2=dic['VIS']['VISAMPERR']
+    else:
+        v2=dic['VIS2']['VIS2']
+        errv2=dic['VIS2']['VIS2ERR']
     phi=dic['VIS']['DPHI']
     errphi=dic['VIS']['DPHIERR']
     cp=dic['T3']['CLOS']
@@ -103,6 +107,8 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
         corrFlux=False
     except:
         corrFlux=True
+        v2=dic['VIS']['VISAMP']
+        errv2=dic['VIS']['VISAMPERR']
     wl=dic['WLEN']*1e6
 
     nwl=np.size(wl)
@@ -129,19 +135,30 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
     cols=['darkcyan','red','blue','darkmagenta','limegreen','y']
     colT3=['darkblue','k','darkred','darkgreen']
 
-    pltv2=[]
-    for i in range(6):
-        if i==0:
-            plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.1*(i+0.5), 0.22,0.1])
-        else:
-            plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.1*(i+0.5), 0.22,0.1],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
-            plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
-        pltv2.append(plts['VIS2_{0}'.format(i)])
-    msoi.show_oi_vs_wlen(dic,key='VIS2',datatype="VIS2",plot_errorbars=showErr,subplotList=pltv2,colorList=cols)
+    if not corrFlux and visName=='V2':
+        pltv2=[]
+        for i in range(6):
+            if i==0:
+                plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.1*(i+0.5), 0.22,0.1])
+            else:
+                plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.1*(i+0.5), 0.22,0.1],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
+                plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
+            pltv2.append(plts['VIS2_{0}'.format(i)])
+        msoi.show_oi_vs_wlen(dic,key='VIS2',datatype="VIS2",plot_errorbars=showErr,subplotList=pltv2,colorList=cols)
 
         #plts['VIS2_{0}'.format(i)].plot(wl,v2[i,:],color=cols[i])
 
 
+    else:
+        pltcf=[]
+        for i in range(6):
+            if i==0:
+                plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.1*(i+0.5), 0.22,0.1])
+            else:
+                plts['VIS2_{0}'.format(i)]=fig.add_axes([0.075, 0.1*(i+0.5), 0.22,0.1],sharex=plts['VIS2_0'],sharey=plts['VIS2_0'])
+                plts['VIS2_{0}'.format(i)].get_xaxis().set_visible(False)
+            pltcf.append(plts['VIS2_{0}'.format(i)])
+        msoi.show_oi_vs_wlen(dic,key='VIS',datatype="VISAMP",plot_errorbars=showErr,subplotList=pltcf,colorList=cols)
     pltphi=[]
     for i in range(6):
         if i==0:
@@ -227,8 +244,10 @@ def mat_showOiData(filename,wlRange=None,showErr=False,fig=None,visRange=None):
         plts["CP_{0}".format(i)].text(1.01,0.5,txt,transform=plts["CP_{0}".format(i)].transAxes,rotation=90,va='center')
 
 
-    if not(corrFlux):
+    if not(corrFlux) and visName=='V2':
         label="Square Visibility"
+    elif not(corrFlux) and visName=='V':
+        label="Visibility"
     else:
         label="Correlated flux"
     fig.text(0.02,0.35,label,rotation=90,horizontalalignment='center',verticalalignment='center')
@@ -293,6 +312,7 @@ if __name__ == '__main__':
     parser.add_argument('--pdf', default=0, help='Create pdf(s) for the file(s)', action='store_true')
     parser.add_argument('--mergedpdf', default=0, help='Create a unique pdf for all the files', action='store_true')
     parser.add_argument('--visRange', default=0, help='The min and max for visibility (or CorrFLux)')
+    parser.add_argument('--vis', default='V2', help='For visibility plot the incoherent squared visibility (V2) or the coherent visibility (V).')
    
 
     try:
@@ -344,7 +364,7 @@ if __name__ == '__main__':
 
     print("Processing {0} oifits files".format(len(filesOrDir)))
     for filei in tqdm(filesOrDir):
-        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig,visRange=visRange)
+        fig=mat_showOiData(filei,wlRange=wlRange,showErr=showErr,fig=fig,visRange=visRange,visName=args.vis)
         if pdf and not(merged):
             pdfname=filei.split(".fits")[0]+".pdf"
             plt.savefig(pdfname)
