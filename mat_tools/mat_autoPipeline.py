@@ -499,7 +499,10 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                 hdu[0].header['HIERARCH PRO MDFC FLUX N']=(fluxN,'Flux (Jy) in N band from MDFC catalog')
                 hdu.flush()
             except:
-                print("Object "+targetname+" not found in MDFC catalog")                
+                try:
+                    print("Object "+targetname+" not found in MDFC catalog")
+                except:
+                    print("There is no target name")
             hdu.close()
             
         if (listCmdEsorex == [] or iterNumber == maxIter):
