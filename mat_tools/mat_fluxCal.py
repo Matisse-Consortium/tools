@@ -231,7 +231,10 @@ if __name__ == '__main__':
         ind_res=np.where(sorted_res_cal[ind_bcd[0][:]] == sorted_res_sci[i])
         ind_chop=np.where(sorted_chop_cal[ind_bcd[0][ind_res]] == sorted_chop_sci[i])
         delta_time=np.abs(sorted_scitime[i]-sorted_caltime[ind_bcd[0][ind_res][ind_chop]])
-        ind=np.argmin(delta_time)
+        try:
+            ind=np.argmin(delta_time)
+        except:
+            print('No calibrator file could be found to calibrate the following SCI file: '+sorted_scifiles[i])
         if delta_time[ind]*24. < args.timespan:
             if args.mode == 'flux':
                 outputfile=sorted_scifiles[i].replace(".fits","")+'_calflux.fits'

@@ -502,7 +502,11 @@ def mat_autoPipeline(dirRaw="",dirResult="",dirCalib="",nbCore=0,resol=0,paramL=
                 try:
                     print("Object "+targetname+" not found in MDFC catalog")
                 except:
+<<<<<<< HEAD
+                    print("There is no targetname")
+=======
                     print("There is no target name")
+>>>>>>> 62f31b96b498ea31ef59b2104fc6a8820e066349
             hdu.close()
             
         if (listCmdEsorex == [] or iterNumber == maxIter):

@@ -57,6 +57,7 @@ from astropy.convolution import Gaussian1DKernel,Box1DKernel,convolve
 import scipy.stats
 import glob
 import shutil
+import sys
 
 #Path to the skycal_cli executable
 #skycalc_cli_cmd = '/home/amatter/.local/bin/skycalc_cli'
@@ -445,14 +446,23 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
     # calibrate total spectrum
     if mode == 'flux' or mode == 'both':
         #check if we have an 'OI_FLUX' table
-        n_exp_sci = len(inhdul_sci['OI_VIS2'].data['VIS2DATA'])/6
-        n_exp_cal = len(inhdul_cal['OI_VIS2'].data['VIS2DATA'])/6
-        rp_list_sci=[]
-        rp_list_cal=[]
+        
         try:
-            for j in range(len(inhdul_sci['OI_FLUX'].data['FLUXDATA'])):
-                flux_raw_sci = inhdul_sci['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_sci)
+            #check if the number of exposures in the SCI and CAL files is the same
+            n_exp_sci = len(inhdul_sci['OI_FLUX'].data['FLUXDATA'])/6
+            n_exp_cal = len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])/6           
+            if n_exp_sci == n_exp_cal:
+                pass
+            else:
+                print('ERROR: the SCI and CAL oifits files have not the same number of exposures. Please provide files with the same number of exposures.')
+                sys.exit(1)
+                
+            rp_list_sci=[]
+            rp_list_cal=[]
+            for j in range(len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])):
+                print('j = ',j)
                 flux_raw_cal = inhdul_cal['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_cal)
+                flux_raw_sci = inhdul_sci['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_sci)
                 fluxerr_raw_sci = inhdul_sci['OI_FLUX'].data['FLUXERR'][j]
                 fluxerr_raw_cal = inhdul_cal['OI_FLUX'].data['FLUXERR'][j]
                 if 'L' in band:
@@ -471,11 +481,11 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
                     rp_list_cal.append(calc_corr_offset(trans_cal_final,flux_raw_cal,shift_max))
                     rp_list_sci.append(calc_corr_offset(trans_sci_final,flux_raw_sci,shift_max))
                     
-                flux_calibrated_sci = flux_raw_sci/flux_raw_cal*spectrum_cal_resampled*n_exp_cal/n_exp_sci*airmass_correction_factor
+                flux_calibrated_sci = flux_raw_sci/flux_raw_cal*spectrum_cal_resampled*airmass_correction_factor
                 if 'L' in band:
                     flux_calibrated_sci = np.flip(flux_calibrated_sci)
-                fluxerr_calibrated_sci = np.abs(flux_raw_sci/flux_raw_cal*n_exp_cal/n_exp_sci)* \
-                    np.sqrt((fluxerr_raw_sci*n_exp_cal/n_exp_sci/flux_raw_sci)**2 + (fluxerr_raw_cal/flux_raw_cal)**2)* \
+                fluxerr_calibrated_sci = np.abs(flux_raw_sci/flux_raw_cal)* \
+                    np.sqrt((fluxerr_raw_sci/flux_raw_sci)**2 + (fluxerr_raw_cal/flux_raw_cal)**2)* \
                     spectrum_cal_resampled
                 if 'L' in band:
                     fluxerr_calibrated_sci = np.flip(fluxerr_calibrated_sci)
