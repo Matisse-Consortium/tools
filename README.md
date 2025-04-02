@@ -8,7 +8,7 @@ The [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html
 ### Quick install:
 `pip install git+https://github.com/Matisse-Consortium/tools.git`
 
-### Step-by-step description of the reduction of MATISSE data using the Python tools: [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started) 
+### Step-by-step description of a MATISSE data reduction with the Python tools: [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started) 
 
 ### Quick use (with list of main Python routines)
 1. `mat_autoPipeline.py <raw data directory>`: runs the MATISSE pipeline to obtain reduced oifits files.  
