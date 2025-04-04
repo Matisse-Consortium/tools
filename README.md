@@ -6,7 +6,7 @@ The [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html
 ## Python tools
 
 ### Quick install:
-[comment]:`pip install git+https://github.com/Matisse-Consortium/tools.git`
+[`pip install git+https://github.com/Matisse-Consortium/tools.git`]:#
 
 ### Step-by-step description of a MATISSE data reduction with the Python tools: [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started) 
 
