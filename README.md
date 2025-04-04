@@ -14,7 +14,7 @@ The [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html
 - add the following path $HOME/your_dir/tools-master/mat_tools in your PATH environment variable.
 
 ### Important note
-The Python scripts of the mat_tools package were designed to be run in a terminal (batch mode). No execution in an interactive console mode can be done for the moment.
+The Python scripts of the mat_tools package were designed to be run in a terminal (batch mode). No execution in an interactive console mode is offered for the moment.
 
 ### Step-by-step description of a MATISSE data reduction with the Python tools: [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started) 
 
