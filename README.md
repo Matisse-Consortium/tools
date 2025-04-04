@@ -5,8 +5,13 @@ The [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html
 
 ## Python tools
 
-### Quick install:
+### Possible installation:
 [`pip install git+https://github.com/Matisse-Consortium/tools.git`]:#
+- (if necessary) install gtk+-3.0 on your system (sudo apt-get install gtk+-3.0)
+- (if necessary) install the following Python packages: attrdict tqdm astroquery openpyxl statistics ObjectListView numpy matplotlib shapely wxpython skycalc_cli
+- download the tools ZIP file by clicking on the green button named 'Code'
+- Unzip tools-master.zip on your system in the directory of your choice (for instance $HOME/your_dir)
+- add the following path $HOME/your_dir/tools-master/mat_tools in your PATH environment variable.
 
 ### Step-by-step description of a MATISSE data reduction with the Python tools: [here](https://github.com/Matisse-Consortium/tools/wiki/Getting-Started) 
 
