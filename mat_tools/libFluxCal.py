@@ -446,19 +446,21 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
     # calibrate total spectrum
     if mode == 'flux' or mode == 'both':
         #check if we have an 'OI_FLUX' table
-        
         try:
             #check if the number of exposures in the SCI and CAL files is the same
             n_exp_sci = len(inhdul_sci['OI_FLUX'].data['FLUXDATA'])/6
-            n_exp_cal = len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])/6           
+            n_exp_cal = len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])/6
+
             if n_exp_sci == n_exp_cal:
                 pass
             else:
                 print('ERROR: the SCI and CAL oifits files have not the same number of exposures. Please provide files with the same number of exposures.')
                 sys.exit(1)
-                
+
             rp_list_sci=[]
             rp_list_cal=[]
+            outhdul['OI_FLUX'].header['TUNIT5'] = 'Jy'
+            outhdul['OI_FLUX'].header['TUNIT6'] = 'Jy'
             for j in range(len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])):
                 print('j = ',j)
                 flux_raw_cal = inhdul_cal['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_cal)
@@ -480,7 +482,7 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
                         shift_max = int(7.0*spectral_binning)
                     rp_list_cal.append(calc_corr_offset(trans_cal_final,flux_raw_cal,shift_max))
                     rp_list_sci.append(calc_corr_offset(trans_sci_final,flux_raw_sci,shift_max))
-                    
+
                 flux_calibrated_sci = flux_raw_sci/flux_raw_cal*spectrum_cal_resampled*airmass_correction_factor
                 if 'L' in band:
                     flux_calibrated_sci = np.flip(flux_calibrated_sci)
@@ -491,11 +493,9 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
                     fluxerr_calibrated_sci = np.flip(fluxerr_calibrated_sci)
                 outhdul['OI_FLUX'].data['FLUXDATA'][j] = flux_calibrated_sci
                 outhdul['OI_FLUX'].data['FLUXERR'][j] = fluxerr_calibrated_sci
-            outhdul['OI_FLUX'].header['TUNIT5'] = 'Jy'
-            outhdul['OI_FLUX'].header['TUNIT6'] = 'Jy'
-            
+
             if do_airmass_correction:
-                #plot the correlation  
+            #plot the correlation  
                 plot_corr_offset(rp_list_sci,np.arange(-shift_max,+shift_max),outputdir+'/skycalc_correlation_flux_'+tag_sci+'.png')
                 plot_corr_offset(rp_list_cal,np.arange(-shift_max,+shift_max),outputdir+'/skycalc_correlation_flux_'+tag_cal+'.png')
 
