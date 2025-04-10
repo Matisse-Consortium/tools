@@ -461,8 +461,8 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
             rp_list_cal=[]
             outhdul['OI_FLUX'].header['TUNIT5'] = 'Jy'
             outhdul['OI_FLUX'].header['TUNIT6'] = 'Jy'
+            outhdul['OI_FLUX'].header['CALSTAT'] = 'C'
             for j in range(len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])):
-                print('j = ',j)
                 flux_raw_cal = inhdul_cal['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_cal)
                 flux_raw_sci = inhdul_sci['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_sci)
                 fluxerr_raw_sci = inhdul_sci['OI_FLUX'].data['FLUXERR'][j]
