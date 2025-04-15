@@ -461,7 +461,7 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
             rp_list_cal=[]
             outhdul['OI_FLUX'].header['TUNIT5'] = 'Jy'
             outhdul['OI_FLUX'].header['TUNIT6'] = 'Jy'
-            outhdul['OI_FLUX'].header['CALSTAT'] = 'C'
+
             for j in range(len(inhdul_cal['OI_FLUX'].data['FLUXDATA'])):
                 flux_raw_cal = inhdul_cal['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_cal)
                 flux_raw_sci = inhdul_sci['OI_FLUX'].data['FLUXDATA'][j] #*np.exp(airmass_sci)
@@ -506,6 +506,9 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
     if mode == 'corrflux' or mode == 'both':
         rp_list_sci=[]
         rp_list_cal=[]
+        outhdul['OI_VIS'].header['TUNIT5'] = 'Jy'
+        outhdul['OI_VIS'].header['TUNIT6'] = 'Jy'
+        
         for j in range(len(inhdul_sci['OI_VIS'].data['VISAMP'])):
             sta_index_sci = inhdul_sci['OI_VIS'].data['STA_INDEX'][j]
             corrflux_raw_sci = inhdul_sci['OI_VIS'].data['VISAMP'][j] #*np.exp(airmass_sci)
@@ -563,8 +566,7 @@ def fluxcal(inputfile_sci, inputfile_cal, outputfile, dir_caldatabases,
             # plt.show()
             outhdul['OI_VIS'].data['VISAMP'][j] = corrflux_calibrated_sci
             outhdul['OI_VIS'].data['VISAMPERR'][j] = corrfluxerr_calibrated_sci
-        outhdul['OI_VIS'].header['TUNIT5'] = 'Jy'
-        outhdul['OI_VIS'].header['TUNIT6'] = 'Jy'
+
         if do_airmass_correction:
             #plot the correlation  
             plot_corr_offset(rp_list_sci,np.arange(-shift_max,+shift_max),outputdir+'/skycalc_correlation_corrflux_'+tag_sci+'.png')
