@@ -3,9 +3,27 @@
 ## You are on the MATISSE python tools distribution page.
 The [MATISSE](http://www.eso.org/sci/facilities/paranal/instruments/matisse.html) python tools provide to the general MATISSE user an environment for running in a more friendly way the [standard data reduction software](http://www.eso.org/sci/software/pipelines/matisse/matisse-pipe-recipes.html) that is distributed separately by ESO, as well as visualizing intermediate and final products of the pipeline. These scripts were originally developed for the MATISSE commissionning. 
 
-## Python tools
+## Getting the Python scripts 
 
-### Possible installation:
+### Installation with pip
+
+To use the main version of the python scripts, you can use pip.
+
+```bash
+pip install git+https://github.com/Matisse-Consortium/tools.git
+```
+
+### Installing directly from the git repository (more for developers)
+
+Download source code with git 
+
+```bash
+git clone git@github.com:Matisse-Consortium/tools.git
+cd tools
+pip install .
+```
+
+### Other possible installation:
 [`pip install git+https://github.com/Matisse-Consortium/tools.git`]:#
 - (if necessary) install gtk+-3.0 on your system (sudo apt-get install gtk+-3.0)
 - (if necessary) install the following Python packages: attrdict tqdm astroquery openpyxl statistics ObjectListView numpy matplotlib shapely wxpython skycalc_cli
