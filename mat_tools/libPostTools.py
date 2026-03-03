@@ -140,7 +140,8 @@ def mat_mergeOifits(oifitsList):
                     norm+=1
         #temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2+ np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)            
         #temp.data["VIS2ERR"]= np.sqrt(temp.data["VIS2ERR"]**2/norm + np.abs(vis22- temp.data["VIS2DATA"]**2))
-        temp.data["VIS2ERR"]= np.sqrt(1./weight_vis2 + np.abs(vis22- temp.data["VIS2DATA"]**2))
+        temp.data["VIS2ERR"]= np.sqrt(1./weight_vis2)# + np.abs(vis22- temp.data["VIS2DATA"]**2))
+        #temp.data["VIS2ERR"]= np.sqrt(1./weight_vis2)
         temp.data["VIS2DATA"]= vis2_weighted/weight_vis2
         
         #temp.data["VIS2ERR"]=np.sqrt(np.abs(vis22- temp.data["VIS2DATA"]**2))/np.sqrt(norm)
@@ -155,8 +156,8 @@ def mat_mergeOifits(oifitsList):
         nB=np.array([len(datai["OI_VIS"].data) for datai in data])
         nBmin=6
         temp=mat_hduCutRows(data[0]["OI_VIS"],nBmin)
-        viscompl=temp.data["VISAMP"]*np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
-        expvisphi=np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
+        viscompl=temp.data["VISAMP"]*np.exp(complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
+        expvisphi=np.exp(complex(0,1)*np.deg2rad(temp.data["VISPHI"]))
         #expvisphi2=(np.exp(np.complex(0,1)*np.deg2rad(temp.data["VISPHI"])))**2
         #mean of the square of visamp to compute the std
         visampi2=temp.data["VISAMP"]**2
@@ -181,18 +182,19 @@ def mat_mergeOifits(oifitsList):
                     vis_weighted = vis_weighted + data[ifile]["OI_VIS"].data["VISAMP"][imod*nBmin:(imod+1)*nBmin,:]/(data[ifile]["OI_VIS"].data["VISAMPERR"][imod*nBmin:(imod+1)*nBmin,:]**2)
                     visphii =np.deg2rad(data[ifile]["OI_VIS"].data["VISPHI"][imod*nBmin:(imod+1)*nBmin,:])
                     #viscompl = (viscompl*norm + visampi*np.exp(np.complex(0,1)*visphii))/(norm+1)
-                    expvisphi +=  np.exp(np.complex(0,1)*visphii)
+                    expvisphi +=  np.exp(complex(0,1)*visphii)
                     #expvisphi2 +=  (np.exp(np.complex(0,1)*visphii))**2
                     visphi_arr.append(visphii)
                     norm+=1
         visphi_arr=np.array(visphi_arr)
         #temp.data["VISAMP"]=np.abs(viscompl)
         temp.data["VISPHI"]=np.rad2deg(np.angle(expvisphi))
-        #temp.data["VISPHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
-        temp.data["VISPHIERR"]=np.rad2deg(np.sqrt((np.deg2rad(temp.data["VISPHIERR"]))**2/norm + circvar(visphi_arr,axis=0)))  
+        temp.data["VISPHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
+        #temp.data["VISPHIERR"]=np.rad2deg(np.sqrt((np.deg2rad(temp.data["VISPHIERR"]))**2/norm + circvar(visphi_arr,axis=0)))  
         #temp.data["VISAMPERR"]/=np.sqrt(norm)  # no better estimation than that for now
         #temp.data["VISAMPERR"]= np.sqrt(temp.data["VISAMPERR"]**2/norm + np.abs(visampi2- temp.data["VISAMP"]**2))
-        temp.data["VISAMPERR"]= np.sqrt(1./weight_vis + np.abs(visampi2- temp.data["VISAMP"]**2))
+        temp.data["VISAMPERR"]= np.sqrt(1./weight_vis)# + np.abs(visampi2- temp.data["VISAMP"]**2))
+        #temp.data["VISAMPERR"]= np.sqrt(1./weight_vis)
         temp.data["VISAMP"]= vis_weighted/weight_vis
         temp.data["INT_TIME"] *=norm
         avgFits["OI_VIS"]=temp
@@ -203,7 +205,7 @@ def mat_mergeOifits(oifitsList):
         nB=np.array([len(datai["OI_T3"].data) for datai in data])
         nBmin=4
         temp=mat_hduCutRows(data[0]["OI_T3"],nBmin)
-        expt3phi=np.exp(np.complex(0,1)*np.deg2rad(temp.data["T3PHI"]))
+        expt3phi=np.exp(complex(0,1)*np.deg2rad(temp.data["T3PHI"]))
         #expt3phi2=(np.exp(np.complex(0,1)*np.deg2rad(temp.data["T3PHI"])))**2
         t3phi_arr=[]
         t3phi_arr.append(np.deg2rad(temp.data["T3PHI"]))
@@ -224,8 +226,8 @@ def mat_mergeOifits(oifitsList):
                     norm+=1
         t3phi_arr=np.array(t3phi_arr)
         temp.data["T3PHI"]=np.rad2deg(np.angle(expt3phi))
-        temp.data["T3PHIERR"]=np.rad2deg(np.sqrt((np.deg2rad(temp.data["T3PHIERR"]))**2/norm + circvar(t3phi_arr,axis=0)))  # no better estimation than that for now
-        #temp.data["T3PHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
+        #temp.data["T3PHIERR"]=np.rad2deg(np.sqrt((np.deg2rad(temp.data["T3PHIERR"]))**2/norm + circvar(t3phi_arr,axis=0)))  # no better estimation than that for now
+        temp.data["T3PHIERR"]/=np.sqrt(norm)  # no better estimation than that for now
         temp.data["INT_TIME"] *=norm
         avgFits["OI_T3"]=temp
 
@@ -254,7 +256,8 @@ def mat_mergeOifits(oifitsList):
         #temp.data["FLUXDATA"]*=norm  # flux are added not averaged
         #temp.data["FLUXERR"]= np.sqrt(temp.data["FLUXERR"]**2/norm + np.abs(flux2- temp.data["FLUXDATA"]**2))
         #temp.data["FLUXERR"]*=np.sqrt(norm)  # =/srqt(norm)*norm  => no better estimation than that for now
-        temp.data["FLUXERR"]= np.sqrt(1./weight_flux + np.abs(flux2- temp.data["FLUXDATA"]**2))
+        temp.data["FLUXERR"]= np.sqrt(1./weight_flux)# + np.abs(flux2- temp.data["FLUXDATA"]**2))
+        #temp.data["FLUXERR"]= np.sqrt(1./weight_flux)
         temp.data["FLUXDATA"]= flux_weighted/weight_flux
         temp.data["INT_TIME"] *=norm
 
@@ -503,7 +506,5 @@ def mat_hduCutRows(hdu,nrows):
         newcoli=fits.Column(name=coli.name,array=hdu.data[coli.name][0:nrows],unit=coli.unit,format=coli.format)
         newcols.append(newcoli)
     newhdu=fits.BinTableHDU.from_columns(fits.ColDefs(newcols))
-
-    newhdu.header=hdu.header
-    newhdu.update()
+    newhdu.header.update(hdu.header)
     return newhdu
