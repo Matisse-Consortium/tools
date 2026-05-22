@@ -17,11 +17,11 @@ from astroquery.simbad import Simbad
 from numpy.polynomial.polynomial import polyval
 from astropy.convolution import Gaussian1DKernel,Box1DKernel,convolve
 import scipy.stats
-from libFluxCal import *
+#from libFluxCal import *
+from libFluxCal_STARSFLUX_new import *
 import argparse
 import sys
 import importlib
-import imp
 import shutil
 from operator import itemgetter
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     #-----------------------------------------
     #a=imp.find_module("libFluxCal")
     #dir_caldatabases=os.path.dirname(a[1])+'/calib_spec_databases'
-    a=importlib.util.find_spec("libFluxCal")
+    a=importlib.util.find_spec("libFluxCal_STARSFLUX")
     dir_caldatabases=os.path.dirname(a.origin)+'/calib_spec_databases'
     #dir_caldatabases='/data/users/ama/dev_python/tools/mat_tools/calib_spec_databases'
 
@@ -93,16 +93,16 @@ if __name__ == '__main__':
         calfiles=[]
         args.dir_oifits = os.path.abspath(args.dir_oifits)+"/"
         if args.band == 'LM':
-            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*Chop*.fits')
-            list_files=glob.glob(args.dir_oifits+'*_IR-LM*Chop*.fits')
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*op*.fits')
+            list_files=glob.glob(args.dir_oifits+'*_IR-LM*op*.fits')
             for f in list_files:
                 hdu_f=fits.open(f)
                 catg_f=hdu_f[0].header['HIERARCH ESO PRO CATG']
                 if catg_f == 'CALIB_RAW_INT':
                     calfiles.append(f)                
         elif args.band == 'N':
-            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*Chop*.fits')
-            list_files=glob.glob(args.dir_oifits+'*_IR-N*Chop*.fits')
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*op*.fits')
+            list_files=glob.glob(args.dir_oifits+'*_IR-N*op*.fits')
             for f in list_files:
                 hdu_f=fits.open(f)
                 catg_f=hdu_f[0].header['HIERARCH ESO PRO CATG']
@@ -111,12 +111,11 @@ if __name__ == '__main__':
     else:
         args.dir_oifits = os.path.abspath(args.dir_oifits)+"/"
         if args.band == 'LM':
-            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*Chop*.fits')
-            calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-LM*Chop*.fits')
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-LM*op*.fits')
+            calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-LM*op*.fits')
         elif args.band == 'N':
-            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*Chop*.fits')
-            calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-N*Chop*.fits')
-    
+            scifiles=glob.glob(args.dir_oifits+'*'+args.sciname+'*_IR-N*op*.fits')
+            calfiles=glob.glob(args.dir_oifits+'*'+args.calname+'*_IR-N*op*.fits')
     nfiles_sci=np.size(scifiles)
     nfiles_cal=np.size(calfiles)
     list_of_dicts_sci=[]
@@ -226,6 +225,10 @@ if __name__ == '__main__':
         outputdir=args.dir_oifits+'calcorrflux/'
     if (not os.path.isdir(outputdir)):
         os.mkdir(outputdir)
+    fig_dir=outputdir+'plots_cal_spec/'
+    if (not os.path.isdir(fig_dir)):
+        os.mkdir(fig_dir)
+    
     for i in range(nfiles_sci):
         ind_bcd=np.where(sorted_bcd_cal == sorted_bcd_sci[i])
         ind_res=np.where(sorted_res_cal[ind_bcd[0][:]] == sorted_res_sci[i])
@@ -243,12 +246,12 @@ if __name__ == '__main__':
                 outputfile=sorted_scifiles[i].replace(".fits","")+'_calcorrflux.fits'
                 #outputfile=sorted_scifiles[i].split(".")[0]+'_calcorrflux.fits'
             print('-------------------------------------------------------------------------------------------------------------------')
-            print('Delta time between SCI and CAL is shorter than the specified timespan (',args.timespan,' h) for the following pair:')
+            print('Delta time between SCI and CAL is shorter than the specified maximum timespan (',args.timespan,' h) for the following pair:')
             print('Sci = {0}'.format(sorted_scifiles[i]))
             print('Cal = {0}'.format(sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]))
             #print('Calibration performed with the following calibrator spectra database = {0}'.format(dir_caldatabases))
             calfile=sorted_calfiles[ind_bcd[0][ind_res][ind_chop][ind]]
-            fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+calfile,outputdir+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir='',match_radius=25.0,do_airmass_correction=args.airmassCorr)
+            fluxcal(args.dir_oifits+sorted_scifiles[i],args.dir_oifits+calfile,outputdir+outputfile, dir_caldatabases, mode=args.mode,output_fig_dir=fig_dir,match_radius=25.0,do_airmass_correction=args.airmassCorr)
         else:
             print('------------------------------------------------------------------------------------------------------------')
             print('Delta time between SCI and CAL exceeds the specified timespan (',args.timespan,' h) for the following pair:')
